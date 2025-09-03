@@ -1,0 +1,19 @@
+---
+import Header from '../components/po/Header';
+import '../styles/global.css';
+---
+
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><slot name="title" /></title>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900">
+    <!-- Navbar -->
+    <Header client:load />
+
+    <!-- เนื้อหาหน้า -->
+    <slot />
+  </body>
+</html>
