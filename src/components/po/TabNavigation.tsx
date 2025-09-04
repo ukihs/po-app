@@ -14,10 +14,10 @@ export default function TabNavigation() {
       setRole(r);
       setIsLoading(false);
       
-      // Clear any cached role data
-      if (r) {
+      // Store role in sessionStorage for debugging
+      if (r && u) {
         sessionStorage.setItem('po_user_role', r);
-        sessionStorage.setItem('po_user_email', u?.email || '');
+        sessionStorage.setItem('po_user_email', u.email || '');
       } else {
         sessionStorage.removeItem('po_user_role');
         sessionStorage.removeItem('po_user_email');
@@ -62,9 +62,7 @@ export default function TabNavigation() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-start py-4">
             <div className="text-red-600 text-sm">
-              Error: No role detected. Please check Firestore users collection.
-              <br />
-              User: {user?.email || 'None'} | Role: {role || 'None'}
+              กำลังโหลดข้อมูลผู้ใช้...
             </div>
           </div>
         </div>
@@ -72,15 +70,18 @@ export default function TabNavigation() {
     );
   }
 
+  const getTabClass = (tabName: string, themeColor: string) => {
+    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ";
+    if (activeTab === tabName) {
+      return baseClass + `bg-${themeColor}-100 text-${themeColor}-700 border border-${themeColor}-200`;
+    }
+    return baseClass + "text-gray-600 hover:bg-gray-100 border border-transparent";
+  };
+
   return (
     <div className="w-full bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-start py-4 gap-2">
-          
-          {/* Debug info - จะลบทิ้งทีหลัง */}
-          <div className="text-xs text-gray-400 mr-4 bg-yellow-100 px-2 py-1 rounded">
-            {user?.email} | {role}
-          </div>
           
           {/* BUYER Navigation */}
           {role === 'buyer' && (
@@ -206,9 +207,32 @@ export default function TabNavigation() {
                 </svg>
                 การแจ้งเตือน
               </button>
+
+              <button
+                onClick={() => handleTabChange('tracking', '/orders/tracking')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                  activeTab === 'tracking' 
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
+                </svg>
+                ติดตามสถานะ
+              </button>
             </>
           )}
 
+          {/* Role indicator */}
+          <div className="ml-auto flex items-center">
+            <div className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+              {role === 'buyer' ? 'ผู้ขอซื้อ' :
+               role === 'supervisor' ? 'หัวหน้างาน' :
+               role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
+               'กำลังโหลด...'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
