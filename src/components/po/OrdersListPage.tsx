@@ -11,7 +11,7 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore';
-import { ChevronDown, ChevronRight, Package, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Package, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 
 /** ---------- Constants ---------- */
 const ITEM_CATEGORIES = ['วัตถุดิบ', 'เครื่องมือ', 'วัสดุสิ้นเปลือง', 'Software'] as const;
@@ -74,24 +74,21 @@ export default function OrdersListPage() {
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [err, setErr] = useState<string>('');
+  const [successMessages, setSuccessMessages] = useState<Record<string, string>>({});
 
   /** Role detection with robust fallbacks */
   useEffect(() => {
     let unsubOrders: (() => void) | null = null;
 
     const off = subscribeAuthAndRole(async (authUser, r) => {
-      console.log('OrdersListPage - Auth User:', authUser?.email, 'Role:', r);
-      
       if (!authUser) {
         window.location.href = '/login';
         return;
       }
       setUser(authUser);
 
-      // 1) role จาก auth listener
       let effectiveRole = r as any;
 
-      // 2) fallback จาก localStorage
       if (!effectiveRole) {
         effectiveRole =
           (localStorage.getItem('role') as any) ||
@@ -99,14 +96,12 @@ export default function OrdersListPage() {
           null;
       }
 
-      // 3) fallback จากเอกสาร users/<uid>
       if (!effectiveRole) {
         try {
           const uref = doc(db, 'users', authUser.uid);
           const usnap = await getDoc(uref);
           if (usnap.exists()) {
             effectiveRole = (usnap.data() as any)?.role || null;
-            console.log('Fallback role from Firestore:', effectiveRole);
           }
         } catch (e) {
           console.warn('fetch role fallback error', e);
@@ -114,9 +109,7 @@ export default function OrdersListPage() {
       }
 
       setRole(effectiveRole || null);
-      console.log('Final effective role:', effectiveRole);
 
-      // subscribe orders พร้อม error callback
       if (unsubOrders) unsubOrders();
       const qRef = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       unsubOrders = onSnapshot(
@@ -127,7 +120,6 @@ export default function OrdersListPage() {
             ...(d.data() as any) 
           })) as Order[];
           
-          console.log('Orders loaded:', list.length);
           setOrders(list);
           setErr('');
           setLoading(false);
@@ -140,7 +132,6 @@ export default function OrdersListPage() {
       );
     });
 
-    // Hard stop loading after timeout
     const timeout = setTimeout(() => {
       if (loading) {
         setLoading(false);
@@ -192,17 +183,46 @@ export default function OrdersListPage() {
     }
   };
 
-  // ตั้ง "ประเภทสินค้า" ต่อรายการ - แก้ไข error handling
-  const handleSetItemCategory = async (order: Order, itemIndex: number, category: typeof ITEM_CATEGORIES[number]) => {
-    if (!order?.id || processingOrders.has(order.id)) return;
+  // แสดงข้อความสำเร็จ
+  const showSuccessMessage = (orderItemKey: string, message: string) => {
+    setSuccessMessages(prev => ({ ...prev, [orderItemKey]: message }));
+    setTimeout(() => {
+      setSuccessMessages(prev => {
+        const newMessages = { ...prev };
+        delete newMessages[orderItemKey];
+        return newMessages;
+      });
+    }, 3000);
+  };
+
+  const handleSetItemCategory = async (order: Order, itemIndex: number, category: string) => {
+    const orderItemKey = `${order.id}-${itemIndex}-category`;
+    
+    console.log('Category change:', { orderId: order.id, itemIndex, category });
+
+    if (!order?.id || processingOrders.has(order.id)) {
+      return;
+    }
+
+    if (!category || category === '') {
+      console.log('Empty category selected, skipping');
+      return;
+    }
     
     const ref = doc(db, 'orders', order.id);
     
     try {
       setProcessingOrders((prev) => new Set(prev).add(order.id));
-      console.log(`Setting item category for order ${order.id}, item ${itemIndex}, category: ${category}`);
       
-      // วิธีที่ปลอดภัย - อัปเดตทั้ง field ใน item และ map สำรอง
+      if (role !== 'procurement') {
+        throw new Error(`ไม่มีสิทธิ์ในการอัปเดต: Role ปัจจุบันคือ ${role} แต่ต้องเป็น procurement`);
+      }
+
+      if (!user?.uid) {
+        throw new Error('ยังไม่ได้ล็อกอิน กรุณาล็อกอินใหม่');
+      }
+      
+      // อัปเดตข้อมูล
       const currentItems = order.items || [];
       const updatedItems = currentItems.map((item, idx) => 
         idx === itemIndex ? { ...item, category } : item
@@ -217,11 +237,18 @@ export default function OrdersListPage() {
         updatedAt: serverTimestamp(),
       });
       
-      console.log('Item category updated successfully');
+      console.log('Category updated successfully');
+      showSuccessMessage(orderItemKey, `บันทึกประเภท "${category}" เรียบร้อย`);
+      
     } catch (e: any) {
-      console.error('Error updating item category:', e);
-      // แสดง error แต่ไม่ให้หน้าเด้ง
-      alert(`เกิดข้อผิดพลาดในการอัปเดตประเภทสินค้า: ${e?.message || 'ไม่ทราบสาเหตุ'}`);
+      console.error('Error updating category:', e);
+      let errorMessage = `เกิดข้อผิดพลาดในการอัปเดตประเภทสินค้า: ${e?.message || 'ไม่ทราบสาเหตุ'}`;
+      
+      if (e?.code === 'permission-denied') {
+        errorMessage = `ไม่มีสิทธิ์ในการแก้ไข กรุณาตรวจสอบว่าคุณเป็น "ฝ่ายจัดซื้อ" หรือไม่`;
+      }
+      
+      alert(errorMessage);
     } finally {
       setProcessingOrders((prev) => {
         const s = new Set(prev);
@@ -231,21 +258,34 @@ export default function OrdersListPage() {
     }
   };
 
-  // ตั้ง "สถานะของรายการสินค้า" - แก้ไข error handling
-  const handleSetItemStatus = async (
-    order: Order,
-    itemIndex: number,
-    itemStatus: typeof ITEM_STATUS_G1[number] | typeof ITEM_STATUS_G2[number]
-  ) => {
-    if (!order?.id || processingOrders.has(order.id)) return;
+  const handleSetItemStatus = async (order: Order, itemIndex: number, itemStatus: string) => {
+    const orderItemKey = `${order.id}-${itemIndex}-status`;
+    
+    console.log('Status change:', { orderId: order.id, itemIndex, itemStatus });
+
+    if (!order?.id || processingOrders.has(order.id)) {
+      return;
+    }
+
+    if (!itemStatus || itemStatus === '') {
+      console.log('Empty status selected, skipping');
+      return;
+    }
     
     const ref = doc(db, 'orders', order.id);
     
     try {
       setProcessingOrders((prev) => new Set(prev).add(order.id));
-      console.log(`Setting item status for order ${order.id}, item ${itemIndex}, status: ${itemStatus}`);
       
-      // วิธีที่ปลอดภัย - อัปเดตทั้ง field ใน item และ map สำรอง
+      if (role !== 'procurement') {
+        throw new Error(`ไม่มีสิทธิ์ในการอัปเดต: Role ปัจจุบันคือ ${role} แต่ต้องเป็น procurement`);
+      }
+
+      if (!user?.uid) {
+        throw new Error('ยังไม่ได้ล็อกอิน กรุณาล็อกอินใหม่');
+      }
+      
+      // อัปเดตข้อมูล
       const currentItems = order.items || [];
       const updatedItems = currentItems.map((item, idx) => 
         idx === itemIndex ? { ...item, itemStatus } : item
@@ -260,11 +300,18 @@ export default function OrdersListPage() {
         updatedAt: serverTimestamp(),
       });
       
-      console.log('Item status updated successfully');
+      console.log('Status updated successfully');
+      showSuccessMessage(orderItemKey, `บันทึกสถานะ "${itemStatus}" เรียบร้อย`);
+      
     } catch (e: any) {
-      console.error('Error updating item status:', e);
-      // แสดง error แต่ไม่ให้หน้าเด้ง
-      alert(`เกิดข้อผิดพลาดในการอัปเดตสถานะรายการ: ${e?.message || 'ไม่ทราบสาเหตุ'}`);
+      console.error('Error updating status:', e);
+      let errorMessage = `เกิดข้อผิดพลาดในการอัปเดตสถานะรายการ: ${e?.message || 'ไม่ทราบสาเหตุ'}`;
+      
+      if (e?.code === 'permission-denied') {
+        errorMessage = `ไม่มีสิทธิ์ในการแก้ไข กรุณาตรวจสอบว่าคุณเป็น "ฝ่ายจัดซื้อ" หรือไม่`;
+      }
+      
+      alert(errorMessage);
     } finally {
       setProcessingOrders((prev) => {
         const s = new Set(prev);
@@ -320,11 +367,6 @@ export default function OrdersListPage() {
                   ? 'สำหรับฝ่ายจัดซื้อ - จัดการประเภทสินค้าและสถานะ'
                   : 'ตรวจสอบบทบาทไม่สำเร็จ (แสดงแบบอ่านอย่างเดียว)'}
               </p>
-            </div>
-            <div className="text-xs text-gray-500 bg-slate-50 border rounded px-3 py-2">
-              <div>User: {user?.email || user?.uid}</div>
-              <div>Role: {role || 'unknown'}</div>
-              <div>Orders: {orders.length}</div>
             </div>
           </div>
 
@@ -414,6 +456,8 @@ export default function OrdersListPage() {
                                         const category = item?.category ?? catMap[idx] ?? '';
                                         const itemStatus = item?.itemStatus ?? statusMap[idx] ?? '';
                                         const isProcessing = processingOrders.has(o.id);
+                                        const categoryKey = `${o.id}-${idx}-category`;
+                                        const statusKey = `${o.id}-${idx}-status`;
 
                                         return (
                                           <tr key={idx} className="align-top hover:bg-gray-50">
@@ -436,7 +480,7 @@ export default function OrdersListPage() {
                                                   <select
                                                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     value={category}
-                                                    onChange={(e) => handleSetItemCategory(o, idx, e.target.value as any)}
+                                                    onChange={(e) => handleSetItemCategory(o, idx, e.target.value)}
                                                     disabled={isProcessing}
                                                   >
                                                     <option value="">เลือกประเภท...</option>
@@ -444,10 +488,25 @@ export default function OrdersListPage() {
                                                       <option key={c} value={c}>{c}</option>
                                                     ))}
                                                   </select>
+                                                  
                                                   {category && (
                                                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getItemCategoryColor(category)}`}>
                                                       {category}
                                                     </span>
+                                                  )}
+                                                  
+                                                  {isProcessing && (
+                                                    <div className="text-xs text-blue-600 flex items-center gap-1">
+                                                      <Clock className="w-3 h-3 animate-spin" />
+                                                      กำลังบันทึก...
+                                                    </div>
+                                                  )}
+                                                  
+                                                  {successMessages[categoryKey] && (
+                                                    <div className="text-xs text-green-600 flex items-center gap-1">
+                                                      <CheckCircle className="w-3 h-3" />
+                                                      {successMessages[categoryKey]}
+                                                    </div>
                                                   )}
                                                 </div>
                                               ) : (
@@ -470,7 +529,7 @@ export default function OrdersListPage() {
                                                   <select
                                                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     value={itemStatus}
-                                                    onChange={(e) => handleSetItemStatus(o, idx, e.target.value as any)}
+                                                    onChange={(e) => handleSetItemStatus(o, idx, e.target.value)}
                                                     disabled={isProcessing || !category}
                                                   >
                                                     <option value="">เลือกสถานะ...</option>
@@ -478,13 +537,29 @@ export default function OrdersListPage() {
                                                       <option key={s} value={s}>{s}</option>
                                                     ))}
                                                   </select>
+                                                  
                                                   {itemStatus && (
                                                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getItemStatusColor(itemStatus)}`}>
                                                       {itemStatus}
                                                     </span>
                                                   )}
+                                                  
                                                   {!category && (
                                                     <p className="text-xs text-yellow-600">กรุณาเลือกประเภทก่อน</p>
+                                                  )}
+                                                  
+                                                  {isProcessing && (
+                                                    <div className="text-xs text-blue-600 flex items-center gap-1">
+                                                      <Clock className="w-3 h-3 animate-spin" />
+                                                      กำลังบันทึก...
+                                                    </div>
+                                                  )}
+                                                  
+                                                  {successMessages[statusKey] && (
+                                                    <div className="text-xs text-green-600 flex items-center gap-1">
+                                                      <CheckCircle className="w-3 h-3" />
+                                                      {successMessages[statusKey]}
+                                                    </div>
                                                   )}
                                                 </div>
                                               ) : (
