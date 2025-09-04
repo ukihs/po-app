@@ -7,10 +7,8 @@ import type { Item } from '../../lib/poApi';
 export default function CreateOrderPage() {
   const [submitted, setSubmitted] = useState(false);
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [requester, setRequester] = useState(''); // ไม่มี field แผนกแล้ว
-  const [items, setItems] = useState<Item[]>([
-    { no: 1, description: '', receivedDate: '', quantity: '', amount: '' },
-  ]);
+  const [requester, setRequester] = useState('');
+  const [items, setItems] = useState<Item[]>([]);
   const [saving, setSaving] = useState(false);
 
   // เติมชื่อผู้ใช้ (displayName/email) อัตโนมัติ
@@ -20,37 +18,33 @@ export default function CreateOrderPage() {
     setRequester(u.displayName || (u.email ?? '').split('@')[0]);
   }, []);
 
-  const addItem = () =>
-    setItems((prev) => [
-      ...prev,
-      { no: prev.length + 1, description: '', receivedDate: '', quantity: '', amount: '' },
-    ]);
+  // เพิ่ม item ใหม่ในตาราง
+  const addItem = () => {
+    const newItem: Item = {
+      no: items.length + 1,
+      description: '',
+      receivedDate: '',
+      quantity: '',
+      amount: ''
+    };
+    setItems(prev => [...prev, newItem]);
+  };
 
-  const removeItem = (idx: number) =>
-    setItems((prev) => prev.filter((_, i) => i !== idx).map((it, i) => ({ ...it, no: i + 1 })));
+  // ลบ item
+  const removeItem = (idx: number) => {
+    setItems(prev => prev.filter((_, i) => i !== idx).map((it, i) => ({ ...it, no: i + 1 })));
+  };
 
-  const updateItem = (idx: number, field: keyof Item, value: string) =>
-    setItems((prev) => {
-      const next = [...prev];
-      (next[idx] as any)[field] = value;
-      return next;
-    });
-
-  const handleEnterToAdd = (e: React.KeyboardEvent<HTMLInputElement>, rowIndex: number) => {
-    if (e.key !== 'Enter') return;
-    const it = items[rowIndex];
-    const ready =
-      it.description.trim() &&
-      !!it.receivedDate &&
-      toNum(it.quantity) > 0 &&
-      toNum(it.amount) > 0;
-    const isLast = rowIndex === items.length - 1;
-    if (ready && isLast) addItem();
+  // อัปเดตข้อมูล item
+  const updateItem = (idx: number, field: keyof Omit<Item, 'no'>, value: string) => {
+    setItems(prev => prev.map((item, i) => 
+      i === idx ? { ...item, [field]: value } : item
+    ));
   };
 
   const invalid = () =>
-    !requester.trim() ||
-    items.some((i) => !i.description.trim() || toNum(i.quantity) <= 0 || toNum(i.amount) <= 0);
+    !requester.trim() || items.length === 0 || 
+    items.some(item => !item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
 
   const doCreate = async () => {
     setSubmitted(true);
@@ -60,9 +54,7 @@ export default function CreateOrderPage() {
     }
     try {
       setSaving(true);
-      // ✅ ต้องส่ง requester (ไม่ใช่ requesterName)
       await createOrder({ date, requesterName: requester, items });
-      // เสร็จแล้วพาไปหน้าติดตามสถานะ
       window.location.href = '/orders/tracking';
     } catch (e: any) {
       alert(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
@@ -72,157 +64,181 @@ export default function CreateOrderPage() {
   };
 
   return (
-    <div className="container-nice page-narrow py-6 md:py-10">
-      <div className="card">
-        <div className="card-pad">
-          <h2 className="text-xl md:text-2xl font-semibold mb-6">สร้างใบสั่งซื้อใหม่</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">สร้างใบสั่งซื้อใหม่</h2>
 
           {/* ข้อมูลทั่วไป */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">วันที่</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
               <input
                 type="date"
-                className="input"
+                className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20 transition-all duration-200"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">ผู้สั่งซื้อ</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ผู้สั่งซื้อ</label>
               <input
-                className={`input ${submitted && !requester ? 'border-rose-400' : ''}`}
+                className={`w-full h-12 px-4 rounded-xl border bg-gray-50 text-gray-900 focus:bg-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20 transition-all duration-200 ${
+                  submitted && !requester ? 'border-red-400' : 'border-gray-200'
+                }`}
                 placeholder="ชื่อผู้สั่งซื้อ"
                 value={requester}
                 onChange={(e) => setRequester(e.target.value)}
               />
             </div>
-            {/* แผนก — ลบออกแล้ว */}
           </div>
 
-          {/* รายการสินค้า */}
-          <div className="mb-6">
-            <div className="border rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80">
-                <h3 className="text-lg font-medium">รายการสินค้า</h3>
-                <button type="button" onClick={addItem} className="btn btn-primary btn-sm">
-                  + เพิ่มรายการ
-                </button>
-              </div>
+          {/* ตารางรายการสินค้า */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">รายการสินค้า</h3>
+              <button 
+                type="button" 
+                onClick={addItem}
+                className="btn btn-primary btn-sm rounded-xl text-white font-medium hover:shadow-lg transition-all duration-200"
+                style={{ backgroundColor: '#64D1E3', borderColor: '#64D1E3', color: 'white' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-1">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                เพิ่มรายการ
+              </button>
+            </div>
 
-              <div className="max-h-80 overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-slate-50/95 backdrop-blur z-10">
-                    <tr className="text-left text-slate-600">
-                      <th className="px-3 py-2 w-16">ลำดับ</th>
-                      <th className="px-3 py-2">รายการที่ขอซื้อ</th>
-                      <th className="px-3 py-2 w-44">วันที่ต้องการรับ</th>
-                      <th className="px-3 py-2 w-36">จำนวน</th>
-                      <th className="px-3 py-2 w-44 text-right">ราคา/หน่วย (บาท)</th>
-                      <th className="px-3 py-2 w-44 text-right">รวม (บาท)</th>
-                      <th className="px-3 py-2 w-12"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {items.map((it, idx) => {
-                      const sum = toNum(it.quantity) * toNum(it.amount);
-                      const rowInvalid =
-                        submitted &&
-                        (!it.description.trim() ||
-                          toNum(it.quantity) <= 0 ||
-                          toNum(it.amount) <= 0);
-                      return (
-                        <tr
-                          key={idx}
-                          className={`align-top odd:bg-white even:bg-slate-50/40 hover:bg-slate-50 ${
-                            rowInvalid ? 'bg-rose-50' : ''
-                          }`}
-                        >
-                          <td className="px-3 py-2">{it.no}</td>
-                          <td className="px-3 py-2">
-                            <input
-                              className={`input ${submitted && !it.description ? 'border-rose-400' : ''}`}
-                              placeholder="รายละเอียดสินค้า"
-                              value={it.description}
-                              onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                            />
-                          </td>
-                          <td className="px-3 py-2">
-                            <input
-                              type="date"
-                              className="input"
-                              value={it.receivedDate}
-                              onChange={(e) => updateItem(idx, 'receivedDate', e.target.value)}
-                            />
-                          </td>
-                          <td className="px-3 py-2">
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              pattern="[0-9.,]*"
-                              className={`input ${submitted && toNum(it.quantity) <= 0 ? 'border-rose-400' : ''}`}
-                              placeholder="จำนวน"
-                              value={it.quantity}
-                              onInput={(e) =>
-                                updateItem(idx, 'quantity', (e.target as HTMLInputElement).value)
-                              }
-                            />
-                          </td>
-                          <td className="px-3 py-2">
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              pattern="[0-9.,]*"
-                              className={`input text-right ${
-                                submitted && toNum(it.amount) <= 0 ? 'border-rose-400' : ''
-                              }`}
-                              placeholder="ราคา"
-                              value={it.amount}
-                              onInput={(e) =>
-                                updateItem(idx, 'amount', (e.target as HTMLInputElement).value)
-                              }
-                              onKeyDown={(e) => handleEnterToAdd(e, idx)}
-                            />
-                          </td>
-                          <td className="px-3 py-2 text-right tabular-nums">
-                            {sum.toLocaleString('th-TH')}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {items.length > 1 && (
-                              <button
-                                type="button"
-                                className="btn btn-red btn-sm"
-                                onClick={() => removeItem(idx)}
-                              >
-                                ลบ
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <div className="border border-gray-200 rounded-xl overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr className="text-left text-gray-600 text-sm">
+                    <th className="px-4 py-3 font-medium w-16">ลำดับ</th>
+                    <th className="px-4 py-3 font-medium">รายการที่ขอซื้อ</th>
+                    <th className="px-4 py-3 font-medium w-40">วันที่ต้องการรับ</th>
+                    <th className="px-4 py-3 font-medium w-24 text-right">จำนวน</th>
+                    <th className="px-4 py-3 font-medium w-32 text-right">ราคา/หน่วย (บาท)</th>
+                    <th className="px-4 py-3 font-medium w-32 text-right">รวม (บาท)</th>
+                    <th className="px-4 py-3 font-medium w-16"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {items.map((item, idx) => {
+                    const total = toNum(item.quantity) * toNum(item.amount);
+                    const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
+                    
+                    return (
+                      <tr key={idx} className={`hover:bg-gray-50 ${hasError ? 'bg-red-50' : ''}`}>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.no}</td>
+                        
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              submitted && !item.description.trim() ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                            }`}
+                            placeholder="ระบุรายละเอียดสินค้า"
+                            value={item.description}
+                            onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                          />
+                        </td>
+                        
+                        <td className="px-4 py-3">
+                          <input
+                            type="date"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            value={item.receivedDate}
+                            onChange={(e) => updateItem(idx, 'receivedDate', e.target.value)}
+                          />
+                        </td>
+                        
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className={`w-full px-3 py-2 text-sm border rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              submitted && toNum(item.quantity) <= 0 ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                            }`}
+                            placeholder="จำนวน"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                          />
+                        </td>
+                        
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className={`w-full px-3 py-2 text-sm border rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              submitted && toNum(item.amount) <= 0 ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                            }`}
+                            placeholder="ราคา"
+                            value={item.amount}
+                            onChange={(e) => updateItem(idx, 'amount', e.target.value)}
+                          />
+                        </td>
+                        
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                          {total > 0 ? total.toLocaleString('th-TH') : '0'}
+                        </td>
+                        
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium p-1 rounded hover:bg-red-100"
+                            title="ลบรายการ"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              
+              {items.length === 0 && (
+                <div className="p-12 text-center">
+                  <div className="text-gray-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="mx-auto h-12 w-12">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-4.5B4.875 8.25 4.5 8.625 4.5 12v2.625m15 0a3.375 3.375 0 0 1-3.375 3.375h-4.5a3.375 3.375 0 0 1-3.375-3.375m15 0V17a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-.75m15 0V16a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25V16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">ยังไม่มีรายการสินค้า</h3>
+                  <p className="text-sm text-gray-500 mt-1">คลิก "เพิ่มรายการ" เพื่อเพิ่มสินค้าที่ต้องการสั่งซื้อ</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* สรุป + ส่ง */}
-          <div className="mt-6">
-            <div className="glass border rounded-2xl px-4 py-3 flex items-center justify-between shadow-sm">
-              <div className="text-sm text-slate-600">
-                รวมเป็นเงิน:
-                <span className="ml-2 font-semibold text-slate-900">
+          {/* สรุปและปุ่มส่ง */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between">
+              <div className="text-lg">
+                <span className="text-gray-600">รวมเป็นเงิน: </span>
+                <span className="font-bold text-gray-900 text-xl">
                   {grandTotal(items).toLocaleString('th-TH')} บาท
                 </span>
               </div>
               <button
                 type="button"
                 onClick={doCreate}
-                disabled={saving}
-                className="btn btn-green px-6 py-3 disabled:opacity-60"
+                disabled={saving || invalid()}
+                className="btn btn-primary btn-lg rounded-xl px-8 text-white font-medium hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: '#64D1E3', borderColor: '#64D1E3', color: 'white' }}
               >
-                {saving ? 'กำลังบันทึก...' : 'สร้างใบสั่งซื้อและส่งขออนุมัติ'}
+                {saving ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm mr-2"></span>
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  'สร้างใบสั่งซื้อและส่งขออนุมัติ'
+                )}
               </button>
             </div>
           </div>

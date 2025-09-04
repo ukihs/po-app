@@ -1,0 +1,11 @@
+---
+import Header from "../../components/po/Header";
+import OrderDetailPage from "../../components/po/OrderDetailPage";
+const { id } = Astro.params;
+---
+<html lang="th">
+  <body>
+    <Header client:load />
+    <OrderDetailPage client:load orderId={id} />
+  </body>
+</html>

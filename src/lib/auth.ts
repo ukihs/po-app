@@ -8,25 +8,40 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth, db } from './firebase';
-import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 
 type Role = 'buyer' | 'supervisor' | 'procurement';
 
-// สร้าง/อัปเดตข้อมูลผู้ใช้ใน Firestore (ตั้งค่า role เริ่มต้น = buyer)
+// สร้าง/อัปเดตข้อมูลผู้ใช้ใน Firestore (ไม่เขียนทับ role ที่มีอยู่)
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
-  await setDoc(
-    ref,
-    {
+  
+  // ตรวจสอบว่ามี document อยู่แล้วหรือไม่
+  const existingDoc = await getDoc(ref);
+  
+  if (existingDoc.exists()) {
+    // ถ้ามี document แล้ว อัปเดตเฉพาะ fields ที่จำเป็น (ไม่ทำ role)
+    await setDoc(
+      ref,
+      {
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: displayName ?? user.displayName ?? (user.email?.split('@')[0] ?? ''),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } else {
+    // ถ้าไม่มี document สร้างใหม่พร้อม role เริ่มต้น
+    await setDoc(ref, {
       uid: user.uid,
       email: user.email ?? '',
       displayName: displayName ?? user.displayName ?? (user.email?.split('@')[0] ?? ''),
-      role: 'buyer',
-      updatedAt: serverTimestamp(),
+      role: 'buyer', // ตั้ง role เริ่มต้นเฉพาะตอนสร้างใหม่
       createdAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+      updatedAt: serverTimestamp(),
+    });
+  }
 }
 
 // สมัครสมาชิก
@@ -37,10 +52,21 @@ export async function signUp(email: string, password: string, displayName?: stri
   return user;
 }
 
-// ล็อกอิน
+// ล็อกอิน - ไม่เรียก ensureUserDoc เพื่อป้องกันการเขียนทับ role
 export async function signIn(email: string, password: string) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
-  await ensureUserDoc(user);
+  
+  // เรียก ensureUserDoc เฉพาะเมื่อจำเป็น (เผื่อ user document หาย)
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      await ensureUserDoc(user);
+    }
+  } catch (error) {
+    console.warn('Failed to check/create user document:', error);
+  }
+  
   return user;
 }
 
@@ -65,12 +91,22 @@ export function subscribeAuthAndRole(
       return;
     }
 
-    // เผื่อข้อมูลผู้ใช้ยังไม่ถูกสร้าง
-    ensureUserDoc(user).catch(() => {});
     const ref = doc(db, 'users', user.uid);
     offUserDoc = onSnapshot(ref, (snap) => {
-      const role = (snap.data()?.role ?? 'buyer') as Role;
-      cb(user, role);
+      if (snap.exists()) {
+        const role = (snap.data()?.role ?? 'buyer') as Role;
+        console.log('Auth subscription - User:', user.email, 'Role:', role);
+        cb(user, role);
+      } else {
+        console.warn('User document not found, creating...');
+        // สร้าง document ถ้าไม่มี
+        ensureUserDoc(user).then(() => {
+          // หลังสร้างแล้วจะ trigger onSnapshot อีกครั้ง
+        }).catch(console.error);
+      }
+    }, (error) => {
+      console.error('Auth subscription error:', error);
+      cb(user, null);
     });
   });
 
