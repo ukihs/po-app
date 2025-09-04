@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { type Order } from '../../lib/poApi';
 import { subscribeAuthAndRole } from '../../lib/auth';
 import { db } from '../../lib/firebase';
 import {
@@ -7,21 +6,64 @@ import {
   onSnapshot,
   doc,
   updateDoc,
-  setDoc,
   serverTimestamp,
   getDoc,
   query,
+  orderBy,
 } from 'firebase/firestore';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Package, AlertTriangle } from 'lucide-react';
 
 /** ---------- Constants ---------- */
-const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
+const ITEM_CATEGORIES = ['วัตถุดิบ', 'เครื่องมือ', 'วัสดุสิ้นเปลือง', 'Software'] as const;
 
-// สถานะต่อ “รายการสินค้า”
+// สถานะต่อ "รายการสินค้า"
 const ITEM_STATUS_G1 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ', 'สินค้าเข้าคลัง'] as const; // วัตถุดิบ
 const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ'] as const;                   // กลุ่มอื่น
+
 const getItemStatusOptions = (category?: string) =>
   category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
+
+const getItemCategoryColor = (category: string) => {
+  switch (category) {
+    case 'วัตถุดิบ': return 'bg-green-100 text-green-800 border-green-200';
+    case 'เครื่องมือ': return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'วัสดุสิ้นเปลือง': return 'bg-orange-100 text-orange-800 border-orange-200';
+    case 'Software': return 'bg-purple-100 text-purple-800 border-purple-200';
+    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+const getItemStatusColor = (status: string) => {
+  switch (status) {
+    case 'จัดซื้อ': return 'bg-yellow-100 text-yellow-800';
+    case 'ของมาส่ง': return 'bg-blue-100 text-blue-800';
+    case 'ส่งมอบของ': return 'bg-purple-100 text-purple-800';
+    case 'สินค้าเข้าคลัง': return 'bg-green-100 text-green-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+type Order = {
+  id: string;
+  orderNo?: number;
+  date?: string;
+  requester?: string;
+  requesterName?: string;
+  totalAmount?: number;
+  total?: number;
+  status: 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
+  createdAt?: any;
+  items?: Array<{
+    description?: string;
+    quantity?: number;
+    amount?: number;
+    lineTotal?: number;
+    category?: string;
+    itemStatus?: string;
+  }>;
+  itemsCategories?: Record<number, string>;
+  itemsStatuses?: Record<number, string>;
+};
 
 /** ---------- Page Component ---------- */
 export default function OrdersListPage() {
@@ -38,6 +80,8 @@ export default function OrdersListPage() {
     let unsubOrders: (() => void) | null = null;
 
     const off = subscribeAuthAndRole(async (authUser, r) => {
+      console.log('OrdersListPage - Auth User:', authUser?.email, 'Role:', r);
+      
       if (!authUser) {
         window.location.href = '/login';
         return;
@@ -62,6 +106,7 @@ export default function OrdersListPage() {
           const usnap = await getDoc(uref);
           if (usnap.exists()) {
             effectiveRole = (usnap.data() as any)?.role || null;
+            console.log('Fallback role from Firestore:', effectiveRole);
           }
         } catch (e) {
           console.warn('fetch role fallback error', e);
@@ -69,20 +114,20 @@ export default function OrdersListPage() {
       }
 
       setRole(effectiveRole || null);
+      console.log('Final effective role:', effectiveRole);
 
       // subscribe orders พร้อม error callback
       if (unsubOrders) unsubOrders();
-      const qRef = query(collection(db, 'orders'));
+      const qRef = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       unsubOrders = onSnapshot(
         qRef,
         (snap) => {
-          const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Order[];
-          // เรียงใหม่สุดก่อนถ้ามี createdAt
-          list.sort((a: any, b: any) => {
-            const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-            const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-            return tb - ta;
-          });
+          const list = snap.docs.map((d) => ({ 
+            id: d.id, 
+            ...(d.data() as any) 
+          })) as Order[];
+          
+          console.log('Orders loaded:', list.length);
           setOrders(list);
           setErr('');
           setLoading(false);
@@ -95,18 +140,24 @@ export default function OrdersListPage() {
       );
     });
 
-    // Hard stop loading
-    const t = setTimeout(() => setLoading(false), 5000);
+    // Hard stop loading after timeout
+    const timeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setErr('การโหลดข้อมูลใช้เวลานานเกินไป');
+      }
+    }, 10000);
 
     return () => {
-      clearTimeout(t);
+      clearTimeout(timeout);
       if (unsubOrders) unsubOrders();
       off();
     };
-  }, []);
+  }, [loading]);
 
-  const toggleExpand = (orderId: string) =>
+  const toggleExpand = (orderId: string) => {
     setExpanded((prev) => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
 
   const fmt = (ts: any) =>
     ts?.toDate
@@ -119,33 +170,58 @@ export default function OrdersListPage() {
         })
       : '—';
 
-  const thaiStatus = (s: Order['status']) =>
-    s === 'pending' ? 'รออนุมัติ'
-    : s === 'approved' ? 'อนุมัติแล้ว'
-    : s === 'rejected' ? 'ไม่อนุมัติ'
-    : s === 'in_progress' ? 'กำลังดำเนินการ'
-    : s === 'delivered' ? 'ได้รับแล้ว'
-    : (s as string);
+  const thaiStatus = (s: Order['status']) => {
+    switch (s) {
+      case 'pending': return 'รออนุมัติ';
+      case 'approved': return 'อนุมัติแล้ว';
+      case 'rejected': return 'ไม่อนุมัติ';
+      case 'in_progress': return 'กำลังดำเนินการ';
+      case 'delivered': return 'ได้รับแล้ว';
+      default: return s as string;
+    }
+  };
 
-  const getStatusColor = (s: Order['status']) =>
-    s === 'pending' ? 'bg-yellow-100 text-yellow-800'
-    : s === 'approved' ? 'bg-green-100 text-green-800'
-    : s === 'rejected' ? 'bg-red-100 text-red-800'
-    : s === 'in_progress' ? 'bg-blue-100 text-blue-800'
-    : s === 'delivered' ? 'bg-green-100 text-green-800'
-    : 'bg-gray-100 text-gray-800';
+  const getStatusColor = (s: Order['status']) => {
+    switch (s) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'delivered': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-  // ตั้ง “ประเภทสินค้า” ต่อรายการ
-  const handleSetItemCategory = async (order: any, itemIndex: number, category: (typeof ITEM_CATEGORIES)[number]) => {
+  // ตั้ง "ประเภทสินค้า" ต่อรายการ - แก้ไข error handling
+  const handleSetItemCategory = async (order: Order, itemIndex: number, category: typeof ITEM_CATEGORIES[number]) => {
+    if (!order?.id || processingOrders.has(order.id)) return;
+    
     const ref = doc(db, 'orders', order.id);
+    
     try {
       setProcessingOrders((prev) => new Set(prev).add(order.id));
-      // Plan A: อัปเดตลง array path
-      await updateDoc(ref, { [`items.${itemIndex}.category`]: category as any, updatedAt: serverTimestamp() });
+      console.log(`Setting item category for order ${order.id}, item ${itemIndex}, category: ${category}`);
+      
+      // วิธีที่ปลอดภัย - อัปเดตทั้ง field ใน item และ map สำรอง
+      const currentItems = order.items || [];
+      const updatedItems = currentItems.map((item, idx) => 
+        idx === itemIndex ? { ...item, category } : item
+      );
+      
+      const existingMap = order.itemsCategories || {};
+      const updatedMap = { ...existingMap, [itemIndex]: category };
+
+      await updateDoc(ref, {
+        items: updatedItems,
+        itemsCategories: updatedMap,
+        updatedAt: serverTimestamp(),
+      });
+      
+      console.log('Item category updated successfully');
     } catch (e: any) {
-      // Plan B: ใช้ map สำรอง itemsCategories
-      const existingMap = (order as any).itemsCategories || {};
-      await setDoc(ref, { itemsCategories: { ...existingMap, [itemIndex]: category }, updatedAt: serverTimestamp() }, { merge: true });
+      console.error('Error updating item category:', e);
+      // แสดง error แต่ไม่ให้หน้าเด้ง
+      alert(`เกิดข้อผิดพลาดในการอัปเดตประเภทสินค้า: ${e?.message || 'ไม่ทราบสาเหตุ'}`);
     } finally {
       setProcessingOrders((prev) => {
         const s = new Set(prev);
@@ -155,21 +231,40 @@ export default function OrdersListPage() {
     }
   };
 
-  // ตั้ง “สถานะของรายการสินค้า”
+  // ตั้ง "สถานะของรายการสินค้า" - แก้ไข error handling
   const handleSetItemStatus = async (
-    order: any,
+    order: Order,
     itemIndex: number,
-    itemStatus: (typeof ITEM_STATUS_G1 | typeof ITEM_STATUS_G2)[number]
+    itemStatus: typeof ITEM_STATUS_G1[number] | typeof ITEM_STATUS_G2[number]
   ) => {
+    if (!order?.id || processingOrders.has(order.id)) return;
+    
     const ref = doc(db, 'orders', order.id);
+    
     try {
       setProcessingOrders((prev) => new Set(prev).add(order.id));
-      // Plan A: อัปเดตลง array path
-      await updateDoc(ref, { [`items.${itemIndex}.itemStatus`]: itemStatus as any, updatedAt: serverTimestamp() });
+      console.log(`Setting item status for order ${order.id}, item ${itemIndex}, status: ${itemStatus}`);
+      
+      // วิธีที่ปลอดภัย - อัปเดตทั้ง field ใน item และ map สำรอง
+      const currentItems = order.items || [];
+      const updatedItems = currentItems.map((item, idx) => 
+        idx === itemIndex ? { ...item, itemStatus } : item
+      );
+      
+      const existingMap = order.itemsStatuses || {};
+      const updatedMap = { ...existingMap, [itemIndex]: itemStatus };
+
+      await updateDoc(ref, {
+        items: updatedItems,
+        itemsStatuses: updatedMap,
+        updatedAt: serverTimestamp(),
+      });
+      
+      console.log('Item status updated successfully');
     } catch (e: any) {
-      // Plan B: map สำรอง itemsStatuses
-      const existingMap = (order as any).itemsStatuses || {};
-      await setDoc(ref, { itemsStatuses: { ...existingMap, [itemIndex]: itemStatus }, updatedAt: serverTimestamp() }, { merge: true });
+      console.error('Error updating item status:', e);
+      // แสดง error แต่ไม่ให้หน้าเด้ง
+      alert(`เกิดข้อผิดพลาดในการอัปเดตสถานะรายการ: ${e?.message || 'ไม่ทราบสาเหตุ'}`);
     } finally {
       setProcessingOrders((prev) => {
         const s = new Set(prev);
@@ -191,14 +286,28 @@ export default function OrdersListPage() {
     );
   }
 
+  if (err) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="alert alert-error mb-4">
+          <AlertTriangle className="w-5 h-5" />
+          <div>
+            <h3 className="font-bold">ไม่สามารถโหลดข้อมูลได้</h3>
+            <div className="text-sm">{err}</div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn btn-sm mt-2"
+            >
+              รีโหลดหน้า
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {err && (
-        <div className="alert alert-error mb-4 text-sm">
-          <span>ไม่สามารถอ่านข้อมูลได้: {err}</span>
-        </div>
-      )}
-
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -208,12 +317,14 @@ export default function OrdersListPage() {
                 {role === 'supervisor'
                   ? 'สำหรับหัวหน้างาน - อนุมัติใบสั่งซื้อ'
                   : role === 'procurement'
-                  ? 'สำหรับฝ่ายจัดซื้อ - จัดประเภทสินค้า & สถานะต่อรายการ'
-                  : 'ยังตรวจสอบบทบาทไม่สำเร็จ (แสดงแบบอ่านอย่างเดียว)'}
+                  ? 'สำหรับฝ่ายจัดซื้อ - จัดการประเภทสินค้าและสถานะ'
+                  : 'ตรวจสอบบทบาทไม่สำเร็จ (แสดงแบบอ่านอย่างเดียว)'}
               </p>
             </div>
-            <div className="text-xs text-gray-500 bg-slate-50 border rounded px-2 py-1">
-              User: {user?.email || user?.uid} | Role: {role || 'unknown'} | Orders: {orders.length}
+            <div className="text-xs text-gray-500 bg-slate-50 border rounded px-3 py-2">
+              <div>User: {user?.email || user?.uid}</div>
+              <div>Role: {role || 'unknown'}</div>
+              <div>Orders: {orders.length}</div>
             </div>
           </div>
 
@@ -221,125 +332,185 @@ export default function OrdersListPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50/80">
                 <tr className="text-left text-slate-600">
-                  <th className="px-4 py-3 font-medium">#</th>
+                  <th className="px-4 py-3 font-medium w-24">เลขที่</th>
                   <th className="px-4 py-3 font-medium">วันที่</th>
                   <th className="px-4 py-3 font-medium">ผู้ขอ</th>
                   <th className="px-4 py-3 text-right font-medium">ยอดรวม</th>
                   <th className="px-4 py-3 font-medium">สถานะใบ</th>
-                  {/* เอาคอลัมน์ “จัดการ” ออกตามที่ขอ */}
+                  <th className="px-4 py-3 font-medium w-20">รายการ</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-gray-200">
-                {orders.map((o: any) => {
+                {orders.map((o) => {
                   const isOpen = !!expanded[o.id];
+                  const orderNumber = o.orderNo ?? 0;
+                  const orderDate = o.date || fmt(o.createdAt);
+                  const requesterName = o.requester || o.requesterName || '-';
+                  const totalAmount = (o.totalAmount ?? o.total ?? 0);
+                  const itemsCount = o.items?.length || 0;
+
                   return (
                     <React.Fragment key={o.id}>
                       <tr className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium text-gray-900">
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 hover:underline"
-                            onClick={() => toggleExpand(o.id)}
-                            title={isOpen ? 'ซ่อนรายการ' : 'แสดงรายการ'}
-                          >
-                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                            #{o.orderNo ?? '-'}
-                          </button>
+                          #{orderNumber}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{o.date || fmt(o.createdAt)}</td>
-                        <td className="px-4 py-3 text-gray-900">{o.requester || o.requesterName || '-'}</td>
+                        <td className="px-4 py-3 text-gray-600">{orderDate}</td>
+                        <td className="px-4 py-3 text-gray-900">{requesterName}</td>
                         <td className="px-4 py-3 text-right tabular-nums font-medium text-gray-900">
-                          {(o.totalAmount ?? o.total ?? 0).toLocaleString('th-TH')} บาท
+                          {totalAmount.toLocaleString('th-TH')} บาท
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(o.status)}`}>
                             {thaiStatus(o.status)}
                           </span>
                         </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            onClick={() => toggleExpand(o.id)}
+                            title={isOpen ? 'ซ่อนรายการ' : 'แสดงรายการ'}
+                          >
+                            {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                            {itemsCount}
+                          </button>
+                        </td>
                       </tr>
 
                       {/* แถวรายการสินค้า */}
                       {isOpen && (
                         <tr className="bg-gray-50/60">
-                          <td colSpan={5} className="px-6 pb-5">
+                          <td colSpan={6} className="px-6 pb-5 pt-2">
                             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                              <div className="px-4 py-3 text-sm font-medium text-gray-700">รายการสินค้า</div>
-                              <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                  <thead className="bg-slate-50">
-                                    <tr className="text-left text-slate-600">
-                                      <th className="px-4 py-2 font-medium">#</th>
-                                      <th className="px-4 py-2 font-medium">รายการ</th>
-                                      <th className="px-4 py-2 font-medium">จำนวน</th>
-                                      <th className="px-4 py-2 font-medium">ราคา/หน่วย</th>
-                                      <th className="px-4 py-2 font-medium">รวม</th>
-                                      <th className="px-4 py-2 font-medium w-[220px]">ประเภทสินค้า</th>
-                                      <th className="px-4 py-2 font-medium w-[220px]">สถานะรายการ</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-200">
-                                    {(o.items || []).map((it: any, idx: number) => {
-                                      const catMap = (o as any).itemsCategories || {};
-                                      const statusMap = (o as any).itemsStatuses || {};
-                                      const category = it?.category ?? catMap[idx] ?? '';
-                                      const itemStatus = it?.itemStatus ?? statusMap[idx] ?? '';
-
-                                      return (
-                                        <tr key={idx} className="align-top">
-                                          <td className="px-4 py-2 text-gray-700">{idx + 1}</td>
-                                          <td className="px-4 py-2 text-gray-900">{it?.description || '-'}</td>
-                                          <td className="px-4 py-2 text-gray-700">{it?.quantity ?? '-'}</td>
-                                          <td className="px-4 py-2 text-gray-700">
-                                            {it?.amount != null ? Number(it.amount).toLocaleString('th-TH') : '-'}
-                                          </td>
-                                          <td className="px-4 py-2 text-gray-900 font-medium">
-                                            {it?.lineTotal != null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}
-                                          </td>
-
-                                          {/* ประเภทสินค้า */}
-                                          <td className="px-4 py-2">
-                                            {role === 'procurement' ? (
-                                              <select
-                                                className="select select-sm select-bordered rounded-lg w-full"
-                                                value={category}
-                                                onChange={(e) => handleSetItemCategory(o, idx, e.target.value as any)}
-                                                disabled={processingOrders.has(o.id)}
-                                              >
-                                                <option value="" disabled>เลือกประเภท…</option>
-                                                {ITEM_CATEGORIES.map(c => (
-                                                  <option key={c} value={c}>{c}</option>
-                                                ))}
-                                              </select>
-                                            ) : (
-                                              <span className="text-gray-600">{category || '-'}</span>
-                                            )}
-                                          </td>
-
-                                          {/* สถานะรายการ */}
-                                          <td className="px-4 py-2">
-                                            {role === 'procurement' ? (
-                                              <select
-                                                className="select select-sm select-bordered rounded-lg w-full"
-                                                value={itemStatus}
-                                                onChange={(e) => handleSetItemStatus(o, idx, e.target.value as any)}
-                                                disabled={processingOrders.has(o.id)}
-                                              >
-                                                <option value="" disabled>เลือกสถานะ…</option>
-                                                {getItemStatusOptions(category).map(s => (
-                                                  <option key={s} value={s}>{s}</option>
-                                                ))}
-                                              </select>
-                                            ) : (
-                                              <span className="text-gray-600">{itemStatus || '-'}</span>
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
+                              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <Package className="w-4 h-4 text-gray-600" />
+                                  <span className="text-sm font-medium text-gray-700">
+                                    รายการสินค้า ({itemsCount} รายการ)
+                                  </span>
+                                </div>
                               </div>
+                              
+                              {itemsCount > 0 ? (
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-sm">
+                                    <thead className="bg-slate-50">
+                                      <tr className="text-left text-slate-600">
+                                        <th className="px-4 py-3 font-medium w-12">#</th>
+                                        <th className="px-4 py-3 font-medium">รายการ</th>
+                                        <th className="px-4 py-3 font-medium w-20 text-right">จำนวน</th>
+                                        <th className="px-4 py-3 font-medium w-24 text-right">ราคา/หน่วย</th>
+                                        <th className="px-4 py-3 font-medium w-24 text-right">รวม</th>
+                                        <th className="px-4 py-3 font-medium w-40">ประเภทสินค้า</th>
+                                        <th className="px-4 py-3 font-medium w-40">สถานะรายการ</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                      {(o.items || []).map((item, idx) => {
+                                        const catMap = o.itemsCategories || {};
+                                        const statusMap = o.itemsStatuses || {};
+                                        const category = item?.category ?? catMap[idx] ?? '';
+                                        const itemStatus = item?.itemStatus ?? statusMap[idx] ?? '';
+                                        const isProcessing = processingOrders.has(o.id);
+
+                                        return (
+                                          <tr key={idx} className="align-top hover:bg-gray-50">
+                                            <td className="px-4 py-3 text-gray-700 font-medium">{idx + 1}</td>
+                                            <td className="px-4 py-3">
+                                              <div className="text-gray-900 font-medium">{item?.description || '-'}</div>
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-gray-700">{item?.quantity ?? '-'}</td>
+                                            <td className="px-4 py-3 text-right text-gray-700">
+                                              {item?.amount != null ? Number(item.amount).toLocaleString('th-TH') : '-'}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-gray-900 font-medium">
+                                              {item?.lineTotal != null ? Number(item.lineTotal).toLocaleString('th-TH') : '-'}
+                                            </td>
+
+                                            {/* ประเภทสินค้า */}
+                                            <td className="px-4 py-3">
+                                              {role === 'procurement' ? (
+                                                <div className="space-y-2">
+                                                  <select
+                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    value={category}
+                                                    onChange={(e) => handleSetItemCategory(o, idx, e.target.value as any)}
+                                                    disabled={isProcessing}
+                                                  >
+                                                    <option value="">เลือกประเภท...</option>
+                                                    {ITEM_CATEGORIES.map(c => (
+                                                      <option key={c} value={c}>{c}</option>
+                                                    ))}
+                                                  </select>
+                                                  {category && (
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getItemCategoryColor(category)}`}>
+                                                      {category}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <div>
+                                                  {category ? (
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getItemCategoryColor(category)}`}>
+                                                      {category}
+                                                    </span>
+                                                  ) : (
+                                                    <span className="text-gray-500 text-xs">-</span>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </td>
+
+                                            {/* สถานะรายการ */}
+                                            <td className="px-4 py-3">
+                                              {role === 'procurement' ? (
+                                                <div className="space-y-2">
+                                                  <select
+                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    value={itemStatus}
+                                                    onChange={(e) => handleSetItemStatus(o, idx, e.target.value as any)}
+                                                    disabled={isProcessing || !category}
+                                                  >
+                                                    <option value="">เลือกสถานะ...</option>
+                                                    {getItemStatusOptions(category).map(s => (
+                                                      <option key={s} value={s}>{s}</option>
+                                                    ))}
+                                                  </select>
+                                                  {itemStatus && (
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getItemStatusColor(itemStatus)}`}>
+                                                      {itemStatus}
+                                                    </span>
+                                                  )}
+                                                  {!category && (
+                                                    <p className="text-xs text-yellow-600">กรุณาเลือกประเภทก่อน</p>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <div>
+                                                  {itemStatus ? (
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getItemStatusColor(itemStatus)}`}>
+                                                      {itemStatus}
+                                                    </span>
+                                                  ) : (
+                                                    <span className="text-gray-500 text-xs">-</span>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              ) : (
+                                <div className="p-8 text-center text-gray-500">
+                                  <Package className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                  <p className="text-sm">ไม่มีรายการสินค้า</p>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -352,8 +523,9 @@ export default function OrdersListPage() {
 
             {orders.length === 0 && (
               <div className="text-center py-12 text-gray-500">
+                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-lg font-medium text-gray-900 mb-1">ยังไม่มีใบสั่งซื้อ</p>
-                <p className="text-sm text-gray-600">สร้างใบแรกจากเมนู “คำสั่งซื้อ”</p>
+                <p className="text-sm text-gray-600">ใบสั่งซื้อจะแสดงที่นี่เมื่อมีการสร้าง</p>
               </div>
             )}
           </div>
