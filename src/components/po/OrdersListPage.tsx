@@ -1,46 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { subscribeAuthAndRole } from '../../lib/auth';
 import { db } from '../../lib/firebase';
 import {
   collection,
   onSnapshot,
+  query,
   doc,
+  getDoc,
   updateDoc,
   serverTimestamp,
-  getDoc,
-  query,
-  orderBy,
 } from 'firebase/firestore';
-import { ChevronDown, ChevronRight, Package, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { subscribeAuthAndRole } from '../../lib/auth';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
-/** ---------- Constants ---------- */
-const ITEM_CATEGORIES = ['วัตถุดิบ', 'เครื่องมือ', 'วัสดุสิ้นเปลือง', 'Software'] as const;
+/** ---------- Types ---------- */
+type Role = 'buyer' | 'supervisor' | 'procurement' | null;
+type OrderStatus = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
 
-// สถานะต่อ "รายการสินค้า"
-const ITEM_STATUS_G1 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ', 'สินค้าเข้าคลัง'] as const; // วัตถุดิบ
-const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ'] as const;                   // กลุ่มอื่น
-
-const getItemStatusOptions = (category?: string) =>
-  category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
-
-const getItemCategoryColor = (category: string) => {
-  switch (category) {
-    case 'วัตถุดิบ': return 'bg-green-100 text-green-800 border-green-200';
-    case 'เครื่องมือ': return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'วัสดุสิ้นเปลือง': return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'Software': return 'bg-purple-100 text-purple-800 border-purple-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-const getItemStatusColor = (status: string) => {
-  switch (status) {
-    case 'จัดซื้อ': return 'bg-yellow-100 text-yellow-800';
-    case 'ของมาส่ง': return 'bg-blue-100 text-blue-800';
-    case 'ส่งมอบของ': return 'bg-purple-100 text-purple-800';
-    case 'สินค้าเข้าคลัง': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
-  }
+type OrderItem = {
+  description?: string;
+  quantity?: number;
+  amount?: number;
+  lineTotal?: number;
+  category?: string;     // ที่เราเซฟลง items.<i>.category
+  itemStatus?: string;   // ที่เราเซฟลง items.<i>.itemStatus
 };
 
 type Order = {
@@ -49,324 +31,201 @@ type Order = {
   date?: string;
   requester?: string;
   requesterName?: string;
-  totalAmount?: number;
+  requesterUid?: string;
   total?: number;
-  status: 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
+  totalAmount?: number;
+  status: OrderStatus;
   createdAt?: any;
-  items?: Array<{
-    description?: string;
-    quantity?: number;
-    amount?: number;
-    lineTotal?: number;
-    category?: string;
-    itemStatus?: string;
-  }>;
-  itemsCategories?: Record<number, string>;
-  itemsStatuses?: Record<number, string>;
+  items?: OrderItem[];
+  itemsCategories?: Record<string, string>;
+  itemsStatuses?: Record<string, string>;
 };
 
-/** ---------- Page Component ---------- */
-export default function OrdersListPage() {
+/** ---------- Const ---------- */
+const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
+
+const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
+  { value: 'approved',    label: 'อนุมัติแล้ว' },
+  { value: 'in_progress', label: 'กำลังดำเนินการ' },
+  { value: 'delivered',   label: 'ได้รับแล้ว' },
+];
+
+const STATUS_TH: Record<OrderStatus,string> = {
+  pending:'รออนุมัติ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', in_progress:'กำลังดำเนินการ', delivered:'ได้รับแล้ว'
+};
+const STATUS_BADGE: Record<OrderStatus,string> = {
+  pending:'bg-yellow-100 text-yellow-800',
+  approved:'bg-emerald-100 text-emerald-800',
+  rejected:'bg-rose-100 text-rose-800',
+  in_progress:'bg-sky-100 text-sky-800',
+  delivered:'bg-emerald-100 text-emerald-800',
+};
+
+const ITEM_STATUS_G1 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ', 'สินค้าเข้าคลัง'] as const; // วัตถุดิบ
+const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ'] as const;                   // อื่นๆ
+const getItemStatusOptions = (category?: string) =>
+  category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
+
+/** ---------- Helpers ---------- */
+const fmtTS = (ts:any) =>
+  ts?.toDate
+    ? ts.toDate().toLocaleString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+    : '—';
+
+type Drafts = Record<string, Record<number, {category?:string; itemStatus?:string}>>;
+
+/** ---------- Component ---------- */
+export default function OrdersListPage(){
   const [orders, setOrders] = useState<Order[]>([]);
-  const [role, setRole] = useState<'buyer'|'supervisor'|'procurement'|null>(null);
+  const [role, setRole]     = useState<Role>(null);
+  const [user, setUser]     = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
+  const [err, setErr]         = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [err, setErr] = useState<string>('');
-  const [successMessages, setSuccessMessages] = useState<Record<string, string>>({});
+  const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set()); // o.id หรือ `${o.id}:${idx}`
+  const [drafts, setDrafts] = useState<Drafts>({});
 
-  /** Role detection with robust fallbacks */
   useEffect(() => {
-    let unsubOrders: (() => void) | null = null;
+    let unsub: (()=>void)|undefined;
 
-    const off = subscribeAuthAndRole(async (authUser, r) => {
-      if (!authUser) {
-        window.location.href = '/login';
-        return;
-      }
+    const off = subscribeAuthAndRole(async (authUser, r)=>{
+      if(!authUser){ window.location.href='/login'; return; }
       setUser(authUser);
 
-      let effectiveRole = r as any;
-
-      if (!effectiveRole) {
-        effectiveRole =
-          (localStorage.getItem('role') as any) ||
-          (localStorage.getItem('appRole') as any) ||
-          null;
+      let effective: Role = (r as Role) || (localStorage.getItem('role') as Role) || null;
+      if(!effective){
+        try{
+          const u = await getDoc(doc(db,'users',authUser.uid));
+          if(u.exists()) effective = (u.data() as any)?.role ?? null;
+        }catch{}
       }
+      setRole(effective);
 
-      if (!effectiveRole) {
-        try {
-          const uref = doc(db, 'users', authUser.uid);
-          const usnap = await getDoc(uref);
-          if (usnap.exists()) {
-            effectiveRole = (usnap.data() as any)?.role || null;
-          }
-        } catch (e) {
-          console.warn('fetch role fallback error', e);
-        }
-      }
-
-      setRole(effectiveRole || null);
-
-      if (unsubOrders) unsubOrders();
-      const qRef = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      unsubOrders = onSnapshot(
+      unsub?.();
+      const qRef = query(collection(db,'orders'));
+      unsub = onSnapshot(
         qRef,
-        (snap) => {
-          const list = snap.docs.map((d) => ({ 
-            id: d.id, 
-            ...(d.data() as any) 
-          })) as Order[];
-          
+        (snap)=>{
+          const list = snap.docs.map(d => ({id:d.id, ...(d.data() as any)})) as Order[];
+          list.sort((a:any,b:any)=>{
+            const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+            const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+            return tb-ta;
+          });
           setOrders(list);
           setErr('');
           setLoading(false);
         },
-        (e) => {
-          console.error('orders read error:', e);
-          setErr(e?.message || String(e));
-          setLoading(false);
-        }
+        (e)=>{ setErr(String(e?.message||e)); setLoading(false); }
       );
     });
 
-    const timeout = setTimeout(() => {
-      if (loading) {
-        setLoading(false);
-        setErr('การโหลดข้อมูลใช้เวลานานเกินไป');
-      }
-    }, 10000);
+    return ()=>{ unsub?.(); off?.(); };
+  },[]);
 
-    return () => {
-      clearTimeout(timeout);
-      if (unsubOrders) unsubOrders();
-      off();
+  const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
+
+  // ใช้ค่าจาก draft ถ้ามี ไม่งั้นดูจาก doc (array หรือ map)
+  const getItemValue = (o:Order, idx:number)=>{
+    const d = drafts[o.id]?.[idx] || {};
+    const mapCat = o.itemsCategories?.[String(idx)];
+    const mapSt  = o.itemsStatuses?.[String(idx)];
+    const item   = (o.items || [])[idx] || {};
+    return {
+      category: d.category   ?? item.category   ?? mapCat ?? '',
+      itemStatus: d.itemStatus ?? item.itemStatus ?? mapSt  ?? '',
     };
-  }, [loading]);
-
-  const toggleExpand = (orderId: string) => {
-    setExpanded((prev) => ({ ...prev, [orderId]: !prev[orderId] }));
   };
 
-  const fmt = (ts: any) =>
-    ts?.toDate
-      ? ts.toDate().toLocaleString('th-TH', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      : '—';
-
-  const thaiStatus = (s: Order['status']) => {
-    switch (s) {
-      case 'pending': return 'รออนุมัติ';
-      case 'approved': return 'อนุมัติแล้ว';
-      case 'rejected': return 'ไม่อนุมัติ';
-      case 'in_progress': return 'กำลังดำเนินการ';
-      case 'delivered': return 'ได้รับแล้ว';
-      default: return s as string;
-    }
+  const setDraft = (orderId:string, idx:number, patch:Partial<{category:string; itemStatus:string}>)=>{
+    setDrafts(prev=>{
+      const cur = {...(prev[orderId]?.[idx]||{})};
+      const next = {...cur, ...patch};
+      return {...prev, [orderId]: {...(prev[orderId]||{}), [idx]: next}};
+    });
   };
 
-  const getStatusColor = (s: Order['status']) => {
-    switch (s) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  /** บันทึกรายการเดียว: อัปเดตทั้ง array + maps */
+  const saveOneItem = async (o:Order, idx:number)=>{
+    const val = getItemValue(o, idx);
+    if(!val.category && !val.itemStatus){ alert('ยังไม่ได้เลือกประเภท/สถานะ'); return; }
 
-  // แสดงข้อความสำเร็จ
-  const showSuccessMessage = (orderItemKey: string, message: string) => {
-    setSuccessMessages(prev => ({ ...prev, [orderItemKey]: message }));
-    setTimeout(() => {
-      setSuccessMessages(prev => {
-        const newMessages = { ...prev };
-        delete newMessages[orderItemKey];
-        return newMessages;
-      });
-    }, 3000);
-  };
+    const key = `${o.id}:${idx}`;
+    try{
+      setProcessingKeys(s=>new Set(s).add(key));
 
-  const handleSetItemCategory = async (order: Order, itemIndex: number, category: string) => {
-    const orderItemKey = `${order.id}-${itemIndex}-category`;
-    
-    console.log('Category change:', { orderId: order.id, itemIndex, category });
+      const ref = doc(db,'orders',o.id);
+      const snap = await getDoc(ref);
+      const data = snap.data() || {};
+      const items: OrderItem[] = Array.isArray(data.items) ? [...data.items] : [];
+      items[idx] = { ...(items[idx]||{}), category: val.category, itemStatus: val.itemStatus };
 
-    if (!order?.id || processingOrders.has(order.id)) {
-      return;
-    }
+      const itemsCategories = { ...(data.itemsCategories||{}) };
+      const itemsStatuses   = { ...(data.itemsStatuses||{}) };
+      itemsCategories[String(idx)] = val.category;
+      itemsStatuses[String(idx)]   = val.itemStatus;
 
-    if (!category || category === '') {
-      console.log('Empty category selected, skipping');
-      return;
-    }
-    
-    const ref = doc(db, 'orders', order.id);
-    
-    try {
-      setProcessingOrders((prev) => new Set(prev).add(order.id));
-      
-      if (role !== 'procurement') {
-        throw new Error(`ไม่มีสิทธิ์ในการอัปเดต: Role ปัจจุบันคือ ${role} แต่ต้องเป็น procurement`);
-      }
-
-      if (!user?.uid) {
-        throw new Error('ยังไม่ได้ล็อกอิน กรุณาล็อกอินใหม่');
-      }
-      
-      // อัปเดตข้อมูล
-      const currentItems = order.items || [];
-      const updatedItems = currentItems.map((item, idx) => 
-        idx === itemIndex ? { ...item, category } : item
-      );
-      
-      const existingMap = order.itemsCategories || {};
-      const updatedMap = { ...existingMap, [itemIndex]: category };
-
-      await updateDoc(ref, {
-        items: updatedItems,
-        itemsCategories: updatedMap,
+      await updateDoc(ref,{
+        items,
+        itemsCategories,
+        itemsStatuses,
         updatedAt: serverTimestamp(),
       });
-      
-      console.log('Category updated successfully');
-      showSuccessMessage(orderItemKey, `บันทึกประเภท "${category}" เรียบร้อย`);
-      
-    } catch (e: any) {
-      console.error('Error updating category:', e);
-      let errorMessage = `เกิดข้อผิดพลาดในการอัปเดตประเภทสินค้า: ${e?.message || 'ไม่ทราบสาเหตุ'}`;
-      
-      if (e?.code === 'permission-denied') {
-        errorMessage = `ไม่มีสิทธิ์ในการแก้ไข กรุณาตรวจสอบว่าคุณเป็น "ฝ่ายจัดซื้อ" หรือไม่`;
-      }
-      
-      alert(errorMessage);
-    } finally {
-      setProcessingOrders((prev) => {
-        const s = new Set(prev);
-        s.delete(order.id);
-        return s;
+
+      // clear draft for this row
+      setDrafts(prev=>{
+        const forOrder = {...(prev[o.id]||{})};
+        delete forOrder[idx];
+        return {...prev, [o.id]: forOrder};
       });
+      alert('บันทึกสำเร็จ');
+    }catch(e:any){
+      console.error(e);
+      alert(`บันทึกไม่สำเร็จ: ${e?.message||e}`);
+    }finally{
+      setProcessingKeys(s=>{ const n=new Set(s); n.delete(key); return n; });
     }
   };
 
-  const handleSetItemStatus = async (order: Order, itemIndex: number, itemStatus: string) => {
-    const orderItemKey = `${order.id}-${itemIndex}-status`;
-    
-    console.log('Status change:', { orderId: order.id, itemIndex, itemStatus });
-
-    if (!order?.id || processingOrders.has(order.id)) {
-      return;
-    }
-
-    if (!itemStatus || itemStatus === '') {
-      console.log('Empty status selected, skipping');
-      return;
-    }
-    
-    const ref = doc(db, 'orders', order.id);
-    
-    try {
-      setProcessingOrders((prev) => new Set(prev).add(order.id));
-      
-      if (role !== 'procurement') {
-        throw new Error(`ไม่มีสิทธิ์ในการอัปเดต: Role ปัจจุบันคือ ${role} แต่ต้องเป็น procurement`);
-      }
-
-      if (!user?.uid) {
-        throw new Error('ยังไม่ได้ล็อกอิน กรุณาล็อกอินใหม่');
-      }
-      
-      // อัปเดตข้อมูล
-      const currentItems = order.items || [];
-      const updatedItems = currentItems.map((item, idx) => 
-        idx === itemIndex ? { ...item, itemStatus } : item
-      );
-      
-      const existingMap = order.itemsStatuses || {};
-      const updatedMap = { ...existingMap, [itemIndex]: itemStatus };
-
-      await updateDoc(ref, {
-        items: updatedItems,
-        itemsStatuses: updatedMap,
+  /** เปลี่ยนสถานะ “ใบ” (คืนความสามารถให้เปลี่ยนได้) */
+  const saveOrderStatus = async (o:Order, next: OrderStatus)=>{
+    const key = o.id;
+    try{
+      setProcessingKeys(s=>new Set(s).add(key));
+      await updateDoc(doc(db,'orders',o.id), {
+        status: next,
         updatedAt: serverTimestamp(),
       });
-      
-      console.log('Status updated successfully');
-      showSuccessMessage(orderItemKey, `บันทึกสถานะ "${itemStatus}" เรียบร้อย`);
-      
-    } catch (e: any) {
-      console.error('Error updating status:', e);
-      let errorMessage = `เกิดข้อผิดพลาดในการอัปเดตสถานะรายการ: ${e?.message || 'ไม่ทราบสาเหตุ'}`;
-      
-      if (e?.code === 'permission-denied') {
-        errorMessage = `ไม่มีสิทธิ์ในการแก้ไข กรุณาตรวจสอบว่าคุณเป็น "ฝ่ายจัดซื้อ" หรือไม่`;
-      }
-      
-      alert(errorMessage);
-    } finally {
-      setProcessingOrders((prev) => {
-        const s = new Set(prev);
-        s.delete(order.id);
-        return s;
-      });
+    }catch(e:any){
+      console.error(e);
+      alert(`อัปเดตสถานะใบไม่สำเร็จ: ${e?.message||e}`);
+    }finally{
+      setProcessingKeys(s=>{ const n=new Set(s); n.delete(key); return n; });
     }
   };
 
-  /** ---------- Render ---------- */
-  if (loading) {
+  if(loading){
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <div className="loading loading-spinner loading-lg" />
-          <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (err) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="alert alert-error mb-4">
-          <AlertTriangle className="w-5 h-5" />
-          <div>
-            <h3 className="font-bold">ไม่สามารถโหลดข้อมูลได้</h3>
-            <div className="text-sm">{err}</div>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="btn btn-sm mt-2"
-            >
-              รีโหลดหน้า
-            </button>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
+        <div className="loading loading-spinner loading-lg" />
+        <div className="mt-3 text-gray-600">กำลังโหลดข้อมูล…</div>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      {err && <div className="alert alert-error mb-4">{err}</div>}
+
+      <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-900">รายการใบสั่งซื้อ</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {role === 'supervisor'
-                  ? 'สำหรับหัวหน้างาน - อนุมัติใบสั่งซื้อ'
-                  : role === 'procurement'
-                  ? 'สำหรับฝ่ายจัดซื้อ - จัดการประเภทสินค้าและสถานะ'
-                  : 'ตรวจสอบบทบาทไม่สำเร็จ (แสดงแบบอ่านอย่างเดียว)'}
-              </p>
+              <h2 className="text-xl md:text-2xl font-semibold">รายการใบสั่งซื้อ</h2>
+              <p className="text-sm text-gray-600">สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ</p>
+            </div>
+            <div className="text-xs text-gray-500 bg-slate-50 border rounded px-2 py-1">
+              User: {user?.email||user?.uid} | Role: {role||'unknown'} | Orders: {orders.length}
             </div>
           </div>
 
@@ -374,218 +233,127 @@ export default function OrdersListPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50/80">
                 <tr className="text-left text-slate-600">
-                  <th className="px-4 py-3 font-medium w-24">เลขที่</th>
-                  <th className="px-4 py-3 font-medium">วันที่</th>
-                  <th className="px-4 py-3 font-medium">ผู้ขอ</th>
-                  <th className="px-4 py-3 text-right font-medium">ยอดรวม</th>
-                  <th className="px-4 py-3 font-medium">สถานะใบ</th>
-                  <th className="px-4 py-3 font-medium w-20">รายการ</th>
+                  <th className="px-4 py-3">#</th>
+                  <th className="px-4 py-3">วันที่</th>
+                  <th className="px-4 py-3">ผู้ขอ</th>
+                  <th className="px-4 py-3 text-right">ยอดรวม</th>
+                  <th className="px-4 py-3">สถานะใบ</th>
+                  <th className="px-4 py-3">การดำเนินการ</th>
                 </tr>
               </thead>
-
               <tbody className="divide-y divide-gray-200">
-                {orders.map((o) => {
+                {orders.map(o=>{
                   const isOpen = !!expanded[o.id];
-                  const orderNumber = o.orderNo ?? 0;
-                  const orderDate = o.date || fmt(o.createdAt);
-                  const requesterName = o.requester || o.requesterName || '-';
-                  const totalAmount = (o.totalAmount ?? o.total ?? 0);
-                  const itemsCount = o.items?.length || 0;
+                  const total = (o.totalAmount??o.total??0) as number;
 
                   return (
                     <React.Fragment key={o.id}>
                       <tr className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">
-                          #{orderNumber}
+                        <td className="px-4 py-3 font-medium">
+                          <button className="inline-flex items-center gap-1 hover:underline" onClick={()=>toggle(o.id)}>
+                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            #{o.orderNo ?? '-'}
+                          </button>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{orderDate}</td>
-                        <td className="px-4 py-3 text-gray-900">{requesterName}</td>
-                        <td className="px-4 py-3 text-right tabular-nums font-medium text-gray-900">
-                          {totalAmount.toLocaleString('th-TH')} บาท
-                        </td>
+                        <td className="px-4 py-3 text-gray-600">{o.date || fmtTS(o.createdAt)}</td>
+                        <td className="px-4 py-3">{o.requesterName || o.requester || '-'}</td>
+                        <td className="px-4 py-3 text-right tabular-nums">{total.toLocaleString('th-TH')} บาท</td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(o.status)}`}>
-                            {thaiStatus(o.status)}
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[o.status]}`}>
+                            {STATUS_TH[o.status]}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            onClick={() => toggleExpand(o.id)}
-                            title={isOpen ? 'ซ่อนรายการ' : 'แสดงรายการ'}
-                          >
-                            {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                            {itemsCount}
-                          </button>
+                          {role === 'procurement' ? (
+                            <div className="flex items-center gap-2">
+                              <select
+                                className="select select-sm select-bordered rounded-xl min-w-[180px]"
+                                value={o.status}
+                                onChange={(e)=>saveOrderStatus(o, e.target.value as OrderStatus)}
+                                disabled={processingKeys.has(o.id)}
+                              >
+                                {ORDER_STATUS_OPTIONS.map(x=>(
+                                  <option key={x.value} value={x.value}>{x.label}</option>
+                                ))}
+                              </select>
+                              {processingKeys.has(o.id) && <span className="loading loading-spinner loading-xs" />}
+                            </div>
+                          ) : <span className="text-gray-600">—</span>}
                         </td>
                       </tr>
 
-                      {/* แถวรายการสินค้า */}
                       {isOpen && (
                         <tr className="bg-gray-50/60">
-                          <td colSpan={6} className="px-6 pb-5 pt-2">
+                          <td colSpan={6} className="px-6 pb-5">
                             <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                                <div className="flex items-center gap-2">
-                                  <Package className="w-4 h-4 text-gray-600" />
-                                  <span className="text-sm font-medium text-gray-700">
-                                    รายการสินค้า ({itemsCount} รายการ)
-                                  </span>
-                                </div>
+                              <div className="px-4 py-3 text-sm font-semibold text-gray-700">รายการสินค้า</div>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead className="bg-slate-50">
+                                    <tr className="text-left text-slate-600">
+                                      <th className="px-4 py-2">#</th>
+                                      <th className="px-4 py-2">รายการ</th>
+                                      <th className="px-4 py-2">จำนวน</th>
+                                      <th className="px-4 py-2">ราคา/หน่วย</th>
+                                      <th className="px-4 py-2">รวม</th>
+                                      <th className="px-4 py-2 w-[220px]">ประเภทสินค้า</th>
+                                      <th className="px-4 py-2 w-[220px]">สถานะรายการ</th>
+                                      <th className="px-4 py-2 w-[120px] text-right">บันทึก</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-200">
+                                    {(o.items||[]).map((it, idx)=>{
+                                      const val = getItemValue(o, idx);
+                                      const options = getItemStatusOptions(val.category);
+
+                                      return (
+                                        <tr key={idx} className="align-top">
+                                          <td className="px-4 py-2">{idx+1}</td>
+                                          <td className="px-4 py-2">{it.description || '-'}</td>
+                                          <td className="px-4 py-2">{it.quantity ?? '-'}</td>
+                                          <td className="px-4 py-2">{it.amount!=null ? Number(it.amount).toLocaleString('th-TH') : '-'}</td>
+                                          <td className="px-4 py-2 font-medium">{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</td>
+
+                                          <td className="px-4 py-2">
+                                            <select
+                                              className="select select-sm select-bordered rounded-lg w-full"
+                                              value={val.category}
+                                              onChange={(e)=>setDraft(o.id, idx, {category: e.target.value})}
+                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                            >
+                                              <option value="" disabled>เลือกประเภท…</option>
+                                              {ITEM_CATEGORIES.map(c=> <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                          </td>
+
+                                          <td className="px-4 py-2">
+                                            <select
+                                              className="select select-sm select-bordered rounded-lg w-full"
+                                              value={val.itemStatus}
+                                              onChange={(e)=>setDraft(o.id, idx, {itemStatus: e.target.value})}
+                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                            >
+                                              <option value="" disabled>เลือกสถานะ…</option>
+                                              {options.map(s=> <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                          </td>
+
+                                          <td className="px-4 py-2 text-right">
+                                            <button
+                                              className="btn btn-sm btn-primary rounded-lg"
+                                              onClick={()=>saveOneItem(o, idx)}
+                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                            >
+                                              {processingKeys.has(`${o.id}:${idx}`) && <span className="loading loading-spinner loading-xs mr-1" />}
+                                              บันทึก
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
                               </div>
-                              
-                              {itemsCount > 0 ? (
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-sm">
-                                    <thead className="bg-slate-50">
-                                      <tr className="text-left text-slate-600">
-                                        <th className="px-4 py-3 font-medium w-12">#</th>
-                                        <th className="px-4 py-3 font-medium">รายการ</th>
-                                        <th className="px-4 py-3 font-medium w-20 text-right">จำนวน</th>
-                                        <th className="px-4 py-3 font-medium w-24 text-right">ราคา/หน่วย</th>
-                                        <th className="px-4 py-3 font-medium w-24 text-right">รวม</th>
-                                        <th className="px-4 py-3 font-medium w-40">ประเภทสินค้า</th>
-                                        <th className="px-4 py-3 font-medium w-40">สถานะรายการ</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                      {(o.items || []).map((item, idx) => {
-                                        const catMap = o.itemsCategories || {};
-                                        const statusMap = o.itemsStatuses || {};
-                                        const category = item?.category ?? catMap[idx] ?? '';
-                                        const itemStatus = item?.itemStatus ?? statusMap[idx] ?? '';
-                                        const isProcessing = processingOrders.has(o.id);
-                                        const categoryKey = `${o.id}-${idx}-category`;
-                                        const statusKey = `${o.id}-${idx}-status`;
-
-                                        return (
-                                          <tr key={idx} className="align-top hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-gray-700 font-medium">{idx + 1}</td>
-                                            <td className="px-4 py-3">
-                                              <div className="text-gray-900 font-medium">{item?.description || '-'}</div>
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-gray-700">{item?.quantity ?? '-'}</td>
-                                            <td className="px-4 py-3 text-right text-gray-700">
-                                              {item?.amount != null ? Number(item.amount).toLocaleString('th-TH') : '-'}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-gray-900 font-medium">
-                                              {item?.lineTotal != null ? Number(item.lineTotal).toLocaleString('th-TH') : '-'}
-                                            </td>
-
-                                            {/* ประเภทสินค้า */}
-                                            <td className="px-4 py-3">
-                                              {role === 'procurement' ? (
-                                                <div className="space-y-2">
-                                                  <select
-                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    value={category}
-                                                    onChange={(e) => handleSetItemCategory(o, idx, e.target.value)}
-                                                    disabled={isProcessing}
-                                                  >
-                                                    <option value="">เลือกประเภท...</option>
-                                                    {ITEM_CATEGORIES.map(c => (
-                                                      <option key={c} value={c}>{c}</option>
-                                                    ))}
-                                                  </select>
-                                                  
-                                                  {category && (
-                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getItemCategoryColor(category)}`}>
-                                                      {category}
-                                                    </span>
-                                                  )}
-                                                  
-                                                  {isProcessing && (
-                                                    <div className="text-xs text-blue-600 flex items-center gap-1">
-                                                      <Clock className="w-3 h-3 animate-spin" />
-                                                      กำลังบันทึก...
-                                                    </div>
-                                                  )}
-                                                  
-                                                  {successMessages[categoryKey] && (
-                                                    <div className="text-xs text-green-600 flex items-center gap-1">
-                                                      <CheckCircle className="w-3 h-3" />
-                                                      {successMessages[categoryKey]}
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              ) : (
-                                                <div>
-                                                  {category ? (
-                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getItemCategoryColor(category)}`}>
-                                                      {category}
-                                                    </span>
-                                                  ) : (
-                                                    <span className="text-gray-500 text-xs">-</span>
-                                                  )}
-                                                </div>
-                                              )}
-                                            </td>
-
-                                            {/* สถานะรายการ */}
-                                            <td className="px-4 py-3">
-                                              {role === 'procurement' ? (
-                                                <div className="space-y-2">
-                                                  <select
-                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    value={itemStatus}
-                                                    onChange={(e) => handleSetItemStatus(o, idx, e.target.value)}
-                                                    disabled={isProcessing || !category}
-                                                  >
-                                                    <option value="">เลือกสถานะ...</option>
-                                                    {getItemStatusOptions(category).map(s => (
-                                                      <option key={s} value={s}>{s}</option>
-                                                    ))}
-                                                  </select>
-                                                  
-                                                  {itemStatus && (
-                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getItemStatusColor(itemStatus)}`}>
-                                                      {itemStatus}
-                                                    </span>
-                                                  )}
-                                                  
-                                                  {!category && (
-                                                    <p className="text-xs text-yellow-600">กรุณาเลือกประเภทก่อน</p>
-                                                  )}
-                                                  
-                                                  {isProcessing && (
-                                                    <div className="text-xs text-blue-600 flex items-center gap-1">
-                                                      <Clock className="w-3 h-3 animate-spin" />
-                                                      กำลังบันทึก...
-                                                    </div>
-                                                  )}
-                                                  
-                                                  {successMessages[statusKey] && (
-                                                    <div className="text-xs text-green-600 flex items-center gap-1">
-                                                      <CheckCircle className="w-3 h-3" />
-                                                      {successMessages[statusKey]}
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              ) : (
-                                                <div>
-                                                  {itemStatus ? (
-                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getItemStatusColor(itemStatus)}`}>
-                                                      {itemStatus}
-                                                    </span>
-                                                  ) : (
-                                                    <span className="text-gray-500 text-xs">-</span>
-                                                  )}
-                                                </div>
-                                              )}
-                                            </td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                  <Package className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                                  <p className="text-sm">ไม่มีรายการสินค้า</p>
-                                </div>
-                              )}
                             </div>
                           </td>
                         </tr>
@@ -595,14 +363,6 @@ export default function OrdersListPage() {
                 })}
               </tbody>
             </table>
-
-            {orders.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-lg font-medium text-gray-900 mb-1">ยังไม่มีใบสั่งซื้อ</p>
-                <p className="text-sm text-gray-600">ใบสั่งซื้อจะแสดงที่นี่เมื่อมีการสร้าง</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
