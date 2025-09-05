@@ -187,7 +187,7 @@ export default function OrdersListPage(){
     }
   };
 
-  /** เปลี่ยนสถานะ “ใบ” (คืนความสามารถให้เปลี่ยนได้) */
+  /** เปลี่ยนสถานะ "ใบ" (คืนความสามารถให้เปลี่ยนได้) */
   const saveOrderStatus = async (o:Order, next: OrderStatus)=>{
     const key = o.id;
     try{
@@ -222,7 +222,11 @@ export default function OrdersListPage(){
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl md:text-2xl font-semibold">รายการใบสั่งซื้อ</h2>
-              <p className="text-sm text-gray-600">สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ</p>
+              <p className="text-sm text-gray-600">
+                {role === 'procurement' ? 'สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ' : 
+                 role === 'supervisor' ? 'สำหรับหัวหน้างาน – ดูรายการใบสั่งซื้อทั้งหมด' :
+                 'รายการใบสั่งซื้อทั้งหมด'}
+              </p>
             </div>
             <div className="text-xs text-gray-500 bg-slate-50 border rounded px-2 py-1">
               User: {user?.email||user?.uid} | Role: {role||'unknown'} | Orders: {orders.length}
@@ -298,7 +302,9 @@ export default function OrdersListPage(){
                                       <th className="px-4 py-2">รวม</th>
                                       <th className="px-4 py-2 w-[220px]">ประเภทสินค้า</th>
                                       <th className="px-4 py-2 w-[220px]">สถานะรายการ</th>
-                                      <th className="px-4 py-2 w-[120px] text-right">บันทึก</th>
+                                      {role === 'procurement' && (
+                                        <th className="px-4 py-2 w-[120px] text-right">บันทึก</th>
+                                      )}
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-gray-200">
@@ -315,39 +321,57 @@ export default function OrdersListPage(){
                                           <td className="px-4 py-2 font-medium">{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</td>
 
                                           <td className="px-4 py-2">
-                                            <select
-                                              className="select select-sm select-bordered rounded-lg w-full"
-                                              value={val.category}
-                                              onChange={(e)=>setDraft(o.id, idx, {category: e.target.value})}
-                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                            >
-                                              <option value="" disabled>เลือกประเภท…</option>
-                                              {ITEM_CATEGORIES.map(c=> <option key={c} value={c}>{c}</option>)}
-                                            </select>
+                                            {role === 'procurement' ? (
+                                              <select
+                                                className="select select-sm select-bordered rounded-lg w-full"
+                                                value={val.category}
+                                                onChange={(e)=>setDraft(o.id, idx, {category: e.target.value})}
+                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                              >
+                                                <option value="" disabled>เลือกประเภท…</option>
+                                                {ITEM_CATEGORIES.map(c=> <option key={c} value={c}>{c}</option>)}
+                                              </select>
+                                            ) : (
+                                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                                val.category ? 'bg-gray-100 text-gray-800' : 'bg-gray-50 text-gray-500'
+                                              }`}>
+                                                {val.category || 'ยังไม่ระบุ'}
+                                              </span>
+                                            )}
                                           </td>
 
                                           <td className="px-4 py-2">
-                                            <select
-                                              className="select select-sm select-bordered rounded-lg w-full"
-                                              value={val.itemStatus}
-                                              onChange={(e)=>setDraft(o.id, idx, {itemStatus: e.target.value})}
-                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                            >
-                                              <option value="" disabled>เลือกสถานะ…</option>
-                                              {options.map(s=> <option key={s} value={s}>{s}</option>)}
-                                            </select>
+                                            {role === 'procurement' ? (
+                                              <select
+                                                className="select select-sm select-bordered rounded-lg w-full"
+                                                value={val.itemStatus}
+                                                onChange={(e)=>setDraft(o.id, idx, {itemStatus: e.target.value})}
+                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                              >
+                                                <option value="" disabled>เลือกสถานะ…</option>
+                                                {options.map(s=> <option key={s} value={s}>{s}</option>)}
+                                              </select>
+                                            ) : (
+                                              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                                val.itemStatus ? 'bg-blue-100 text-blue-800' : 'bg-gray-50 text-gray-500'
+                                              }`}>
+                                                {val.itemStatus || 'รอดำเนินการ'}
+                                              </span>
+                                            )}
                                           </td>
 
-                                          <td className="px-4 py-2 text-right">
-                                            <button
-                                              className="btn btn-sm btn-primary rounded-lg"
-                                              onClick={()=>saveOneItem(o, idx)}
-                                              disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                            >
-                                              {processingKeys.has(`${o.id}:${idx}`) && <span className="loading loading-spinner loading-xs mr-1" />}
-                                              บันทึก
-                                            </button>
-                                          </td>
+                                          {role === 'procurement' && (
+                                            <td className="px-4 py-2 text-right">
+                                              <button
+                                                className="btn btn-sm btn-primary rounded-lg"
+                                                onClick={()=>saveOneItem(o, idx)}
+                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
+                                              >
+                                                {processingKeys.has(`${o.id}:${idx}`) && <span className="loading loading-spinner loading-xs mr-1" />}
+                                                บันทึก
+                                              </button>
+                                            </td>
+                                          )}
                                         </tr>
                                       );
                                     })}

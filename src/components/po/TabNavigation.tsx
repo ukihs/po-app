@@ -130,7 +130,7 @@ export default function TabNavigation() {
             </>
           )}
 
-          {/* SUPERVISOR Navigation */}
+          {/* SUPERVISOR Navigation - ไม่มีแท็บ notifications */}
           {role === 'supervisor' && (
             <>
               <button
@@ -159,20 +159,6 @@ export default function TabNavigation() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                 </svg>
                 รายการใบสั่งซื้อ
-              </button>
-
-              <button
-                onClick={() => handleTabChange('notifications', '/orders/notifications')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'notifications' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                </svg>
-                การแจ้งเตือน
               </button>
             </>
           )}
