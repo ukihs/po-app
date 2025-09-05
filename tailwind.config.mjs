@@ -1,6 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-  theme: { extend: {} },
-  plugins: [],
+  theme: { 
+    extend: {
+      fontFamily: {
+        'sans': ['Kanit', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+      },
+    } 
+  },
+  plugins: [require('daisyui')],
+  daisyui: {
+    themes: ["light"],
+    base: true,
+    styled: true,
+    utils: true,
+    prefix: "",
+    logs: true,
+    themeRoot: ":root",
+  },
 };
