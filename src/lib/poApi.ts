@@ -87,25 +87,25 @@ export async function createOrder(payload: {
   // 1) เลขรันใบสั่งซื้อ
   const orderNo = await getNextNumber('orders');
 
-  // 2) ข้อมูลรายการพร้อม itemType และ lineTotal
+  // 2) ข้อมูลรายการพร้อม itemType และ lineTotal (แก้ไขให้ไม่มี undefined)
   const cleanItems = payload.items.map((it) => ({
-    description: it.description.trim(),
-    receivedDate: it.receivedDate || null,
+    description: (it.description || '').trim(),
+    receivedDate: it.receivedDate || '',
     quantity: toNum(it.quantity),
     amount: toNum(it.amount),
     lineTotal: lineTotal(it),
-    itemType: it.itemType, // เก็บประเภทสินค้า
+    itemType: it.itemType || 'วัตถุดิบ', // ป้องกัน undefined
   }));
 
   // 3) หาประเภทสินค้าหลักและกำหนด procurement status เริ่มต้น
   const primaryItemType = cleanItems[0]?.itemType || 'วัตถุดิบ';
   const initialProcurementStatus = getInitialProcurementStatus(primaryItemType);
 
-  // 4) บันทึกใบสั่งซื้อพร้อม timestamps
+  // 4) บันทึกใบสั่งซื้อพร้อม timestamps (แก้ไขให้ไม่มี undefined)
   const docData = {
-    requesterUid: u.uid,
-    requesterName: payload.requesterName,
-    date: payload.date,
+    requesterUid: u.uid || '',
+    requesterName: payload.requesterName || '',
+    date: payload.date || '',
     items: cleanItems,
     total: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
     status: 'pending' as 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered',
@@ -124,8 +124,8 @@ export async function createOrder(payload: {
   await addDoc(collection(db, 'notifications'), {
     toUserUid: null, // ไม่ส่งให้ user เฉพาะ
     toUserName: null,
-    fromUserUid: u.uid,
-    fromUserName: payload.requesterName,
+    fromUserUid: u.uid || '',
+    fromUserName: payload.requesterName || '',
     orderId: ref.id,
     orderNo,
     title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
@@ -202,7 +202,7 @@ export async function approveOrder(orderId: string, approved: boolean) {
   await updateDoc(orderRef, {
     status: newStatus,
     approvedAt: serverTimestamp(),
-    approvedBy: auth.currentUser?.uid,
+    approvedBy: auth.currentUser?.uid || '',
     ...timestampUpdate
   });
 
@@ -216,12 +216,12 @@ export async function approveOrder(orderId: string, approved: boolean) {
 
   // 1) แจ้งเตือน buyer ว่าได้รับการอนุมัติ/ไม่อนุมัติ
   await addDoc(collection(db, 'notifications'), {
-    toUserUid: orderData.requesterUid,
-    toUserName: orderData.requesterName,
-    fromUserUid: currentUser.uid,
+    toUserUid: orderData.requesterUid || '',
+    toUserName: orderData.requesterName || '',
+    fromUserUid: currentUser.uid || '',
     fromUserName: currentUser.displayName || 'หัวหน้างาน',
     orderId: orderId,
-    orderNo: orderData.orderNo,
+    orderNo: orderData.orderNo || 0,
     title: approved ? 'ใบสั่งซื้อได้รับการอนุมัติ' : 'ใบสั่งซื้อไม่ได้รับการอนุมัติ',
     message: `ใบสั่งซื้อ #${orderData.orderNo} ${approved ? 'ได้รับการอนุมัติแล้ว' : 'ไม่ได้รับการอนุมัติ'}`,
     kind: approved ? 'approved' : 'rejected',
@@ -239,10 +239,10 @@ export async function approveOrder(orderId: string, approved: boolean) {
     await addDoc(collection(db, 'notifications'), {
       toUserUid: null,
       toUserName: null,
-      fromUserUid: currentUser.uid,
+      fromUserUid: currentUser.uid || '',
       fromUserName: currentUser.displayName || 'หัวหน้างาน',
       orderId: orderId,
-      orderNo: orderData.orderNo,
+      orderNo: orderData.orderNo || 0,
       title: 'มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ',
       message: `ใบสั่งซื้อ #${orderData.orderNo} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
       kind: 'status_update',
@@ -276,12 +276,12 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
   if (!currentUser) return;
 
   await addDoc(collection(db, 'notifications'), {
-    toUserUid: orderData.requesterUid,
-    toUserName: orderData.requesterName,
-    fromUserUid: currentUser.uid,
+    toUserUid: orderData.requesterUid || '',
+    toUserName: orderData.requesterName || '',
+    fromUserUid: currentUser.uid || '',
     fromUserName: currentUser.displayName || 'ฝ่ายจัดซื้อ',
     orderId: orderId,
-    orderNo: orderData.orderNo,
+    orderNo: orderData.orderNo || 0,
     title: 'สถานะการจัดซื้อมีการเปลี่ยนแปลง',
     message: `ใบสั่งซื้อ #${orderData.orderNo} อัปเดตสถานะเป็น ${getProcurementStatusDisplay(newStatus)}`,
     kind: 'status_update',
@@ -307,12 +307,12 @@ export async function setOrderStatus(orderId: string, status: Order['status']) {
   if (!currentUser) return;
 
   await addDoc(collection(db, 'notifications'), {
-    toUserUid: orderData.requesterUid,
-    toUserName: orderData.requesterName,
-    fromUserUid: currentUser.uid,
+    toUserUid: orderData.requesterUid || '',
+    toUserName: orderData.requesterName || '',
+    fromUserUid: currentUser.uid || '',
     fromUserName: currentUser.displayName || 'ฝ่ายจัดซื้อ',
     orderId: orderId,
-    orderNo: orderData.orderNo,
+    orderNo: orderData.orderNo || 0,
     title: 'สถานะใบสั่งซื้อมีการเปลี่ยนแปลง',
     message: `ใบสั่งซื้อ #${orderData.orderNo} อัปเดตสถานะเป็น ${getStatusLabel(status)}`,
     kind: 'status_update',
