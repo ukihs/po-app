@@ -3,6 +3,7 @@ import React from 'react';
 import { X, Package, Calendar, User, DollarSign, FileText, Clock } from 'lucide-react';
 import type { Order } from '../../lib/poApi';
 import { getProcurementStatusDisplay } from '../../lib/poApi';
+import { generateOrderNumber } from '../../lib/poApi';
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -57,15 +58,6 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const generateOrderNumber = (orderNo: number, date: string) => {
-  const orderDate = new Date(date);
-  const year = orderDate.getFullYear();
-  const month = (orderDate.getMonth() + 1).toString().padStart(2, '0');
-  const day = orderDate.getDate().toString().padStart(2, '0');
-  const number = orderNo.toString().padStart(4, '0');
-  
-  return `PO-${year}${month}${day}-${number}`;
-};
 
 export default function OrderDetailsModal({ order, onClose }: OrderDetailsModalProps) {
   if (!order) return null;

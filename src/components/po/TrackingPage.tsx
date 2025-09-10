@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../../lib/firebase';
 import { collection, onSnapshot, orderBy, query, where, doc, getDoc } from 'firebase/firestore';
-import { approveOrder } from '../../lib/poApi';
 import { subscribeAuthAndRole } from '../../lib/auth';
+import { approveOrder, generateOrderNumber } from '../../lib/poApi';
 import { 
   FileText, 
   CheckCircle, 
@@ -288,7 +288,7 @@ export default function TrackingPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
-                    PO-{new Date().getFullYear()}{(new Date().getMonth() + 1).toString().padStart(2, '0')}{new Date().getDate().toString().padStart(2, '0')}-{order.orderNo.toString().padStart(4, '0')}
+                    {generateOrderNumber(order.orderNo, order.date)}
                   </h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                     <span className="flex items-center gap-1">
