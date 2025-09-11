@@ -142,18 +142,6 @@ export default function LoginPage() {
               Sign In
             </button>
           </form>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              ยังไม่มีบัญชี?{" "}
-              <a
-                href="/register"
-                className="font-medium text-[#64D1E3] hover:text-[#5BC0D3] transition-colors duration-200"
-              >
-                สมัครใช้งาน
-              </a>
-            </p>
-          </div>
         </div>
       </div>
     </div>
