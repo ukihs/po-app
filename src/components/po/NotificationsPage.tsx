@@ -67,97 +67,49 @@ export default function NotificationsPage() {
       setErr('');
 
       // Build queries based on role
-      if (userRole === 'buyer' || userRole === 'supervisor') {
-        // For buyers and supervisors, get notifications addressed to them specifically
-        const q = query(
+      let q;
+      if (userRole === 'buyer') {
+        // For buyers, get notifications addressed to them specifically
+        q = query(
           collection(db, 'notifications'),
           where('toUserUid', '==', user.uid),
           orderBy('createdAt', 'desc')
         );
-
-        stopSnap.current = onSnapshot(
-          q,
-          (snap) => {
-            const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-            setItems(rows as Noti[]);
-            setLoading(false);
-          },
-          (e) => {
-            console.error('notifications error:', e);
-            setErr((e?.message || '').toString());
-            setItems([]);
-            setLoading(false);
-          }
+      } else if (userRole === 'supervisor') {
+        // For supervisors, get notifications for their role
+        q = query(
+          collection(db, 'notifications'),
+          where('forRole', '==', 'supervisor'),
+          orderBy('createdAt', 'desc')
         );
       } else if (userRole === 'procurement') {
-        // For procurement, combine two queries: personal notifications + role notifications
-        const personalQ = query(
-          collection(db, 'notifications'),
-          where('toUserUid', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-
-        const roleQ = query(
+        // For procurement, get notifications for their role
+        q = query(
           collection(db, 'notifications'),
           where('forRole', '==', 'procurement'),
           orderBy('createdAt', 'desc')
         );
-
-        let personalNotifs: Noti[] = [];
-        let roleNotifs: Noti[] = [];
-        let loadedCount = 0;
-
-        const combineAndSetNotifications = () => {
-          if (loadedCount < 2) return;
-          
-          // Combine and deduplicate notifications
-          const allNotifs = [...personalNotifs, ...roleNotifs];
-          const uniqueNotifs = allNotifs.filter((notif, index, arr) => 
-            arr.findIndex(n => n.id === notif.id) === index
-          );
-          
-          // Sort by creation date
-          uniqueNotifs.sort((a, b) => {
-            if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
-            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
-          });
-
-          setItems(uniqueNotifs);
-          setLoading(false);
-        };
-
-        // Listen to personal notifications
-        const unsubPersonal = onSnapshot(personalQ, (snap) => {
-          personalNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
-          loadedCount = Math.max(loadedCount, 1);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error('personal notifications error:', e);
-          setErr((e?.message || '').toString());
-          setLoading(false);
-        });
-
-        // Listen to role notifications
-        const unsubRole = onSnapshot(roleQ, (snap) => {
-          roleNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
-          loadedCount = Math.max(loadedCount, 2);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error('role notifications error:', e);
-          setErr((e?.message || '').toString());
-          setLoading(false);
-        });
-
-        // Store combined unsubscribe function
-        stopSnap.current = () => {
-          unsubPersonal();
-          unsubRole();
-        };
       } else {
         setItems([]);
         setLoading(false);
         return;
       }
+
+      stopSnap.current = onSnapshot(
+        q,
+        (snap) => {
+          const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+          setItems(rows as Noti[]);
+          setErr('');
+          setLoading(false);
+        },
+        (e) => {
+          console.error('notifications error:', e);
+          setErr((e?.message || '').toString());
+          setItems([]);
+          setLoading(false);
+        }
+      );
     });
 
     return () => {

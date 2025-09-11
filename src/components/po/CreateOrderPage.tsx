@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { auth } from '../../lib/firebase';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
-import { Plus, Trash2, Package, Calendar, DollarSign, Hash, Tag } from 'lucide-react';
+import { Plus, Trash2, Package, Calendar, DollarSign, Hash } from 'lucide-react';
 
 export default function CreateOrderPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -18,7 +18,7 @@ export default function CreateOrderPage() {
     receivedDate: '',
     quantity: '',
     amount: '',
-    itemType: 'วัตถุดิบ' // กำหนดค่า default
+    itemType: 'วัตถุดิบ' // กำหนดค่า default เป็นวัตถุดิบเสมอ
   });
 
   // เติมชื่อผู้ใช้ (displayName/email) อัตโนมัติ
@@ -35,7 +35,7 @@ export default function CreateOrderPage() {
       receivedDate: '',
       quantity: '',
       amount: '',
-      itemType: 'วัตถุดิบ' // กำหนดค่า default
+      itemType: 'วัตถุดิบ' // กำหนดค่า default เป็นวัตถุดิบเสมอ
     });
     setShowModal(true);
   };
@@ -49,7 +49,8 @@ export default function CreateOrderPage() {
 
     const itemToAdd: Item = {
       no: items.length + 1,
-      ...newItem
+      ...newItem,
+      itemType: 'วัตถุดิบ' // บังคับให้เป็นวัตถุดิบ
     };
     
     setItems(prev => [...prev, itemToAdd]);
@@ -59,7 +60,7 @@ export default function CreateOrderPage() {
       receivedDate: '',
       quantity: '',
       amount: '',
-      itemType: 'วัตถุดิบ' // กำหนดค่า default
+      itemType: 'วัตถุดิบ'
     });
   };
 
@@ -71,7 +72,7 @@ export default function CreateOrderPage() {
       receivedDate: '',
       quantity: '',
       amount: '',
-      itemType: 'วัตถุดิบ' // กำหนดค่า default
+      itemType: 'วัตถุดิบ'
     });
   };
 
@@ -99,30 +100,14 @@ export default function CreateOrderPage() {
     }
     try {
       setSaving(true);
-      await createOrder({ date, requesterName: requester, items });
+      // แน่ใจว่า itemType เป็นวัตถุดิบก่อนส่ง
+      const itemsWithType = items.map(item => ({ ...item, itemType: 'วัตถุดิบ' as ItemType }));
+      await createOrder({ date, requesterName: requester, items: itemsWithType });
       window.location.href = '/orders/tracking';
     } catch (e: any) {
       alert(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
     } finally {
       setSaving(false);
-    }
-  };
-
-  // ตัวเลือกประเภทสินค้า
-  const itemTypeOptions: ItemType[] = ['วัตถุดิบ', 'เครื่องมือ', 'วัสดุสิ้นเปลือง', 'Software'];
-
-  const getItemTypeColor = (itemType: ItemType): string => {
-    switch (itemType) {
-      case 'วัตถุดิบ':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'เครื่องมือ':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'วัสดุสิ้นเปลือง':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'Software':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -148,21 +133,6 @@ export default function CreateOrderPage() {
                 value={newItem.description}
                 onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
               />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">ประเภทสินค้า</span>
-              </label>
-              <select
-                className="select select-bordered w-full"
-                value={newItem.itemType}
-                onChange={(e) => setNewItem(prev => ({ ...prev, itemType: e.target.value as ItemType }))}
-              >
-                {itemTypeOptions.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
             </div>
 
             <div className="form-control">
@@ -285,12 +255,9 @@ export default function CreateOrderPage() {
                       <Hash className="w-4 h-4" />
                     </th>
                     <th>รายการที่ขอซื้อ</th>
-                    <th className="w-32">
-                      <Tag className="w-4 h-4" />
-                      ประเภท
-                    </th>
                     <th className="w-40">
                       <Calendar className="w-4 h-4" />
+                      วันที่ต้องการ
                     </th>
                     <th className="w-24 text-right">จำนวน</th>
                     <th className="w-32 text-right">ราคา/หน่วย (บาท)</th>
@@ -317,18 +284,6 @@ export default function CreateOrderPage() {
                             value={item.description}
                             onChange={(e) => updateItem(idx, 'description', e.target.value)}
                           />
-                        </td>
-                        
-                        <td>
-                          <select
-                            className="select select-sm select-bordered w-full"
-                            value={item.itemType}
-                            onChange={(e) => updateItem(idx, 'itemType', e.target.value)}
-                          >
-                            {itemTypeOptions.map(type => (
-                              <option key={type} value={type}>{type}</option>
-                            ))}
-                          </select>
                         </td>
                         
                         <td>
