@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { subscribeAuthAndRole } from '../../lib/auth';
 
 export default function TabNavigation() {
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | null>(null);
+  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
   const [activeTab, setActiveTab] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -210,12 +210,28 @@ export default function TabNavigation() {
             </>
           )}
 
+          {/* SUPERADMIN Navigation */}
+          {role === 'superadmin' && (
+            <>
+              <button
+                onClick={() => handleTabChange('users', '/users')}
+              >
+          
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                </svg>
+                จัดการผู้ใช้งาน
+              </button>
+            </>
+          )}
+
           {/* Role indicator */}
           <div className="ml-auto flex items-center">
             <div className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
               {role === 'buyer' ? 'ผู้ขอซื้อ' :
                role === 'supervisor' ? 'หัวหน้างาน' :
                role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
+               role === 'superadmin' ? 'ผู้ดูแลระบบ' :
                'กำลังโหลด...'}
             </div>
           </div>
