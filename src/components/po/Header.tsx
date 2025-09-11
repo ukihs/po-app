@@ -37,11 +37,11 @@ export default function Header() {
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.png" 
-                alt="Beverly Logo" 
+                alt="Bederly Logo" 
                 className="h-8 w-auto object-contain"
               />
               <div>
-                <div className="text-lg font-semibold text-gray-900">ระบบบันทึกการซื้อ</div>
+                <div className="text-lg font-semibold text-gray-900">ระบบใบขอซื้อ</div>
               </div>
             </div>
 
@@ -63,11 +63,11 @@ export default function Header() {
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.png" 
-                alt="Beverly Logo" 
+                alt="Bederly Logo" 
                 className="h-8 w-auto object-contain"
               />
               <div>
-                <div className="text-lg font-semibold text-gray-900">ระบบบันทึกการซื้อ</div>
+                <div className="text-lg font-semibold text-gray-900">ระบบใบขอซื้อ</div>
               </div>
             </div>
           </div>
@@ -83,11 +83,11 @@ export default function Header() {
           <div className="flex items-center gap-3">
             <img 
               src="/logo.png" 
-              alt="Beverly Logo" 
+              alt="Bederly Logo" 
               className="h-8 w-auto object-contain"
             />
             <div>
-              <div className="text-lg font-semibold text-gray-900">ระบบบันทึกการซื้อ</div>
+              <div className="text-lg font-semibold text-gray-900">ระบบใบขอซื้อ</div>
             </div>
           </div>
 

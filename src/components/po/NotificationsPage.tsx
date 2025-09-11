@@ -1,4 +1,3 @@
-// src/components/po/NotificationsPage.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { auth, db } from '../../lib/firebase';
 import { subscribeAuthAndRole } from '../../lib/auth';

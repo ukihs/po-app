@@ -10,7 +10,7 @@ import {
 import { auth, db } from './firebase';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 
-type Role = 'buyer' | 'supervisor' | 'procurement';
+type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
 
 // สร้าง/อัปเดตข้อมูลผู้ใช้ใน Firestore (ไม่เขียนทับ role ที่มีอยู่)
 export async function ensureUserDoc(user: User, displayName?: string) {

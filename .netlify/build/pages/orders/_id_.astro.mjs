@@ -1,7 +1,6 @@
-/* empty css                                    */
 import { c as createComponent, d as createAstro, m as maybeRenderHead, j as renderComponent, r as renderTemplate } from '../../chunks/astro/server_DSMDtA1y.mjs';
 import 'kleur/colors';
-import { H as Header } from '../../chunks/Header_f_8O8zLJ.mjs';
+import { H as Header } from '../../chunks/Header_D8ZfDF6F.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { b as auth, d as db } from '../../chunks/auth_BHth7sWR.mjs';
@@ -149,10 +148,10 @@ const $$id = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$id;
   const { id } = Astro2.params;
-  return renderTemplate`<html lang="th"> ${maybeRenderHead()}<body> ${renderComponent($$result, "Header", Header, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test01/po-app/src/components/po/Header", "client:component-export": "default" })} ${renderComponent($$result, "OrderDetailPage", OrderDetailPage, { "client:load": true, "orderId": id, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test01/po-app/src/components/po/OrderDetailPage", "client:component-export": "default" })} </body></html>`;
-}, "C:/Projects/Astro/test01/po-app/src/pages/orders/[id].astro", void 0);
+  return renderTemplate`<html lang="th"> ${maybeRenderHead()}<body> ${renderComponent($$result, "Header", Header, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test02/po-app/src/components/po/Header", "client:component-export": "default" })} ${renderComponent($$result, "OrderDetailPage", OrderDetailPage, { "client:load": true, "orderId": id, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test02/po-app/src/components/po/OrderDetailPage", "client:component-export": "default" })} </body></html>`;
+}, "C:/Projects/Astro/test02/po-app/src/pages/orders/[id].astro", void 0);
 
-const $$file = "C:/Projects/Astro/test01/po-app/src/pages/orders/[id].astro";
+const $$file = "C:/Projects/Astro/test02/po-app/src/pages/orders/[id].astro";
 const $$url = "/orders/[id]";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
