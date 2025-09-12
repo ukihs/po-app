@@ -157,7 +157,8 @@ async function createNotification(data: {
   }
 }
 
-// ---------- Order Functions ----------
+// ใน poApi.ts - แทนที่ฟังก์ชัน createOrder
+
 export async function createOrder(payload: {
   date: string;
   requesterName: string;
@@ -166,74 +167,77 @@ export async function createOrder(payload: {
   const u = auth.currentUser;
   if (!u) throw new Error('ยังไม่ได้ล็อกอิน');
 
-  console.log('createOrder: Starting order creation', {
-    requesterName: payload.requesterName,
-    itemCount: payload.items.length,
-    userUid: u.uid
-  });
+  console.log('🚀 createOrder: Starting', { userEmail: u.email, requesterName: payload.requesterName });
 
-  // 1) เลขรันใบสั่งซื้อ
-  const orderNo = await getNextNumber('orders');
-  console.log('createOrder: Generated order number', orderNo);
+  try {
+    // 1) เลขรันใบสั่งซื้อ
+    const orderNo = await getNextNumber('orders');
+    console.log('📝 createOrder: Got order number', orderNo);
 
-  // 2) ข้อมูลรายการพร้อม itemType และ lineTotal
-  const cleanItems = payload.items.map((it) => ({
-    description: (it.description || '').trim(),
-    receivedDate: it.receivedDate || '',
-    quantity: toNum(it.quantity),
-    amount: toNum(it.amount),
-    lineTotal: lineTotal(it),
-    itemType: it.itemType || 'วัตถุดิบ',
-  }));
+    // 2) ข้อมูลรายการ
+    const cleanItems = payload.items.map((it) => ({
+      description: (it.description || '').trim(),
+      receivedDate: it.receivedDate || '',
+      quantity: toNum(it.quantity),
+      amount: toNum(it.amount),
+      lineTotal: lineTotal(it),
+      itemType: it.itemType || 'วัตถุดิบ',
+    }));
 
-  // 3) หาประเภทสินค้าหลักและกำหนด procurement status เริ่มต้น
-  const primaryItemType = cleanItems[0]?.itemType || 'วัตถุดิบ';
-  const initialProcurementStatus = getInitialProcurementStatus(primaryItemType);
+    // 3) บันทึกใบสั่งซื้อ
+    const docData = {
+      requesterUid: u.uid,
+      requesterName: payload.requesterName,
+      date: payload.date,
+      items: cleanItems,
+      total: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
+      totalAmount: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
+      status: 'pending' as const,
+      createdAt: serverTimestamp(),
+      orderNo,
+      timestamps: {
+        submitted: serverTimestamp(),
+      }
+    };
 
-  // 4) บันทึกใบสั่งซื้อพร้อม timestamps
-  const docData = {
-    requesterUid: u.uid,
-    requesterName: payload.requesterName,
-    date: payload.date,
-    items: cleanItems,
-    total: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
-    totalAmount: cleanItems.reduce((s, x) => s + x.lineTotal, 0), // เพิ่มเพื่อ compatibility
-    status: 'pending' as const,
-    createdAt: serverTimestamp(),
-    orderNo,
-    procurementStatus: initialProcurementStatus,
-    timestamps: {
-      submitted: serverTimestamp(),
+    console.log('💾 createOrder: Saving to Firestore...', { orderNo, total: docData.total });
+    const ref = await addDoc(collection(db, 'orders'), docData);
+    console.log('✅ createOrder: Saved with ID', ref.id);
+
+    // 4) สร้าง notification
+    console.log('🔔 createOrder: Creating notification...');
+    try {
+      const notificationData = {
+        title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
+        message: `ใบสั่งซื้อ #${orderNo} โดย ${payload.requesterName} รอการอนุมัติ`,
+        orderId: ref.id,
+        orderNo,
+        kind: 'approval_request',
+        toUserUid: null,
+        forRole: 'supervisor',
+        fromUserUid: u.uid,
+        fromUserName: payload.requesterName,
+        read: false,
+        createdAt: serverTimestamp(),
+      };
+
+      console.log('📤 createOrder: Notification data', notificationData);
+      
+      const notifRef = await addDoc(collection(db, 'notifications'), notificationData);
+      console.log('✅ createOrder: Notification created', notifRef.id);
+      
+    } catch (notifError) {
+      console.error('❌ createOrder: Notification failed', notifError);
+      // ไม่ throw error เพื่อไม่ให้การสร้างใบสั่งซื้อล้มเหลว
     }
-  };
 
-  console.log('createOrder: Saving order to Firestore', {
-    orderNo,
-    total: docData.total,
-    itemCount: cleanItems.length
-  });
+    console.log('🎉 createOrder: Complete!', { orderId: ref.id, orderNo });
+    return ref.id;
 
-  const ref = await addDoc(collection(db, 'orders'), docData);
-  console.log('createOrder: Order saved with ID', ref.id);
-
-  // 5) ส่งแจ้งเตือนให้ supervisor role
-  await createNotification({
-    title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
-    message: `ใบสั่งซื้อ #${orderNo} โดย ${payload.requesterName} รอการอนุมัติ`,
-    orderId: ref.id,
-    orderNo,
-    kind: 'approval_request',
-    forRole: 'supervisor',
-    fromUserName: payload.requesterName,
-  });
-
-  console.log('createOrder: Order creation completed', {
-    orderId: ref.id,
-    orderNo,
-    notificationSent: true
-  });
-
-  return ref.id;
+  } catch (error) {
+    console.error('💥 createOrder: Failed', error);
+    throw error;
+  }
 }
 
 // Listen to all orders (for supervisor/procurement)
