@@ -1,0 +1,276 @@
+// Firestore Security Rules สำหรับระบบใบสั่งซื้อ
+// อัปเดต: เวอร์ชันสมบูรณ์ที่รองรับทุกการใช้งาน
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ========== Helper Functions ========== */
+    
+    // ตรวจสอบว่าผู้ใช้ล็อกอินแล้วหรือไม่
+    function isAuth() { 
+      return request.auth != null; 
+    }
+
+    // ดึง role ของผู้ใช้จาก users collection
+    function getUserRole() {
+      return isAuth() 
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    // ตรวจสอบ role ต่างๆ
+    function isSuperAdmin() { return getUserRole() == 'superadmin'; }
+    function isBuyer() { return getUserRole() == 'buyer'; }
+    function isSupervisor() { return getUserRole() == 'supervisor'; }
+    function isProcurement() { return getUserRole() == 'procurement'; }
+
+    // ตรวจสอบว่าเป็น staff (ไม่ใช่แค่ buyer)
+    function isStaff() { 
+      return isSupervisor() || isProcurement() || isSuperAdmin(); 
+    }
+
+    // ตรวจสอบว่าสามารถจัดการใบสั่งซื้อได้
+    function canManageOrders() { 
+      return isSupervisor() || isProcurement() || isSuperAdmin(); 
+    }
+
+    // ตรวจสอบว่าการเปลี่ยนแปลงมีเฉพาะ fields ที่อนุญาต
+    function onlyChanges(allowedFields) {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(allowedFields);
+    }
+
+    // ตรวจสอบว่าเป็นเจ้าของใบสั่งซื้อ
+    function isOrderOwner() {
+      return isAuth() && request.auth.uid == resource.data.requesterUid;
+    }
+
+    // ตรวจสอบว่าสามารถดู notification ได้
+    function canReadNotification() {
+      return isAuth() && (
+        resource.data.toUserUid == request.auth.uid ||  // ส่งให้ user เฉพาะ
+        resource.data.forRole == getUserRole()           // ส่งให้ role
+      );
+    }
+
+    /* ========== Users Collection ========== */
+    match /users/{userId} {
+      // อ่านได้: ทุกคนที่ล็อกอิน (จำเป็นสำหรับการตรวจสอบ role)
+      allow read: if isAuth();
+
+      // สร้างได้: เจ้าของบัญชี (สำหรับ sign up) หรือ superadmin
+      allow create: if isAuth() && (
+        request.auth.uid == userId ||  // เจ้าของบัญชี
+        isSuperAdmin()                 // superadmin สร้างให้ใครก็ได้
+      );
+
+      // แก้ไขได้: 
+      // - เจ้าของแก้ไขข้อมูลส่วนตัว (ไม่รวม role, email, uid)
+      // - superadmin แก้ไขได้ทุกอย่าง
+      allow update: if isAuth() && (
+        (request.auth.uid == userId && 
+         onlyChanges(['displayName', 'phone', 'photoURL', 'updatedAt'])) ||
+        isSuperAdmin()
+      );
+
+      // ลบได้: เฉพาะ superadmin
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ========== Orders Collection ========== */
+    match /orders/{orderId} {
+      
+      // อ่านได้:
+      // - buyer: ใบสั่งซื้อของตัวเอง
+      // - supervisor/procurement/superadmin: ใบสั่งซื้อทั้งหมด
+      allow read: if isAuth() && (
+        (isBuyer() && isOrderOwner()) ||
+        canManageOrders()
+      );
+
+      // สร้างได้: buyer สร้างใบสั่งซื้อของตัวเอง
+      allow create: if isAuth() && 
+        isBuyer() && 
+        request.auth.uid == request.resource.data.requesterUid &&
+        request.resource.data.status == 'pending';
+
+      // แก้ไขได้:
+      
+      // 1. Buyer แก้ไขใบสั่งซื้อของตัวเอง (เฉพาะตอน pending)
+      allow update: if isAuth() && 
+        isBuyer() && 
+        isOrderOwner() &&
+        resource.data.status == 'pending' &&
+        onlyChanges([
+          'items', 'total', 'totalAmount', 'date', 
+          'requesterName', 'updatedAt'
+        ]);
+
+      // 2. Supervisor อนุมัติ/ไม่อนุมัติ (เฉพาะตอน pending)
+      allow update: if isAuth() && 
+        isSupervisor() &&
+        resource.data.status == 'pending' &&
+        onlyChanges([
+          'status', 'approvedBy', 'approvedAt', 'approvedByUid',
+          'rejectedReason', 'rejectedAt', 'rejectedByUid',
+          'updatedAt', 'timestamps'
+        ]);
+
+      // 3. Procurement จัดการใบสั่งซื้อ (หลังได้รับอนุมัติ)
+      allow update: if isAuth() && 
+        isProcurement() &&
+        onlyChanges([
+          'status', 'procurementStatus', 'procurementNote',
+          'itemsCategories', 'itemsStatuses', 'items',
+          'expectedDate', 'deliveredDate', 'trackingNumber',
+          'vendorId', 'vendorName', 'poNumber',
+          'timestamps', 'updatedAt'
+        ]);
+
+      // 4. SuperAdmin แก้ไขได้ทุกอย่าง
+      allow update: if isSuperAdmin();
+
+      // ลบได้:
+      // - buyer: ใบสั่งซื้อของตัวเอง (เฉพาะตอน pending)
+      // - procurement/superadmin: ใบสั่งซื้อทั้งหมด
+      allow delete: if isAuth() && (
+        (isBuyer() && isOrderOwner() && resource.data.status == 'pending') ||
+        isProcurement() ||
+        isSuperAdmin()
+      );
+    }
+
+    /* ========== Notifications Collection ========== */
+    match /notifications/{notificationId} {
+      
+      // อ่านได้: ผู้ที่ notification ส่งถึง (ทั้ง user เฉพาะและ role)
+      allow read: if canReadNotification() || isSuperAdmin();
+
+      // สร้างได้: ทุกคนที่ล็อกอิน (สำหรับส่ง notification)
+      allow create: if isAuth();
+
+      // แก้ไขได้: ผู้รับ notification (สำหรับ mark as read)
+      allow update: if canReadNotification() &&
+        onlyChanges(['read', 'readAt', 'updatedAt']);
+
+      // ลบได้: เฉพาะ superadmin
+      allow delete: if isSuperAdmin();
+    }
+
+    /* ========== Counters Collection ========== */
+    // สำหรับเลขรันใบสั่งซื้อ
+    match /counters/{counterId} {
+      allow read, write: if isAuth();
+    }
+
+    /* ========== Supporting Collections ========== */
+    
+    // Categories Collection (ประเภทสินค้า)
+    match /categories/{categoryId} {
+      allow read: if isAuth();
+      allow write: if isStaff();
+    }
+
+    // Suppliers/Vendors Collection (ผู้จำหน่าย)
+    match /suppliers/{supplierId} {
+      allow read: if isAuth();
+      allow write: if isProcurement() || isSuperAdmin();
+    }
+
+    // Departments Collection (แผนก)
+    match /departments/{departmentId} {
+      allow read: if isAuth();
+      allow write: if canManageOrders();
+    }
+
+    // Item Categories Collection (หมวดหมู่สินค้า)
+    match /itemCategories/{itemCategoryId} {
+      allow read: if isAuth();
+      allow write: if isProcurement() || isSuperAdmin();
+    }
+
+    // Item Statuses Collection (สถานะสินค้า)
+    match /itemStatuses/{itemStatusId} {
+      allow read: if isAuth();
+      allow write: if isProcurement() || isSuperAdmin();
+    }
+
+    // Procurement Data Collection (ข้อมูลการจัดซื้อ)
+    match /procurementData/{procurementId} {
+      allow read, write: if isProcurement() || isSuperAdmin();
+    }
+
+    // Logs Collection (บันทึกการใช้งาน)
+    match /logs/{logId} {
+      allow create: if isAuth();
+      allow read: if canManageOrders();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // Settings Collection (การตั้งค่าระบบ)
+    match /settings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isSuperAdmin();
+    }
+
+    // Reports Collection (รายงาน)
+    match /reports/{reportId} {
+      allow read: if canManageOrders();
+      allow write: if isProcurement() || isSuperAdmin();
+    }
+
+    // Templates Collection (แม่แบบใบสั่งซื้อ)
+    match /templates/{templateId} {
+      allow read: if isAuth();
+      allow write: if canManageOrders();
+    }
+
+    // Attachments Collection (ไฟล์แนบ)
+    match /attachments/{attachmentId} {
+      // อ่านได้ถ้าเป็นเจ้าของหรือ staff
+      allow read: if isAuth() && (
+        resource.data.createdBy == request.auth.uid ||
+        canManageOrders()
+      );
+      allow create: if isAuth();
+      allow update: if isAuth() && (
+        resource.data.createdBy == request.auth.uid ||
+        isSuperAdmin()
+      );
+      allow delete: if isAuth() && (
+        resource.data.createdBy == request.auth.uid ||
+        isSuperAdmin()
+      );
+    }
+
+    // Debug Collection (สำหรับ development)
+    match /debug/{debugId} {
+      allow read, write: if isAuth();
+    }
+
+    /* ========== System Collections ========== */
+    
+    // System Info (ข้อมูลระบบ)
+    match /system/{systemId} {
+      allow read: if isAuth();
+      allow write: if isSuperAdmin();
+    }
+
+    // Backup Collection (สำรอง)
+    match /backup/{backupId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // Audit Collection (ตรวจสอบ)
+    match /audit/{auditId} {
+      allow create: if isAuth();
+      allow read: if isSuperAdmin();
+    }
+
+    /* ========== Default Deny Rule ========== */
+    // ปฏิเสธการเข้าถึงทุกอย่างที่ไม่ได้กำหนดไว้ข้างต้น
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
