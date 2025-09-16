@@ -1,9 +1,9 @@
 import { c as createComponent, d as createAstro, m as maybeRenderHead, j as renderComponent, r as renderTemplate } from '../../chunks/astro/server_D_wosZza.mjs';
 import 'kleur/colors';
-import { H as Header } from '../../chunks/Header_2PK7coh-.mjs';
+import { H as Header } from '../../chunks/Header_BkwMxKVV.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { b as auth, d as db } from '../../chunks/auth_CVZcLuKI.mjs';
+import { b as auth, d as db } from '../../chunks/auth_BW0YqYLL.mjs';
 import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
 export { renderers } from '../../renderers.mjs';
 
