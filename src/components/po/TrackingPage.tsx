@@ -48,7 +48,7 @@ export default function TrackingPage() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<OrderData[]>([]);
   const [err, setErr] = useState('');
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | null>(null);
+  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
   const [user, setUser] = useState<any>(null);
 
@@ -151,21 +151,17 @@ export default function TrackingPage() {
     try {
       setProcessingOrders(prev => new Set(prev).add(orderId));
       
-      // เพิ่ม loading state และ suppress การแสดงผล error ที่ไม่สำคัญ
       console.log(`กำลัง${action}ใบสั่งซื้อ...`, orderId);
       
       await approveOrder(orderId, approved);
       
-      // ใช้ toast หรือ notification แทน alert เพื่อ UX ที่ดีกว่า
       console.log(`${action}ใบสั่งซื้อเรียบร้อยแล้ว`);
       
-      // แสดงข้อความยืนยันแต่ไม่ใช่ alert
       const notification = document.createElement('div');
       notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
       notification.textContent = `${action}ใบสั่งซื้อเรียบร้อยแล้ว`;
       document.body.appendChild(notification);
       
-      // ลบ notification หลัง 3 วินาที
       setTimeout(() => {
         if (document.body.contains(notification)) {
           document.body.removeChild(notification);
@@ -175,18 +171,14 @@ export default function TrackingPage() {
     } catch (error) {
       console.error('Error approving order:', error);
       
-      // ตรวจสอบว่าเป็น permission error หรือไม่
       const errorMessage = (error as any)?.message || '';
       const isPermissionError = errorMessage.includes('permission') || 
                                errorMessage.includes('insufficient') ||
                                errorMessage.includes('Missing');
       
-      // ถ้าเป็น permission error แต่การอนุมัติสำเร็จ (ตรวจสอบจาก state)
       if (isPermissionError) {
-        // ไม่แสดง error alert แต่แสดง warning เบาๆ
         console.warn('Permission warning occurred but operation may have succeeded');
         
-        // แสดงข้อความเตือนเบาๆ
         const notification = document.createElement('div');
         notification.className = 'fixed top-4 right-4 bg-yellow-500 text-white p-4 rounded-lg shadow-lg z-50';
         notification.textContent = `${action}สำเร็จแล้ว (มี warning เล็กน้อย)`;
@@ -198,7 +190,6 @@ export default function TrackingPage() {
           }
         }, 3000);
       } else {
-        // แสดง error จริงๆ เฉพาะกรณีที่ไม่ใช่ permission
         const notification = document.createElement('div');
         notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50';
         notification.textContent = `เกิดข้อผิดพลาดใน${action}: ${errorMessage}`;

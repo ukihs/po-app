@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { subscribeAuthAndRole } from '../../lib/auth';
+import { 
+  Plus, 
+  FileText, 
+  Bell, 
+  Users, 
+  List,
+  CheckCircle2
+} from 'lucide-react';
 
 export default function TabNavigation() {
   const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
@@ -13,8 +21,7 @@ export default function TabNavigation() {
       setUser(u);
       setRole(r);
       setIsLoading(false);
-      
-      // Store role in sessionStorage for debugging
+
       if (r && u) {
         sessionStorage.setItem('po_user_role', r);
         sessionStorage.setItem('po_user_email', u.email || '');
@@ -82,175 +89,140 @@ export default function TabNavigation() {
     <div className="w-full bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-start py-4 gap-2">
-          
-          {/* BUYER Navigation */}
+
           {role === 'buyer' && (
             <>
               <button
                 onClick={() => handleTabChange('create', '/orders/create')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'create' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'create'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <Plus className="w-4 h-4" />
                 สร้างใบสั่งซื้อ
               </button>
 
               <button
                 onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'tracking'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
+                <FileText className="w-4 h-4" />
                 ติดตามสถานะ
               </button>
 
               <button
                 onClick={() => handleTabChange('notifications', '/orders/notifications')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'notifications' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'notifications'
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                </svg>
+                <Bell className="w-4 h-4" />
                 การแจ้งเตือน
               </button>
             </>
           )}
 
-          {/* SUPERVISOR Navigation - ไม่มีแท็บ notifications */}
           {role === 'supervisor' && (
             <>
               <button
                 onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'tracking'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
+                <CheckCircle2 className="w-4 h-4" />
                 ติดตามและอนุมัติ
               </button>
 
               <button
                 onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'list'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
+                <List className="w-4 h-4" />
                 รายการใบสั่งซื้อ
               </button>
             </>
           )}
 
-          {/* PROCUREMENT Navigation - ไม่มี notifications tab */}
           {role === 'procurement' && (
             <>
               <button
                 onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'list'
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
+                <List className="w-4 h-4" />
                 รายการใบสั่งซื้อ
               </button>
 
               <button
                 onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'tracking'
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
+                <FileText className="w-4 h-4" />
                 ติดตามสถานะ
               </button>
             </>
           )}
 
-          {/* SUPERADMIN Navigation */}
           {role === 'superadmin' && (
             <>
               <button
                 onClick={() => handleTabChange('users', '/users')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'users' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'users'
+                    ? 'bg-red-100 text-red-700 border border-red-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
+                <Users className="w-4 h-4" />
                 จัดการผู้ใช้งาน
               </button>
 
               <button
                 onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'list'
+                    ? 'bg-red-100 text-red-700 border border-red-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
+                <List className="w-4 h-4" />
                 รายการใบสั่งซื้อ
               </button>
 
               <button
                 onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'tracking'
+                    ? 'bg-red-100 text-red-700 border border-red-200'
                     : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
+                  }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
+                <FileText className="w-4 h-4" />
                 ติดตามสถานะ
               </button>
             </>
           )}
 
-          {/* Role indicator */}
           <div className="ml-auto flex items-center">
             <div className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
               {role === 'buyer' ? 'ผู้ขอซื้อ' :
-               role === 'supervisor' ? 'หัวหน้างาน' :
-               role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
-               role === 'superadmin' ? 'ผู้ดูแลระบบ' :
-               'กำลังโหลด...'}
+                role === 'supervisor' ? 'หัวหน้างาน' :
+                  role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
+                    role === 'superadmin' ? 'ผู้ดูแลระบบ' :
+                      'กำลังโหลด...'}
             </div>
           </div>
         </div>

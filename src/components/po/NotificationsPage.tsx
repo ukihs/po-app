@@ -1,267 +1,314 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { auth, db } from '../../lib/firebase';
 import { subscribeAuthAndRole } from '../../lib/auth';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
+import { 
+  Bell, 
+  FileText, 
+  User, 
+  Clock,
+  ArrowRight,
+  CheckCircle,
+  AlertCircle 
+} from 'lucide-react';
 
-export default function TabNavigation() {
+type Noti = {
+  id: string;
+  title: string;
+  message?: string;
+  orderId?: string;
+  orderNo?: number;
+  createdAt?: any;
+  read?: boolean;
+  toUserUid?: string;
+  fromUserName?: string;
+  kind?: 'approval_request' | 'approved' | 'rejected' | 'status_update';
+  forRole?: 'procurement' | 'supervisor' | 'buyer' | 'superadmin';
+};
+
+const fmt = (ts: any) => {
+  if (!ts?.toDate) return '';
+  const d = ts.toDate();
+  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' });
+};
+
+export default function NotificationsPage() {
+  const [items, setItems] = useState<Noti[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string>('');
   const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
-  const [activeTab, setActiveTab] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const stopSnap = useRef<Unsubscribe | null>(null);
+  const stopAuth = useRef<Unsubscribe | null>(null);
 
   useEffect(() => {
-    const off = subscribeAuthAndRole((u, r) => {
-      console.log('TabNavigation - User:', u?.email, 'Role:', r);
-      setUser(u);
-      setRole(r);
-      setIsLoading(false);
-      
-      // Store role in sessionStorage for debugging
-      if (r && u) {
-        sessionStorage.setItem('po_user_role', r);
-        sessionStorage.setItem('po_user_email', u.email || '');
+    stopAuth.current = subscribeAuthAndRole((user, userRole) => {
+      if (stopSnap.current) {
+        stopSnap.current();
+        stopSnap.current = null;
+      }
+
+      if (!user) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      setRole(userRole);
+      setLoading(true);
+      setErr('');
+
+      if (userRole === 'buyer' || userRole === 'supervisor') {
+        const q = query(
+          collection(db, 'notifications'),
+          where('toUserUid', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+
+        stopSnap.current = onSnapshot(
+          q,
+          (snap) => {
+            const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+            setItems(rows as Noti[]);
+            setLoading(false);
+          },
+          (e) => {
+            console.error('notifications error:', e);
+            setErr((e?.message || '').toString());
+            setItems([]);
+            setLoading(false);
+          }
+        );
+      } else if (userRole === 'procurement') {
+        const personalQ = query(
+          collection(db, 'notifications'),
+          where('toUserUid', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+
+        const roleQ = query(
+          collection(db, 'notifications'),
+          where('forRole', '==', 'procurement'),
+          orderBy('createdAt', 'desc')
+        );
+
+        let personalNotifs: Noti[] = [];
+        let roleNotifs: Noti[] = [];
+        let loadedCount = 0;
+
+        const combineAndSetNotifications = () => {
+          if (loadedCount < 2) return;
+          
+          const allNotifs = [...personalNotifs, ...roleNotifs];
+          const uniqueNotifs = allNotifs.filter((notif, index, arr) => 
+            arr.findIndex(n => n.id === notif.id) === index
+          );
+          
+          uniqueNotifs.sort((a, b) => {
+            if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
+            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+          });
+
+          setItems(uniqueNotifs);
+          setLoading(false);
+        };
+
+        const unsubPersonal = onSnapshot(personalQ, (snap) => {
+          personalNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
+          loadedCount = Math.max(loadedCount, 1);
+          combineAndSetNotifications();
+        }, (e) => {
+          console.error('personal notifications error:', e);
+          setErr((e?.message || '').toString());
+          setLoading(false);
+        });
+
+        const unsubRole = onSnapshot(roleQ, (snap) => {
+          roleNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
+          loadedCount = Math.max(loadedCount, 2);
+          combineAndSetNotifications();
+        }, (e) => {
+          console.error('role notifications error:', e);
+          setErr((e?.message || '').toString());
+          setLoading(false);
+        });
+
+        stopSnap.current = () => {
+          unsubPersonal();
+          unsubRole();
+        };
       } else {
-        sessionStorage.removeItem('po_user_role');
-        sessionStorage.removeItem('po_user_email');
+        setItems([]);
+        setLoading(false);
+        return;
       }
     });
-    return off;
+
+    return () => {
+      if (stopSnap.current) stopSnap.current();
+      if (stopAuth.current) stopAuth.current();
+      stopSnap.current = null;
+      stopAuth.current = null;
+    };
   }, []);
 
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes('/create')) setActiveTab('create');
-    else if (path.includes('/tracking')) setActiveTab('tracking');
-    else if (path.includes('/notifications')) setActiveTab('notifications');
-    else if (path.includes('/list')) setActiveTab('list');
-    else setActiveTab('');
-  }, []);
-
-  const handleTabChange = (tab: string, url: string) => {
-    setActiveTab(tab);
-    window.location.href = url;
+  const markReadAndGo = async (n: Noti) => {
+    try {
+      if (!n.read) {
+        await updateDoc(doc(db, 'notifications', n.id), { read: true });
+      }
+      
+      if (role === 'buyer') {
+        window.location.href = '/orders/tracking';
+      } else if (role === 'supervisor') {
+        window.location.href = '/orders/tracking';
+      } else if (role === 'procurement') {
+        window.location.href = '/orders/list';
+      }
+    } catch (e) {
+      console.error(e);
+      if (role === 'buyer') {
+        window.location.href = '/orders/tracking';
+      } else {
+        window.location.href = '/orders/list';
+      }
+    }
   };
 
-  if (isLoading) {
+  if (loading) return <div className="px-4 py-8">กำลังโหลดแจ้งเตือน...</div>;
+
+  if (err && /requires an index/i.test(err)) {
     return (
-      <div className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-start py-4">
-            <div className="animate-pulse flex space-x-4">
-              <div className="h-10 bg-gray-200 rounded w-32"></div>
-              <div className="h-10 bg-gray-200 rounded w-32"></div>
-              <div className="h-10 bg-gray-200 rounded w-32"></div>
-            </div>
+      <div className="px-4 py-8 text-rose-700 text-sm">
+        เกิดข้อผิดพลาดในการโหลดข้อมูล<br />
+        {err}
+        <br />
+        ถ้า error มีคำว่า requires an index ให้คลิกลิงก์ในข้อความนั้นเพื่อสร้าง Index แล้วรีเฟรชใหม่อีกครั้ง
+      </div>
+    );
+  }
+
+  if (!items.length) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <Bell className="w-12 h-12 text-gray-400" />
           </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">ยังไม่มีการแจ้งเตือน</h3>
+          <p className="text-gray-600">การแจ้งเตือนต่างๆ จะแสดงที่นี่</p>
         </div>
       </div>
     );
   }
 
-  if (!role || !user) {
-    return (
-      <div className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-start py-4">
-            <div className="text-red-600 text-sm">
-              กำลังโหลดข้อมูลผู้ใช้...
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const getTabClass = (tabName: string, themeColor: string) => {
-    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ";
-    if (activeTab === tabName) {
-      return baseClass + `bg-${themeColor}-100 text-${themeColor}-700 border border-${themeColor}-200`;
+  const getNotificationIcon = (kind?: string) => {
+    switch (kind) {
+      case 'approved':
+        return <CheckCircle className="w-5 h-5 text-success" />;
+      case 'rejected':
+        return <AlertCircle className="w-5 h-5 text-error" />;
+      case 'status_update':
+        return <FileText className="w-5 h-5 text-info" />;
+      default:
+        return <Bell className="w-5 h-5 text-warning" />;
     }
-    return baseClass + "text-gray-600 hover:bg-gray-100 border border-transparent";
+  };
+
+  const getNotificationColor = (kind?: string, read?: boolean) => {
+    if (read) return 'border-gray-200 bg-white';
+    
+    switch (kind) {
+      case 'approved':
+        return 'border-green-400 bg-white';
+      case 'rejected':
+        return 'border-red-400 bg-white';
+      case 'status_update':
+        return 'border-blue-400 bg-white';
+      default:
+        return 'border-yellow-400 bg-white';
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'buyer': return 'ผู้ขอซื้อ';
+      case 'supervisor': return 'หัวหน้างาน';
+      case 'procurement': return 'ฝ่ายจัดซื้อ';
+      default: return role;
+    }
   };
 
   return (
-    <div className="w-full bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-start py-4 gap-2">
-          
-          {/* BUYER Navigation */}
-          {role === 'buyer' && (
-            <>
-              <button
-                onClick={() => handleTabChange('create', '/orders/create')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'create' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                สร้างใบสั่งซื้อ
-              </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">ข้อความแจ้งเตือนระบบ</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          แจ้งเตือนสำหรับ{getRoleDisplayName(role || '')}
+        </p>
+      </div>
 
-              <button
-                onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
-                ติดตามสถานะ
-              </button>
+      <div className="space-y-4">
+        {items.map((n) => (
+          <div
+            key={n.id}
+            className={`card border-l-4 shadow-md cursor-pointer hover:shadow-lg transition-all duration-200 ${getNotificationColor(n.kind, n.read)}`}
+            onClick={() => markReadAndGo(n)}
+          >
+            <div className="card-body p-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  {getNotificationIcon(n.kind)}
+                </div>
 
-              <button
-                onClick={() => handleTabChange('notifications', '/orders/notifications')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'notifications' 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                </svg>
-                การแจ้งเตือน
-              </button>
-            </>
-          )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-primary">
+                          เลขที่: {n.orderNo ? `#${n.orderNo}` : 'N/A'}
+                        </span>
+                        {!n.read && (
+                          <span className="badge badge-xs badge-primary">ใหม่</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <span>จาก: {n.fromUserName || 'ระบบ'}</span>
+                        <ArrowRight className="w-3 h-3" />
+                        <span>{getRoleDisplayName(role || '')}</span>
+                      </div>
 
-          {/* SUPERVISOR Navigation - ไม่มีแท็บ notifications */}
-          {role === 'supervisor' && (
-            <>
-              <button
-                onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
-                ติดตามและอนุมัติ
-              </button>
+                      <h3 className={`font-medium mb-1 ${!n.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                        {n.title}
+                      </h3>
 
-              <button
-                onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-                รายการใบสั่งซื้อ
-              </button>
-            </>
-          )}
+                      {n.message && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          {n.message}
+                        </p>
+                      )}
+                    </div>
 
-          {/* PROCUREMENT Navigation - เอา notifications ออก */}
-          {role === 'procurement' && (
-            <>
-              <button
-                onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-                รายการใบสั่งซื้อ
-              </button>
-
-              <button
-                onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
-                ติดตามสถานะ
-              </button>
-
-              {/* เพิ่มข้อความแจ้งเตือนว่าปิดใช้งานหน้า notifications ชั่วคราว */}
-              <div className="ml-4 px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853L15.75 12M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" />
-                </svg>
-                การแจ้งเตือนปิดใช้งานชั่วคราว
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-xs text-gray-500">
+                        {fmt(n.createdAt)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </>
-          )}
-
-          {/* SUPERADMIN Navigation */}
-          {role === 'superadmin' && (
-            <>
-              <button
-                onClick={() => handleTabChange('users', '/users')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'users' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
-                จัดการผู้ใช้งาน
-              </button>
-
-              <button
-                onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'list' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-                รายการใบสั่งซื้อ
-              </button>
-
-              <button
-                onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                  activeTab === 'tracking' 
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-10.5h5.25l-1.5-1.5 1.5-1.5m-3.75 3h-2.25v12h2.25a.75.75 0 0 0 .75-.75V8.25a.75.75 0 0 0-.75-.75Z" />
-                </svg>
-                ติดตามสถานะ
-              </button>
-            </>
-          )}
-
-          {/* Role indicator */}
-          <div className="ml-auto flex items-center">
-            <div className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-              {role === 'buyer' ? 'ผู้ขอซื้อ' :
-               role === 'supervisor' ? 'หัวหน้างาน' :
-               role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
-               role === 'superadmin' ? 'ผู้ดูแลระบบ' :
-               'กำลังโหลด...'}
             </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

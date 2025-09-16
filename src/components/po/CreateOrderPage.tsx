@@ -18,29 +18,26 @@ export default function CreateOrderPage() {
     receivedDate: '',
     quantity: '',
     amount: '',
-    itemType: 'วัตถุดิบ' // กำหนดค่า default เป็นวัตถุดิบเสมอ
+    itemType: 'วัตถุดิบ'
   });
 
-  // เติมชื่อผู้ใช้ (displayName/email) อัตโนมัติ
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
     setRequester(u.displayName || (u.email ?? '').split('@')[0]);
   }, []);
 
-  // เปิด Modal เพิ่มรายการ
   const openAddModal = () => {
     setNewItem({
       description: '',
       receivedDate: '',
       quantity: '',
       amount: '',
-      itemType: 'วัตถุดิบ' // กำหนดค่า default เป็นวัตถุดิบเสมอ
+      itemType: 'วัตถุดิบ'
     });
     setShowModal(true);
   };
 
-  // เพิ่ม item ใหม่จาก Modal
   const addItemFromModal = () => {
     if (!newItem.description.trim() || toNum(newItem.quantity) <= 0 || toNum(newItem.amount) <= 0) {
       alert('กรุณากรอกข้อมูลให้ครบถ้วน');
@@ -50,7 +47,7 @@ export default function CreateOrderPage() {
     const itemToAdd: Item = {
       no: items.length + 1,
       ...newItem,
-      itemType: 'วัตถุดิบ' // บังคับให้เป็นวัตถุดิบ
+      itemType: 'วัตถุดิบ'
     };
     
     setItems(prev => [...prev, itemToAdd]);
@@ -64,7 +61,6 @@ export default function CreateOrderPage() {
     });
   };
 
-  // ปิด Modal
   const closeModal = () => {
     setShowModal(false);
     setNewItem({
@@ -76,12 +72,10 @@ export default function CreateOrderPage() {
     });
   };
 
-  // ลบ item
   const removeItem = (idx: number) => {
     setItems(prev => prev.filter((_, i) => i !== idx).map((it, i) => ({ ...it, no: i + 1 })));
   };
 
-  // อัปเดตข้อมูล item
   const updateItem = (idx: number, field: keyof Omit<Item, 'no'>, value: string) => {
     setItems(prev => prev.map((item, i) => 
       i === idx ? { ...item, [field]: value } : item
@@ -100,7 +94,6 @@ export default function CreateOrderPage() {
     }
     try {
       setSaving(true);
-      // แน่ใจว่า itemType เป็นวัตถุดิบก่อนส่ง
       const itemsWithType = items.map(item => ({ ...item, itemType: 'วัตถุดิบ' as ItemType }));
       await createOrder({ date, requesterName: requester, items: itemsWithType });
       window.location.href = '/orders/tracking';
@@ -113,7 +106,6 @@ export default function CreateOrderPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Modal สำหรับเพิ่มรายการ */}
       <dialog id="add_item_modal" className={`modal ${showModal ? 'modal-open' : ''}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
@@ -207,7 +199,6 @@ export default function CreateOrderPage() {
             สร้างใบสั่งซื้อใหม่
           </h2>
 
-          {/* ข้อมูลทั่วไป */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="form-control">
               <label className="label">
@@ -233,7 +224,6 @@ export default function CreateOrderPage() {
             </div>
           </div>
 
-          {/* ตารางรายการสินค้า */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">รายการสินค้า</h3>
@@ -343,7 +333,7 @@ export default function CreateOrderPage() {
               
               {items.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-base-content/40 mb-4">
+                  <div className="text-base-content/100 mb-4">
                     <Package className="mx-auto h-12 w-12" />
                   </div>
                   <h3 className="text-lg font-medium mb-2">ยังไม่มีรายการสินค้า</h3>
@@ -361,7 +351,6 @@ export default function CreateOrderPage() {
             </div>
           </div>
 
-          {/* สรุปและปุ่มส่ง */}
           <div className="divider"></div>
           <div className="flex items-center justify-between">
             <div className="text-lg">

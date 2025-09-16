@@ -67,22 +67,19 @@ export default function UsersManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // ตรวจสอบสิทธิ์การเข้าถึง
   useEffect(() => {
     const unsubscribe = subscribeAuthAndRole((user, role) => {
       setUser(user);
       setUserRole(role);
       
       if (user && role !== 'superadmin') {
-        // ถ้าไม่ใช่ superadmin ให้ redirect ไปหน้า login
-        window.location.href = '/login';
+        window.location.href = '/';
       }
     });
 
     return unsubscribe;
   }, []);
 
-  // โหลดข้อมูลผู้ใช้
   useEffect(() => {
     if (userRole !== 'superadmin') return;
 
@@ -111,7 +108,6 @@ export default function UsersManagementPage() {
     return unsubscribe;
   }, [userRole]);
 
-  // กรองข้อมูลผู้ใช้
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.displayName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -119,13 +115,11 @@ export default function UsersManagementPage() {
     return matchesSearch && matchesRole;
   });
 
-  // คำนวณ pagination
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
-  // เปิด Modal สำหรับเพิ่มผู้ใช้
   const handleAddUser = () => {
     setEditingUser(null);
     setFormData({
@@ -137,7 +131,6 @@ export default function UsersManagementPage() {
     setShowModal(true);
   };
 
-  // เปิด Modal สำหรับแก้ไขผู้ใช้
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setFormData({
@@ -149,14 +142,12 @@ export default function UsersManagementPage() {
     setShowModal(true);
   };
 
-  // บันทึกข้อมูลผู้ใช้
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
 
     try {
       if (editingUser) {
-        // แก้ไขผู้ใช้
         const userRef = doc(db, 'users', editingUser.uid);
         await updateDoc(userRef, {
           displayName: formData.displayName,
@@ -164,7 +155,6 @@ export default function UsersManagementPage() {
           updatedAt: serverTimestamp()
         });
       } else {
-        // เพิ่มผู้ใช้ใหม่
         const { user: newUser } = await createUserWithEmailAndPassword(
           auth, 
           formData.email, 
@@ -191,7 +181,6 @@ export default function UsersManagementPage() {
     }
   };
 
-  // ลบผู้ใช้
   const handleDeleteUser = async (user: User) => {
     if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบผู้ใช้ ${user.email}?`)) return;
 
@@ -203,7 +192,6 @@ export default function UsersManagementPage() {
     }
   };
 
-  // แปลง timestamp เป็นวันที่
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '-';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -216,7 +204,6 @@ export default function UsersManagementPage() {
     });
   };
 
-  // แสดง badge ตาม role
   const getRoleBadge = (role: Role) => {
     const roleConfig = {
       buyer: { label: 'ผู้ซื้อ', className: 'badge-primary' },
@@ -244,19 +231,8 @@ export default function UsersManagementPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-800">จัดการผู้ใช้งาน</h1>
-          </div>
-          <p className="text-gray-600">จัดการข้อมูลผู้ใช้งานในระบบ</p>
-        </div>
-
-        {/* Controls */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -268,7 +244,6 @@ export default function UsersManagementPage() {
               />
             </div>
 
-            {/* Filter */}
             <div className="flex gap-3">
               <select
                 className="select select-bordered"
@@ -293,7 +268,6 @@ export default function UsersManagementPage() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">
@@ -370,7 +344,6 @@ export default function UsersManagementPage() {
                 </table>
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center p-4">
                   <div className="join">
@@ -404,7 +377,6 @@ export default function UsersManagementPage() {
           )}
         </div>
 
-        {/* Modal */}
         {showModal && (
           <div className="modal modal-open">
             <div className="modal-box">

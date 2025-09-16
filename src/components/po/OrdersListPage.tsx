@@ -12,7 +12,6 @@ import {
 import { subscribeAuthAndRole } from '../../lib/auth';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-/** ---------- Types ---------- */
 type Role = 'buyer' | 'supervisor' | 'procurement' | null;
 type OrderStatus = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
 
@@ -21,8 +20,8 @@ type OrderItem = {
   quantity?: number;
   amount?: number;
   lineTotal?: number;
-  category?: string;     // ที่เราเซฟลง items.<i>.category
-  itemStatus?: string;   // ที่เราเซฟลง items.<i>.itemStatus
+  category?: string;
+  itemStatus?: string;
 };
 
 type Order = {
@@ -41,7 +40,6 @@ type Order = {
   itemsStatuses?: Record<string, string>;
 };
 
-/** ---------- Const ---------- */
 const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
 
 const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
@@ -66,7 +64,6 @@ const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', '�
 const getItemStatusOptions = (category?: string) =>
   category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
 
-/** ---------- Helpers ---------- */
 const fmtTS = (ts:any) =>
   ts?.toDate
     ? ts.toDate().toLocaleString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
@@ -74,7 +71,6 @@ const fmtTS = (ts:any) =>
 
 type Drafts = Record<string, Record<number, {category?:string; itemStatus?:string}>>;
 
-/** ---------- Component ---------- */
 export default function OrdersListPage(){
   const [orders, setOrders] = useState<Order[]>([]);
   const [role, setRole]     = useState<Role>(null);
@@ -125,7 +121,6 @@ export default function OrdersListPage(){
 
   const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
 
-  // ใช้ค่าจาก draft ถ้ามี ไม่งั้นดูจาก doc (array หรือ map)
   const getItemValue = (o:Order, idx:number)=>{
     const d = drafts[o.id]?.[idx] || {};
     const mapCat = o.itemsCategories?.[String(idx)];
@@ -145,7 +140,6 @@ export default function OrdersListPage(){
     });
   };
 
-  /** บันทึกรายการเดียว: อัปเดตทั้ง array + maps */
   const saveOneItem = async (o:Order, idx:number)=>{
     const val = getItemValue(o, idx);
     if(!val.category && !val.itemStatus){ alert('ยังไม่ได้เลือกประเภท/สถานะ'); return; }
@@ -172,7 +166,6 @@ export default function OrdersListPage(){
         updatedAt: serverTimestamp(),
       });
 
-      // clear draft for this row
       setDrafts(prev=>{
         const forOrder = {...(prev[o.id]||{})};
         delete forOrder[idx];
@@ -187,7 +180,6 @@ export default function OrdersListPage(){
     }
   };
 
-  /** เปลี่ยนสถานะ "ใบ" (คืนความสามารถให้เปลี่ยนได้) */
   const saveOrderStatus = async (o:Order, next: OrderStatus)=>{
     const key = o.id;
     try{

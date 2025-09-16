@@ -1,15 +1,8 @@
 ---
+import MainLayout from '../layouts/MainLayout.astro';
 import UsersManagementPage from '../components/po/UsersManagementPage';
-import '../styles/global.css';
 ---
 
-<html lang="th" data-theme="light">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>จัดการผู้ใช้งาน</title>
-    </head>
-    <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <UsersManagementPage client:load />
-    </body>
-</html>
+<MainLayout title="จัดการผู้ใช้งาน">
+    <UsersManagementPage client:load />
+</MainLayout>

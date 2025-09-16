@@ -14,7 +14,7 @@ type Order = {
   requesterName: string;
   grandTotal?: number;
   items?: any[];
-  status: Status | string; // เผื่อกรณีเก็บเป็นภาษาไทย
+  status: Status | string;
 };
 
 export default function OrderDetailPage({ orderId }: { orderId: string }) {
@@ -28,10 +28,8 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
     const off = auth.onAuthStateChanged(async (u) => {
       if (!u) { location.href = "/login"; return; }
       try {
-        // โหลดคำสั่งซื้อ
         const snap = await getDoc(doc(db, "orders", orderId));
         setOrder(snap.exists() ? ({ id: snap.id, ...(snap.data() as any) }) : null);
-        // โหลด role
         const prof = await getDoc(doc(db, "users", u.uid));
         const data = prof.data() as any | undefined;
         if (data?.role) setRole(data.role as UserRole);

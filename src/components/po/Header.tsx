@@ -7,7 +7,7 @@ export default function Header() {
 
   useEffect(() => {
     const off = subscribeAuthAndRole((u, r) => {
-      console.log('Header - User:', u?.email, 'Role:', r); // Debug log
+      console.log('Header - User:', u?.email, 'Role:', r);
       setUser(u);
       setIsLoading(false);
       
@@ -116,7 +116,6 @@ export default function Header() {
                 </svg>
               </button>
               
-              {/* Dropdown Menu */}
               <div 
                 id="user-dropdown"
                 className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
