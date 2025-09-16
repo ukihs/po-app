@@ -6,10 +6,12 @@
   NODE_VERSION = "20"
 
 # Redirect rules for SPA routing (if needed)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Note: This redirect is commented out to allow 404 pages to work properly
+# If you need SPA routing, use a more specific pattern instead of "/*"
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
 
 # Headers for security and performance
 [[headers]]
