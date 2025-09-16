@@ -5,10 +5,7 @@ import {
   onSnapshot, 
   orderBy, 
   query, 
-  where, 
   doc, 
-  getDoc, 
-  addDoc, 
   updateDoc, 
   deleteDoc,
   serverTimestamp 
@@ -16,9 +13,7 @@ import {
 import { subscribeAuthAndRole } from '../../lib/auth';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { 
-  Search, 
-  Filter, 
-  Plus, 
+  Search,  
   MoreVertical, 
   Edit, 
   Trash2, 
@@ -27,7 +22,7 @@ import {
   Shield,
   Mail,
   Calendar,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
@@ -66,6 +61,8 @@ export default function UsersManagementPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeAuthAndRole((user, role) => {
@@ -181,15 +178,27 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleDeleteUser = async (user: User) => {
-    if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบผู้ใช้ ${user.email}?`)) return;
+  const handleDeleteUser = (user: User) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
 
     try {
-      await deleteDoc(doc(db, 'users', user.uid));
+      await deleteDoc(doc(db, 'users', userToDelete.uid));
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     } catch (error) {
       console.error('Error deleting user:', error);
       alert('เกิดข้อผิดพลาดในการลบข้อมูล');
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setUserToDelete(null);
   };
 
   const formatDate = (timestamp: any) => {
@@ -231,17 +240,19 @@ export default function UsersManagementPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="ค้นหาด้วยอีเมล..."
-                className="input input-bordered w-full pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex-1 max-w-md">
+              <label className="input input-bordered flex items-center gap-2">
+                <Search className="w-4 h-4 opacity-50" />
+                <input
+                  type="search"
+                  placeholder="ค้นหาด้วยอีเมล"
+                  className="grow"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </label>
             </div>
 
             <div className="flex gap-3">
@@ -281,7 +292,6 @@ export default function UsersManagementPage() {
                   <thead>
                     <tr>
                       <th>อีเมล</th>
-                      <th>ชื่อแสดง</th>
                       <th>Role</th>
                       <th>สร้างเมื่อ</th>
                       <th>อัปเดตล่าสุด</th>
@@ -297,7 +307,6 @@ export default function UsersManagementPage() {
                             {user.email}
                           </div>
                         </td>
-                        <td>{user.displayName}</td>
                         <td>{getRoleBadge(user.role)}</td>
                         <td>
                           <div className="flex items-center gap-2">
@@ -377,101 +386,130 @@ export default function UsersManagementPage() {
           )}
         </div>
 
-        {showModal && (
-          <div className="modal modal-open">
-            <div className="modal-box">
-              <h3 className="font-bold text-lg mb-4">
-                {editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}
-              </h3>
-              
-              <form onSubmit={handleSaveUser} className="space-y-4">
+        <dialog id="user_modal" className={`modal ${showModal ? 'modal-open' : ''}`}>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              {editingUser ? (
+                <Edit className="w-5 h-5" />
+              ) : (
+                <UserPlus className="w-5 h-5" />
+              )}
+              {editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}
+            </h3>
+            
+            <form onSubmit={handleSaveUser} className="space-y-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">อีเมล</span>
+                </label>
+                <input
+                  type="email"
+                  className="input input-bordered w-full"
+                  placeholder="example@company.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  disabled={!!editingUser}
+                  required
+                />
+              </div>
+
+              {!editingUser && (
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">อีเมล</span>
+                    <span className="label-text font-medium">รหัสผ่าน</span>
                   </label>
                   <input
-                    type="email"
-                    className="input input-bordered"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    disabled={!!editingUser}
+                    type="password"
+                    className="input input-bordered w-full"
+                    placeholder="รหัสผ่าน"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     required
+                    minLength={6}
                   />
                 </div>
+              )}
 
-                {!editingUser && (
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">รหัสผ่าน</span>
-                    </label>
-                    <input
-                      type="password"
-                      className="input input-bordered"
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
-                  </div>
-                )}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">บทบาท (Role)</span>
+                </label>
+                <select
+                  className="select select-bordered w-full"
+                  value={formData.role}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as Role }))}
+                  required
+                >
+                  <option value="buyer">ผู้ซื้อ - สร้างและติดตามใบสั่งซื้อ</option>
+                  <option value="supervisor">หัวหน้างาน - อนุมัติใบสั่งซื้อ</option>
+                  <option value="procurement">ฝ่ายจัดซื้อ - ดำเนินการจัดซื้อ</option>
+                  <option value="superadmin">ผู้ดูแลระบบ - จัดการผู้ใช้และระบบ</option>
+                </select>
+              </div>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">ชื่อแสดง</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="input input-bordered"
-                    value={formData.displayName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                    required
-                  />
-                </div>
+              <div className="modal-action">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setShowModal(false)}
+                  disabled={formLoading}
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={formLoading}
+                >
+                  {formLoading ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      กำลังบันทึก...
+                    </>
+                  ) : (
+                    <>
+                      {editingUser ? <Edit className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                      {editingUser ? 'อัปเดต' : 'เพิ่มผู้ใช้'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={() => setShowModal(false)}>close</button>
+          </form>
+        </dialog>
 
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Role</span>
-                  </label>
-                  <select
-                    className="select select-bordered"
-                    value={formData.role}
-                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as Role }))}
-                    required
-                  >
-                    <option value="buyer">ผู้ซื้อ</option>
-                    <option value="supervisor">หัวหน้า</option>
-                    <option value="procurement">จัดซื้อ</option>
-                    <option value="superadmin">ผู้ดูแลระบบ</option>
-                  </select>
-                </div>
+        <dialog id="delete_modal" className={`modal ${showDeleteModal ? 'modal-open' : ''}`}>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-error" />
+              ยืนยันการลบผู้ใช้
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">คุณต้องการลบผู้ใช้นี้หรือไม่: {userToDelete?.email}?</p>
 
-                <div className="modal-action">
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => setShowModal(false)}
-                    disabled={formLoading}
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={formLoading}
-                  >
-                    {formLoading ? (
-                      <>
-                        <span className="loading loading-spinner loading-sm"></span>
-                        กำลังบันทึก...
-                      </>
-                    ) : (
-                      'บันทึก'
-                    )}
-                  </button>
-                </div>
-              </form>
+            <div className="modal-action">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={cancelDelete}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                className="btn btn-error gap-2"
+                onClick={confirmDeleteUser}
+              >
+                ตกลง
+              </button>
             </div>
           </div>
-        )}
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={cancelDelete}>close</button>
+          </form>
+        </dialog>
       </div>
     </div>
   );
