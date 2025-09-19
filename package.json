@@ -20,6 +20,7 @@
     "astro": "^5.13.5",
     "daisyui": "^5.1.7",
     "firebase": "^12.2.1",
+    "firebase-admin": "^13.5.0",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"

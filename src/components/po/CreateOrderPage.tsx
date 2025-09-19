@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth } from '../../lib/firebase';
+import { auth } from '../../firebase/client';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
 import { Plus, Trash2, Package, Calendar, DollarSign, Hash } from 'lucide-react';

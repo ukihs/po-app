@@ -7,7 +7,7 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth';
-import { auth, db } from './firebase';
+import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';

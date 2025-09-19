@@ -18,11 +18,9 @@ function getFirebaseApp() {
 
 export const app = getFirebaseApp();
 
-// เพิ่มสองบรรทัดนี้เพื่อให้ส่วนอื่นนำไปใช้ได้
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// debug เล็กน้อยไว้เช็คใน browser console
 if (typeof window !== 'undefined') {
   const ok = !!firebaseConfig.apiKey && firebaseConfig.apiKey?.startsWith('AIza');
   console.log('[Firebase TEST]', {

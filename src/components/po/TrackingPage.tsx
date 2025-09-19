@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db } from '../../lib/firebase';
+import { auth, db } from '../../firebase/client';
 import { collection, onSnapshot, orderBy, query, where, doc, getDoc } from 'firebase/firestore';
 import { subscribeAuthAndRole } from '../../lib/auth';
 import { approveOrder, generateOrderNumber } from '../../lib/poApi';

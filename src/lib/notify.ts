@@ -1,6 +1,6 @@
 // src/lib/notify.ts
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { auth, db } from '../firebase/client';
 
 export type AppRole = 'buyer' | 'supervisor' | 'procurement';
 

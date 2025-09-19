@@ -1,14 +1,12 @@
 ---
-import Header from "../../components/po/Header";
+import MainLayout from "../../layouts/MainLayout.astro";
 import OrderDetailPage from "../../components/po/OrderDetailPage";
 
 export const prerender = false;
 
 const { id } = Astro.params;
 ---
-<html lang="th">
-  <body>
-    <Header client:load />
-    <OrderDetailPage client:load orderId={id} />
-  </body>
-</html>
+
+<MainLayout>
+  <OrderDetailPage client:load orderId={id || ''} />
+</MainLayout>
