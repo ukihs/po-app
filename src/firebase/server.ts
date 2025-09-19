@@ -20,12 +20,6 @@ function getFirebaseServerApp() {
     return getApps()[0]!;
   }
 
-  if (import.meta.env.PROD) {
-    console.info('PROD env detected. Using default service account.');
-    return initializeApp();
-  }
-
-  console.info('Development env. Loading service account from env variables.');
   return initializeApp({
     credential: cert(serviceAccount as ServiceAccount),
     projectId: import.meta.env.FIREBASE_PROJECT_ID,
@@ -36,20 +30,12 @@ export const serverApp = getFirebaseServerApp();
 export const serverAuth = getAuth(serverApp);
 export const serverDb = getFirestore(serverApp);
 
-if (import.meta.env.DEV) {
-  console.log('[Firebase Server] Configuration:', {
-    projectId: serviceAccount.project_id,
-    clientEmail: serviceAccount.client_email,
-    hasPrivateKey: !!serviceAccount.private_key,
-    hasAllRequiredFields: !!(
-      serviceAccount.project_id && 
-      serviceAccount.client_email && 
-      serviceAccount.private_key
-    )
-  });
+if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+  console.error('[Firebase Server] Missing required environment variables!');
+  console.error('Required: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
+  throw new Error('Firebase server configuration incomplete');
+}
 
-  if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
-    console.warn('[Firebase Server] Missing required environment variables. Server-side Firebase may not work properly.');
-    console.warn('Required variables: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
-  }
+if (import.meta.env.DEV) {
+  console.log('[Firebase Server] Configuration validated successfully');
 }
