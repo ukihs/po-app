@@ -75,11 +75,28 @@ export default function UsersManagementPage() {
     role: 'buyer'
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    email: false,
+    displayName: false,
+    password: false,
+    role: false
+  });
+
+  const [formValid, setFormValid] = useState(false);
+
   const [editUser, setEditUser] = useState({
     email: '',
     displayName: '',
     role: 'buyer'
   });
+
+  const [editValidationErrors, setEditValidationErrors] = useState({
+    email: false,
+    displayName: false,
+    role: false
+  });
+
+  const [editFormValid, setEditFormValid] = useState(false);
 
   const fetchUsers = async (page = 1, search = '', sort = sortOrder) => {
     setLoading(true);
@@ -109,7 +126,45 @@ export default function UsersManagementPage() {
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.trim().length > 0;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 6;
+  };
+
+  const validateDisplayName = (name: string): boolean => {
+    return name.trim().length >= 2;
+  };
+
+  const validateRole = (role: string): boolean => {
+    return ['buyer', 'supervisor', 'procurement', 'superadmin'].includes(role);
+  };
+
+  const validateForm = () => {
+    const errors = {
+      email: !validateEmail(newUser.email),
+      displayName: !validateDisplayName(newUser.displayName),
+      password: !validatePassword(newUser.password),
+      role: !validateRole(newUser.role)
+    };
+
+    setValidationErrors(errors);
+    
+    const isValid = !Object.values(errors).some(error => error);
+    setFormValid(isValid);
+    
+    return isValid;
+  };
+
   const createUser = async () => {
+    if (!validateForm()) {
+      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
+      return;
+    }
+
     try {
       const userData = {
         ...newUser,
@@ -133,6 +188,13 @@ export default function UsersManagementPage() {
           password: '',
           role: 'buyer'
         });
+        setValidationErrors({
+          email: false,
+          displayName: false,
+          password: false,
+          role: false
+        });
+        setFormValid(false);
         fetchUsers(currentPage, searchTerm, sortOrder);
       } else {
         showToast(data.message || 'Failed to create user', 'error');
@@ -143,8 +205,28 @@ export default function UsersManagementPage() {
     }
   };
 
+  const validateEditForm = () => {
+    const errors = {
+      email: !validateEmail(editUser.email),
+      displayName: !validateDisplayName(editUser.displayName),
+      role: !validateRole(editUser.role)
+    };
+
+    setEditValidationErrors(errors);
+    
+    const isValid = !Object.values(errors).some(error => error);
+    setEditFormValid(isValid);
+    
+    return isValid;
+  };
+
   const updateUser = async () => {
     if (!selectedUser) return;
+
+    if (!validateEditForm()) {
+      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
+      return;
+    }
 
     try {
       const userData = {
@@ -232,6 +314,12 @@ export default function UsersManagementPage() {
       displayName: user.displayName || '',
       role: user.role || 'buyer'
     });
+    setEditValidationErrors({
+      email: false,
+      displayName: false,
+      role: false
+    });
+    setEditFormValid(false);
     setShowEditModal(true);
   };
 
@@ -293,6 +381,16 @@ export default function UsersManagementPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Validate form whenever newUser data changes
+  useEffect(() => {
+    validateForm();
+  }, [newUser]);
+
+  // Validate edit form whenever editUser data changes
+  useEffect(() => {
+    validateEditForm();
+  }, [editUser]);
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -530,69 +628,130 @@ export default function UsersManagementPage() {
           <div className="modal-box w-fit max-w-sm mx-auto">
             <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
               <UserPlus className="h-5 w-5 text-primary" />
-              สร้างผู้ใช้ใหม่
+              เพิ่มผู้ใช้
             </h3>
             
-            <div className="space-y-2 w-auto">
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">อีเมลของผู้ใช้</legend>
+            <form className="space-y-4 w-auto" onSubmit={(e) => e.preventDefault()}>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">อีเมล</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <input 
                   type="email" 
-                  className="input w-full" 
+                  className={`input input-bordered w-full ${validationErrors.email ? 'input-error' : ''}`}
                   placeholder="กรอกอีเมล"
                   value={newUser.email}
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                   required
+                  pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                 />
-              </fieldset>
+                {validationErrors.email && (
+                  <label className="label">
+                    <span className="text-xs text-error">กรุณากรอกอีเมลที่ถูกต้อง</span>
+                  </label>
+                )}
+              </div>
 
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">รหัสผ่าน</legend>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">รหัสผ่าน</span>
+                  <span className="text-xs text-error">*</span>
+                </label>
                 <input 
                   type="password" 
-                  className="input w-full" 
+                  className={`input input-bordered w-full ${validationErrors.password ? 'input-error' : ''}`}
                   placeholder="กรอกรหัสผ่าน"
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                   minLength={6}
+                  required
                 />
-              </fieldset>
+                {validationErrors.password && (
+                  <label className="label">
+                    <span className="text-xs text-error">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</span>
+                  </label>
+                )}
+              </div>
 
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">ชื่อที่แสดงในระบบ</legend>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">ชื่อที่แสดง</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <input 
                   type="text" 
-                  className="input w-full" 
+                  className={`input input-bordered w-full ${validationErrors.displayName ? 'input-error' : ''}`}
                   placeholder="กรอกชื่อที่แสดง"
                   value={newUser.displayName}
                   onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
+                  minLength={2}
+                  required
                 />
-              </fieldset>
+                {validationErrors.displayName && (
+                  <label className="label">
+                    <span className="text-xs text-error">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</span>
+                  </label>
+                )}
+              </div>
 
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">บทบาทในระบบ</legend>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">บทบาท</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <select
-                  className="select w-full"
+                  className={`select select-bordered w-full ${validationErrors.role ? 'select-error' : ''}`}
                   value={newUser.role}
                   onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                  required
                 >
-                  <option value="buyer">Buyer (ผู้ขอซื้อ)</option>
-                  <option value="supervisor">Supervisor (หัวหน้างาน)</option>
-                  <option value="procurement">Procurement (ฝ่ายจัดซื้อ)</option>
-                  <option value="superadmin">Super Admin (ผู้ดูแลระบบ)</option>
+                  <option value="">เลือกบทบาท</option>
+                  <option value="buyer">ผู้ขอซื้อ</option>
+                  <option value="supervisor">หัวหน้างาน</option>
+                  <option value="procurement">ฝ่ายจัดซื้อ</option>
+                  <option value="superadmin">ผู้ดูแลระบบ</option>
                 </select>
-              </fieldset>
+                {validationErrors.role && (
+                  <label className="label">
+                    <span className="text-xs text-error">กรุณาเลือกบทบาท</span>
+                  </label>
+                )}
+              </div>
 
-            </div>
-
-            <div className="modal-action">
-              <button className="btn font-normal" onClick={() => setShowCreateModal(false)}>
-                ยกเลิก
-              </button>
-              <button className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]" onClick={createUser}>
-                สร้างผู้ใช้
-              </button>
-            </div>
+              <div className="modal-action">
+                <button 
+                  type="button"
+                  className="btn font-normal" 
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewUser({
+                      email: '',
+                      displayName: '',
+                      password: '',
+                      role: 'buyer'
+                    });
+                    setValidationErrors({
+                      email: false,
+                      displayName: false,
+                      password: false,
+                      role: false
+                    });
+                    setFormValid(false);
+                  }}
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  type="submit"
+                  className={`btn ${formValid ? 'bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]' : 'btn-disabled'}`}
+                  onClick={createUser}
+                  disabled={!formValid}
+                >
+                  เพิ่มผู้ใช้
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -605,53 +764,91 @@ export default function UsersManagementPage() {
               แก้ไขข้อมูลผู้ใช้
             </h3>
             
-            <div className="space-y-2 w-auto">
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">อีเมลของผู้ใช้</legend>
+            <form className="space-y-4 w-auto" onSubmit={(e) => e.preventDefault()}>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">อีเมลของผู้ใช้</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <input
                   type="email"
-                  className="input w-full"
+                  className={`input input-bordered w-full ${editValidationErrors.email ? 'input-error' : ''}`}
                   placeholder="กรอกอีเมล"
                   value={editUser.email}
                   onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                  required
+                  pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                 />
-              </fieldset>
+                {editValidationErrors.email && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">กรุณากรอกอีเมลที่ถูกต้อง</span>
+                  </label>
+                )}
+              </div>
 
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">ชื่อที่แสดงในระบบ</legend>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">ชื่อที่แสดง</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <input
                   type="text"
-                  className="input w-full"
+                  className={`input input-bordered w-full ${editValidationErrors.displayName ? 'input-error' : ''}`}
                   placeholder="กรอกชื่อที่แสดง"
                   value={editUser.displayName}
                   onChange={(e) => setEditUser({...editUser, displayName: e.target.value})}
+                  minLength={2}
+                  required
                 />
-              </fieldset>
+                {editValidationErrors.displayName && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</span>
+                  </label>
+                )}
+              </div>
 
-              <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend">บทบาทในระบบ</legend>
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">บทบาท</span>
+                  <span className="label-text-alt text-error">*</span>
+                </label>
                 <select
-                  className="select w-full"
+                  className={`select select-bordered w-full ${editValidationErrors.role ? 'select-error' : ''}`}
                   value={editUser.role}
                   onChange={(e) => setEditUser({...editUser, role: e.target.value})}
+                  required
                 >
+                  <option value="">เลือกบทบาท</option>
                   <option value="buyer">Buyer (ผู้ขอซื้อ)</option>
                   <option value="supervisor">Supervisor (หัวหน้างาน)</option>
                   <option value="procurement">Procurement (ฝ่ายจัดซื้อ)</option>
                   <option value="superadmin">Super Admin (ผู้ดูแลระบบ)</option>
                 </select>
-              </fieldset>
+                {editValidationErrors.role && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">กรุณาเลือกบทบาท</span>
+                  </label>
+                )}
+              </div>
 
-            </div>
-
-            <div className="modal-action">
-              <button className="btn font-normal" onClick={() => setShowEditModal(false)}>
-                ยกเลิก
-              </button>
-              <button className="btn btn-warning" onClick={updateUser}>
-                บันทึก
-              </button>
-            </div>
+              <div className="modal-action">
+                <button 
+                  type="button"
+                  className="btn font-normal" 
+                  onClick={() => setShowEditModal(false)}
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  type="submit"
+                  className={`btn ${editFormValid ? 'btn-warning' : 'btn-disabled'}`}
+                  onClick={updateUser}
+                  disabled={!editFormValid}
+                >
+                  {editFormValid ? 'บันทึก' : 'กรุณากรอกข้อมูลให้ครบถ้วน'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
