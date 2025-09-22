@@ -241,7 +241,7 @@ export default function UsersManagementPage() {
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
+    if (!dateString) return 'ยังไม่มีการลงชื่อเข้าใช้งาน';
     return new Date(dateString).toLocaleString('th-TH', {
       year: 'numeric',
       month: 'short',
@@ -257,22 +257,22 @@ export default function UsersManagementPage() {
       superadmin: { 
         color: 'badge-soft badge-error', 
         icon: <Crown className="h-3 w-3" />, 
-        name: 'Super Admin' 
+        name: 'ผู้ดูแลระบบ' 
       },
       supervisor: { 
         color: 'badge-soft badge-warning', 
         icon: <UserCheck className="h-3 w-3" />, 
-        name: 'Supervisor' 
+        name: 'หัวหน้างาน' 
       },
       procurement: { 
         color: 'badge-soft badge-info', 
         icon: <Package className="h-3 w-3" />, 
-        name: 'Procurement' 
+        name: 'ฝ่ายจัดซื้อ' 
       },
       buyer: { 
         color: 'badge-soft badge-success', 
         icon: <ShoppingCart className="h-3 w-3" />, 
-        name: 'Buyer' 
+        name: 'ผู้ขอซื้อ' 
       }
     };
     
@@ -298,7 +298,7 @@ export default function UsersManagementPage() {
     <div className="container mx-auto p-6 max-w-7xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-base-content mb-2 flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
+            <Users className="h-8 w-8 text-[#2b9ccc]" />
             การจัดการผู้ใช้งาน
           </h1>
           <p className="text-base-content/70">
@@ -327,7 +327,7 @@ export default function UsersManagementPage() {
 
             <div className="flex gap-2">
               <button
-                className="btn btn-outline"
+                className="btn font-normal"
                 onClick={() => fetchUsers(currentPage, searchTerm, sortOrder)}
                 disabled={loading}
               >
@@ -339,7 +339,7 @@ export default function UsersManagementPage() {
                 รีเฟรช
               </button>
               <button
-                className="btn btn-primary"
+                className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]"
                 onClick={() => setShowCreateModal(true)}
               >
                 <UserPlus className="h-4 w-4" />
@@ -410,8 +410,8 @@ export default function UsersManagementPage() {
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">
-                              {user.displayName || 'No name'}
+                            <div className="font-normal">
+                              {user.displayName || 'ยังไม่กำหนดชื่อ'}
                             </div>
                           </div>
                         </div>
@@ -479,7 +479,7 @@ export default function UsersManagementPage() {
             <div className="flex justify-center p-4">
               <div className="join">
                 <button
-                  className="join-item btn"
+                  className="join-item btn font-normal"
                   disabled={!pagination.hasPreviousPage}
                   onClick={() => {
                     const newPage = currentPage - 1;
@@ -487,7 +487,7 @@ export default function UsersManagementPage() {
                     fetchUsers(newPage, searchTerm, sortOrder);
                   }}
                 >
-                  « Previous
+                  ก่อนหน้า
                 </button>
                 
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
@@ -497,7 +497,7 @@ export default function UsersManagementPage() {
                   return (
                     <button
                       key={pageNum}
-                      className={`join-item btn ${pageNum === currentPage ? 'btn-active' : ''}`}
+                      className={`join-item btn ${pageNum === currentPage ? 'btn-active' : ''} font-normal`}
                       onClick={() => {
                         setCurrentPage(pageNum);
                         fetchUsers(pageNum, searchTerm, sortOrder);
@@ -509,7 +509,7 @@ export default function UsersManagementPage() {
                 })}
                 
                 <button
-                  className="join-item btn"
+                  className="join-item btn font-normal"
                   disabled={!pagination.hasNextPage}
                   onClick={() => {
                     const newPage = currentPage + 1;
@@ -517,7 +517,7 @@ export default function UsersManagementPage() {
                     fetchUsers(newPage, searchTerm, sortOrder);
                   }}
                 >
-                  Next »
+                  ถัดไป
                 </button>
               </div>
             </div>
@@ -586,10 +586,10 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="modal-action">
-              <button className="btn" onClick={() => setShowCreateModal(false)}>
+              <button className="btn font-normal" onClick={() => setShowCreateModal(false)}>
                 ยกเลิก
               </button>
-              <button className="btn btn-primary" onClick={createUser}>
+              <button className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]" onClick={createUser}>
                 สร้างผู้ใช้
               </button>
             </div>
@@ -645,7 +645,7 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="modal-action">
-              <button className="btn" onClick={() => setShowEditModal(false)}>
+              <button className="btn font-normal" onClick={() => setShowEditModal(false)}>
                 ยกเลิก
               </button>
               <button className="btn btn-warning" onClick={updateUser}>
@@ -671,7 +671,7 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="modal-action">
-              <button className="btn" onClick={() => setShowDeleteModal(false)}>
+              <button className="btn font-normal" onClick={() => setShowDeleteModal(false)}>
                 ยกเลิก
               </button>
               <button className="btn btn-error" onClick={deleteUser}>
