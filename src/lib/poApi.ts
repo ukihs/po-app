@@ -1,4 +1,3 @@
-// src/lib/poApi.ts
 import {
   addDoc,
   collection,
@@ -35,18 +34,15 @@ export const lineTotal = (it: Item) => toNum(it.quantity) * toNum(it.amount);
 export const grandTotal = (items: Item[]) =>
   items.reduce((s, it) => s + lineTotal(it), 0);
 
-// Function to categorize items
 export const getItemCategory = (itemType: ItemType): 'raw_material' | 'other' => {
   return itemType === 'วัตถุดิบ' ? 'raw_material' : 'other';
 };
 
-// Get initial procurement status based on item category
 export const getInitialProcurementStatus = (itemType: ItemType): ProcurementStatus => {
   const category = getItemCategory(itemType);
   return category === 'raw_material' ? 'จัดซื้อ' : 'จัดซื้อ_2';
 };
 
-// Display procurement status
 export const getProcurementStatusDisplay = (status: ProcurementStatus): string => {
   switch (status) {
     case 'จัดซื้อ':
@@ -65,7 +61,6 @@ export const getProcurementStatusDisplay = (status: ProcurementStatus): string =
   }
 };
 
-// Export Order type for use in components
 export type Order = {
   id: string;
   orderNo: number;
@@ -94,7 +89,6 @@ export type Order = {
   };
 };
 
-// ---------- เลขรันแบบ transaction ----------
 async function getNextNumber(seqDocId = 'orders'): Promise<number> {
   const ref = doc(db, 'counters', seqDocId);
   const next = await runTransaction(db, async (tx) => {
@@ -107,7 +101,6 @@ async function getNextNumber(seqDocId = 'orders'): Promise<number> {
   return next;
 }
 
-// ---------- Notification Helper Function ----------
 async function createNotification(data: {
   title: string;
   message: string;
@@ -157,7 +150,6 @@ async function createNotification(data: {
   }
 }
 
-// ใน poApi.ts - แทนที่ฟังก์ชัน createOrder
 
 export async function createOrder(payload: {
   date: string;
@@ -167,14 +159,12 @@ export async function createOrder(payload: {
   const u = auth.currentUser;
   if (!u) throw new Error('ยังไม่ได้ล็อกอิน');
 
-  console.log('🚀 createOrder: Starting', { userEmail: u.email, requesterName: payload.requesterName });
+  console.log('createOrder: Starting', { userEmail: u.email, requesterName: payload.requesterName });
 
   try {
-    // 1) เลขรันใบสั่งซื้อ
     const orderNo = await getNextNumber('orders');
-    console.log('📝 createOrder: Got order number', orderNo);
+    console.log('createOrder: Got order number', orderNo);
 
-    // 2) ข้อมูลรายการ
     const cleanItems = payload.items.map((it) => ({
       description: (it.description || '').trim(),
       receivedDate: it.receivedDate || '',
@@ -184,7 +174,6 @@ export async function createOrder(payload: {
       itemType: it.itemType || 'วัตถุดิบ',
     }));
 
-    // 3) บันทึกใบสั่งซื้อ
     const docData = {
       requesterUid: u.uid,
       requesterName: payload.requesterName,
@@ -200,12 +189,11 @@ export async function createOrder(payload: {
       }
     };
 
-    console.log('💾 createOrder: Saving to Firestore...', { orderNo, total: docData.total });
+    console.log('createOrder: Saving to Firestore...', { orderNo, total: docData.total });
     const ref = await addDoc(collection(db, 'orders'), docData);
-    console.log('✅ createOrder: Saved with ID', ref.id);
+    console.log('createOrder: Saved with ID', ref.id);
 
-    // 4) สร้าง notification
-    console.log('🔔 createOrder: Creating notification...');
+    console.log('createOrder: Creating notification...');
     try {
       const notificationData = {
         title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
@@ -221,26 +209,24 @@ export async function createOrder(payload: {
         createdAt: serverTimestamp(),
       };
 
-      console.log('📤 createOrder: Notification data', notificationData);
+      console.log('createOrder: Notification data', notificationData);
       
       const notifRef = await addDoc(collection(db, 'notifications'), notificationData);
-      console.log('✅ createOrder: Notification created', notifRef.id);
+      console.log('createOrder: Notification created', notifRef.id);
       
     } catch (notifError) {
-      console.error('❌ createOrder: Notification failed', notifError);
-      // ไม่ throw error เพื่อไม่ให้การสร้างใบสั่งซื้อล้มเหลว
+      console.error('createOrder: Notification failed', notifError);
     }
 
-    console.log('🎉 createOrder: Complete!', { orderId: ref.id, orderNo });
+    console.log('createOrder: Complete!', { orderId: ref.id, orderNo });
     return ref.id;
 
   } catch (error) {
-    console.error('💥 createOrder: Failed', error);
+    console.error('createOrder: Failed', error);
     throw error;
   }
 }
 
-// Listen to all orders (for supervisor/procurement)
 export function listenOrdersAll(callback: (orders: Order[]) => void) {
   const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   return onSnapshot(q, (snapshot) => {
@@ -261,7 +247,6 @@ export function listenOrdersAll(callback: (orders: Order[]) => void) {
   });
 }
 
-// Listen to user's orders (for buyer)
 export function listenUserOrders(userUid: string, callback: (orders: Order[]) => void) {
   const q = query(
     collection(db, 'orders'), 
@@ -286,7 +271,6 @@ export function listenUserOrders(userUid: string, callback: (orders: Order[]) =>
   });
 }
 
-// Get single order
 export async function getOrder(orderId: string): Promise<Order | null> {
   try {
     const orderSnap = await getDoc(doc(db, 'orders', orderId));
@@ -312,7 +296,6 @@ export async function getOrder(orderId: string): Promise<Order | null> {
   }
 }
 
-// Approve or reject order (for supervisor)
 export async function approveOrder(orderId: string, approved: boolean) {
   const orderRef = doc(db, 'orders', orderId);
   const newStatus = approved ? 'approved' : 'rejected';
@@ -323,7 +306,6 @@ export async function approveOrder(orderId: string, approved: boolean) {
     newStatus
   });
 
-  // เพิ่ม timestamp สำหรับ approval/rejection
   const timestampUpdate = approved ? 
     { 'timestamps.approved': serverTimestamp() } : 
     { 'timestamps.rejected': serverTimestamp() };
@@ -332,10 +314,11 @@ export async function approveOrder(orderId: string, approved: boolean) {
     status: newStatus,
     approvedAt: serverTimestamp(),
     approvedBy: auth.currentUser?.uid || '',
+    approvedByUid: auth.currentUser?.uid || '',
+    updatedAt: serverTimestamp(),
     ...timestampUpdate
   });
 
-  // Get order data for notifications
   const orderSnap = await getDoc(orderRef);
   if (!orderSnap.exists()) {
     console.error('approveOrder: Order not found after update');
@@ -356,33 +339,39 @@ export async function approveOrder(orderId: string, approved: boolean) {
     approved
   });
 
-  // 1) แจ้งเตือน buyer ว่าได้รับการอนุมัติ/ไม่อนุมัติ
-  await createNotification({
-    title: approved ? 'ใบสั่งซื้อได้รับการอนุมัติ' : 'ใบสั่งซื้อไม่ได้รับการอนุมัติ',
-    message: `ใบสั่งซื้อ #${orderData.orderNo} ${approved ? 'ได้รับการอนุมัติแล้ว' : 'ไม่ได้รับการอนุมัติ'}`,
-    orderId: orderId,
-    orderNo: orderData.orderNo || 0,
-    kind: approved ? 'approved' : 'rejected',
-    toUserUid: orderData.requesterUid,
-    fromUserName: currentUser.displayName || 'หัวหน้างาน',
-  });
-
-  // 2) ถ้าอนุมัติ แจ้งเตือนฝ่ายจัดซื้อ และเริ่ม procurement
-  if (approved) {
-    // อัปเดต timestamp สำหรับ procurement started
-    await updateDoc(orderRef, {
-      'timestamps.procurementStarted': serverTimestamp()
-    });
-
+  try {
     await createNotification({
-      title: 'มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ',
-      message: `ใบสั่งซื้อ #${orderData.orderNo} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
+      title: approved ? 'ใบสั่งซื้อได้รับการอนุมัติ' : 'ใบสั่งซื้อไม่ได้รับการอนุมัติ',
+      message: `ใบสั่งซื้อ #${orderData.orderNo} ${approved ? 'ได้รับการอนุมัติแล้ว' : 'ไม่ได้รับการอนุมัติ'}`,
       orderId: orderId,
       orderNo: orderData.orderNo || 0,
-      kind: 'status_update',
-      forRole: 'procurement',
+      kind: approved ? 'approved' : 'rejected',
+      toUserUid: orderData.requesterUid,
       fromUserName: currentUser.displayName || 'หัวหน้างาน',
     });
+  } catch (notifError) {
+    console.error('approveOrder: Notification failed', notifError);
+  }
+
+  if (approved) {
+    try {
+      await updateDoc(orderRef, {
+        'timestamps.procurementStarted': serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      await createNotification({
+        title: 'มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ',
+        message: `ใบสั่งซื้อ #${orderData.orderNo} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
+        orderId: orderId,
+        orderNo: orderData.orderNo || 0,
+        kind: 'status_update',
+        forRole: 'procurement',
+        fromUserName: currentUser.displayName || 'หัวหน้างาน',
+      });
+    } catch (procurementError) {
+      console.error('approveOrder: Procurement notification failed', procurementError);
+    }
 
     console.log('approveOrder: Sent notifications for approved order', {
       toBuyer: orderData.requesterUid,
@@ -398,7 +387,6 @@ export async function approveOrder(orderId: string, approved: boolean) {
   });
 }
 
-// Set procurement status (for procurement)
 export async function setProcurementStatus(orderId: string, newStatus: ProcurementStatus) {
   console.log('setProcurementStatus: Updating procurement status', {
     orderId,
@@ -407,7 +395,6 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
 
   const orderRef = doc(db, 'orders', orderId);
   
-  // ตรวจสอบว่าเป็นสถานะสุดท้ายหรือไม่
   const isComplete = newStatus === 'คลังสินค้า' || newStatus === 'ส่งมอบของ_2';
   
   const updateData: any = {
@@ -424,7 +411,6 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
 
   await updateDoc(orderRef, updateData);
 
-  // Create notification for the requester
   const orderSnap = await getDoc(orderRef);
   if (!orderSnap.exists()) {
     console.error('setProcurementStatus: Order not found after update');
@@ -457,7 +443,6 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
   });
 }
 
-// Set order status (for procurement)
 export async function setOrderStatus(orderId: string, status: Order['status']) {
   console.log('setOrderStatus: Updating order status', {
     orderId,
@@ -470,7 +455,6 @@ export async function setOrderStatus(orderId: string, status: Order['status']) {
     updatedAt: serverTimestamp()
   });
 
-  // Create notification for the requester
   const orderSnap = await getDoc(orderRef);
   if (!orderSnap.exists()) {
     console.error('setOrderStatus: Order not found after update');
@@ -502,7 +486,6 @@ export async function setOrderStatus(orderId: string, status: Order['status']) {
   });
 }
 
-// Update order items (for procurement - item-level tracking)
 export async function updateOrderItems(orderId: string, updates: {
   itemsCategories?: Record<string, string>;
   itemsStatuses?: Record<string, string>;
@@ -533,9 +516,6 @@ export async function updateOrderItems(orderId: string, updates: {
   console.log('updateOrderItems: Items updated successfully');
 }
 
-// ---------- Utility Functions ----------
-
-// ฟังก์ชันสำหรับสร้างเลขใบสั่งซื้อรูปแบบ PRปีเดือน-00x
 export const generateOrderNumber = (orderNo: number, date: string): string => {
   const orderDate = new Date(date);
   const year = orderDate.getFullYear();
@@ -556,7 +536,6 @@ function getStatusLabel(status: Order['status']): string {
   }
 }
 
-// Get item type color for UI
 export const getItemTypeColor = (itemType: ItemType): string => {
   switch (itemType) {
     case 'วัตถุดิบ':
@@ -572,30 +551,10 @@ export const getItemTypeColor = (itemType: ItemType): string => {
   }
 };
 
-// Get status color for UI
-export const getStatusColor = (status: Order['status']): string => {
-  switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
-    case 'in_progress':
-      return 'bg-blue-100 text-blue-800';
-    case 'delivered':
-      return 'bg-purple-100 text-purple-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
-// Format currency
 export const formatCurrency = (amount: number): string => {
   return amount.toLocaleString('th-TH') + ' บาท';
 };
 
-// Calculate order statistics
 export const getOrderStats = (orders: Order[]) => {
   const total = orders.length;
   const pending = orders.filter(o => o.status === 'pending').length;

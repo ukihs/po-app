@@ -113,7 +113,7 @@ service cloud.firestore {
         onlyChanges([
           'status', 'approvedBy', 'approvedAt', 'approvedByUid',
           'rejectedReason', 'rejectedAt', 'rejectedByUid',
-          'updatedAt', 'timestamps'
+          'updatedAt', 'timestamps.procurementStarted'
         ]);
 
       // 3. Procurement จัดการใบสั่งซื้อ (หลังได้รับอนุมัติ)
