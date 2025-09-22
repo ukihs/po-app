@@ -191,28 +191,6 @@ export default function TabNavigation() {
                 <Users className="w-4 h-4" />
                 จัดการผู้ใช้งาน
               </button>
-
-              <button
-                onClick={() => handleTabChange('list', '/orders/list')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'list'
-                    ? 'bg-red-100 text-red-700 border border-red-200'
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                  }`}
-              >
-                <List className="w-4 h-4" />
-                รายการใบสั่งซื้อ
-              </button>
-
-              <button
-                onClick={() => handleTabChange('tracking', '/orders/tracking')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === 'tracking'
-                    ? 'bg-red-100 text-red-700 border border-red-200'
-                    : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                  }`}
-              >
-                <FileText className="w-4 h-4" />
-                ติดตามสถานะ
-              </button>
             </>
           )}
 
