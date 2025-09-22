@@ -2,17 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { auth } from '../../firebase/client';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
-import { Plus, Trash2, Package, Calendar, DollarSign, Hash } from 'lucide-react';
+import { Plus, Trash2, Package, Calendar, Info } from 'lucide-react';
+import { DayPicker } from 'react-day-picker';
 
 export default function CreateOrderPage() {
   const [submitted, setSubmitted] = useState(false);
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [requester, setRequester] = useState('');
   const [items, setItems] = useState<Item[]>([]);
   const [saving, setSaving] = useState(false);
   
-  // Modal states
   const [showModal, setShowModal] = useState(false);
+  const [showItemDatePicker, setShowItemDatePicker] = useState(false);
+  const [selectedItemDate, setSelectedItemDate] = useState<Date | undefined>();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [newItem, setNewItem] = useState<Omit<Item, 'no'>>({
     description: '',
     receivedDate: '',
@@ -27,6 +32,34 @@ export default function CreateOrderPage() {
     setRequester(u.displayName || (u.email ?? '').split('@')[0]);
   }, []);
 
+  useEffect(() => {
+    if (selectedDate) {
+      setDate(selectedDate.toISOString().split('T')[0]);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (selectedItemDate) {
+      setNewItem(prev => ({ 
+        ...prev, 
+        receivedDate: selectedItemDate.toISOString().split('T')[0] 
+      }));
+    }
+  }, [selectedItemDate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown') && !target.closest('button[style*="anchor-name"]')) {
+        setShowDatePicker(false);
+        setShowItemDatePicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const openAddModal = () => {
     setNewItem({
       description: '',
@@ -35,12 +68,34 @@ export default function CreateOrderPage() {
       amount: '',
       itemType: 'วัตถุดิบ'
     });
+    setSelectedItemDate(undefined);
+    setShowItemDatePicker(false);
     setShowModal(true);
   };
 
+  const isModalFormValid = () => {
+    return newItem.description.trim() && 
+           newItem.receivedDate.trim() &&  
+           toNum(newItem.quantity) > 0 && 
+           toNum(newItem.amount) > 0;
+  };
+
+  const checkFormValidity = () => {
+    const form = document.querySelector('form');
+    return form ? form.checkValidity() : true;
+  };
+
   const addItemFromModal = () => {
-    if (!newItem.description.trim() || toNum(newItem.quantity) <= 0 || toNum(newItem.amount) <= 0) {
-      alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+    if (!isModalFormValid()) {
+      if (!newItem.description.trim()) {
+        alert('กรุณาระบุรายละเอียดสินค้า');
+      } else if (!newItem.receivedDate.trim()) {
+        alert('กรุณาเลือกวันที่ต้องการรับ');
+      } else if (toNum(newItem.quantity) <= 0) {
+        alert('กรุณาระบุจำนวนที่ถูกต้อง');
+      } else if (toNum(newItem.amount) <= 0) {
+        alert('กรุณาระบุราคาที่ถูกต้อง');
+      }
       return;
     }
 
@@ -59,6 +114,8 @@ export default function CreateOrderPage() {
       amount: '',
       itemType: 'วัตถุดิบ'
     });
+    setSelectedItemDate(undefined);
+    setShowItemDatePicker(false);
   };
 
   const closeModal = () => {
@@ -70,6 +127,8 @@ export default function CreateOrderPage() {
       amount: '',
       itemType: 'วัตถุดิบ'
     });
+    setSelectedItemDate(undefined);
+    setShowItemDatePicker(false);
   };
 
   const removeItem = (idx: number) => {
@@ -82,18 +141,51 @@ export default function CreateOrderPage() {
     ));
   };
 
-  const invalid = () =>
-    !requester.trim() || items.length === 0 || 
-    items.some(item => !item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
+  const isFormValid = () => {
+    if (!requester.trim()) return false;
+    
+    if (items.length === 0) return false;
+    
+    return !items.some(item => 
+      !item.description.trim() || 
+      toNum(item.quantity) <= 0 || 
+      toNum(item.amount) <= 0
+    );
+  };
 
-  const doCreate = async () => {
+  const getValidationMessage = () => {
+    if (!requester.trim()) return 'กรุณาระบุชื่อผู้ขอซื้อ';
+    if (items.length === 0) return 'กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ';
+    
+    const invalidItem = items.find(item => 
+      !item.description.trim() || 
+      toNum(item.quantity) <= 0 || 
+      toNum(item.amount) <= 0
+    );
+    
+    if (invalidItem) {
+      const itemIndex = items.indexOf(invalidItem) + 1;
+      if (!invalidItem.description.trim()) return `รายการที่ ${itemIndex}: กรุณาระบุรายละเอียดสินค้า`;
+      if (toNum(invalidItem.quantity) <= 0) return `รายการที่ ${itemIndex}: กรุณาระบุจำนวนที่ถูกต้อง`;
+      if (toNum(invalidItem.amount) <= 0) return `รายการที่ ${itemIndex}: กรุณาระบุราคาที่ถูกต้อง`;
+    }
+    
+    return '';
+  };
+
+  const showConfirmation = () => {
     setSubmitted(true);
-    if (invalid()) {
-      alert('กรุณากรอกข้อมูลให้ครบถ้วน (ผู้สั่งซื้อ, รายการ/จำนวน/ราคา)');
+    if (!isFormValid()) {
+      alert(getValidationMessage());
       return;
     }
+    setShowConfirmModal(true);
+  };
+
+  const confirmCreate = async () => {
     try {
       setSaving(true);
+      setShowConfirmModal(false);
       const itemsWithType = items.map(item => ({ ...item, itemType: 'วัตถุดิบ' as ItemType }));
       await createOrder({ date, requesterName: requester, items: itemsWithType });
       window.location.href = '/orders/tracking';
@@ -102,6 +194,11 @@ export default function CreateOrderPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const cancelCreate = () => {
+    setShowConfirmModal(false);
+    setSaving(false);
   };
 
   return (
@@ -113,30 +210,62 @@ export default function CreateOrderPage() {
             เพิ่มรายการสินค้า
           </h3>
           
-          <div className="space-y-4">
+          <form className="space-y-4" noValidate>
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">รายการที่ขอซื้อ</span>
               </label>
               <input
                 type="text"
-                className="input input-bordered w-full"
+                className="input input-bordered validator w-full"
                 placeholder="ระบุรายละเอียดสินค้า"
                 value={newItem.description}
                 onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                required
+                minLength={1}
+                title="กรุณาระบุรายละเอียดสินค้า"
               />
+              <div className="validator-hint">กรุณาระบุรายละเอียดสินค้า</div>
             </div>
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">วันที่ต้องการรับ</span>
+                <span className="label-text font-medium">วันที่ต้องการรับ <span className="text-error">*</span></span>
               </label>
-              <input
-                type="date"
-                className="input input-bordered w-full"
-                value={newItem.receivedDate}
-                onChange={(e) => setNewItem(prev => ({ ...prev, receivedDate: e.target.value }))}
-              />
+              <div className="relative">
+                <button 
+                  type="button"
+                  onClick={() => setShowItemDatePicker(!showItemDatePicker)}
+                  className={`input input-bordered w-full flex items-center justify-between text-left ${
+                    !newItem.receivedDate.trim() ? 'border-error text-error' : 'border-success text-success'
+                  }`}
+                  style={{ anchorName: "--item-date" } as React.CSSProperties}
+                >
+                  <span className={!selectedItemDate ? 'text-gray-500' : ''}>
+                    {selectedItemDate ? selectedItemDate.toLocaleDateString('th-TH') : 'เลือกวันที่ต้องการรับ *'}
+                  </span>
+                  <Calendar className="w-4 h-4" />
+                </button>
+                {showItemDatePicker && (
+                  <div 
+                    className="dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50"
+                    style={{ positionAnchor: "--item-date" } as React.CSSProperties}
+                  >
+                    <DayPicker 
+                      className="react-day-picker p-4" 
+                      mode="single" 
+                      selected={selectedItemDate} 
+                      onSelect={(date) => {
+                        setSelectedItemDate(date);
+                        setShowItemDatePicker(false);
+                      }}
+                    />
+                  </div>
+                )}
+                {!newItem.receivedDate.trim() && (
+                  <div className="text-error text-xs font-normal mt-1">กรุณาเลือกวันที่ต้องการรับ</div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -145,44 +274,53 @@ export default function CreateOrderPage() {
                   <span className="label-text font-medium">จำนวน</span>
                 </label>
                 <input
-                  type="text"
-                  inputMode="decimal"
-                  className="input input-bordered w-full"
+                  type="number"
+                  className="input input-bordered validator w-full"
                   placeholder="จำนวน"
                   value={newItem.quantity}
                   onChange={(e) => setNewItem(prev => ({ ...prev, quantity: e.target.value }))}
+                  required
+                  min="0.01"
+                  step="0.01"
+                  title="กรุณาระบุจำนวนอย่างน้อย 1 จำนวน"
                 />
+                <div className="validator-hint">กรุณาระบุจำนวน</div>
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">ราคา/หน่วย (บาท)</span>
+                  <span className="label-text font-medium">ราคาต่อหน่วย (บาท)</span>
                 </label>
                 <input
-                  type="text"
-                  inputMode="decimal"
-                  className="input input-bordered w-full"
+                  type="number"
+                  className="input input-bordered validator w-full"
                   placeholder="ราคา"
                   value={newItem.amount}
                   onChange={(e) => setNewItem(prev => ({ ...prev, amount: e.target.value }))}
+                  required
+                  min="0.01"
+                  step="0.01"
+                  title="กรุณาระบุราคา"
                 />
+                <div className="validator-hint">กรุณาระบุราคา</div>
               </div>
             </div>
 
-            {newItem.quantity && newItem.amount && (
-              <div className="alert alert-info">
-                <DollarSign className="w-4 h-4" />
-                <span>รวม: {toNum(newItem.quantity) * toNum(newItem.amount)} บาท</span>
-              </div>
-            )}
-          </div>
+          </form>
 
           <div className="modal-action">
-            <button className="btn btn-ghost" onClick={closeModal}>
+            <button className="btn font-normal" onClick={closeModal}>
               ยกเลิก
             </button>
-            <button className="btn btn-primary" onClick={addItemFromModal}>
-              <Plus className="w-4 h-4" />
+            <button 
+              className={`btn text-white ${
+                !isModalFormValid() 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-[#6EC1E4] hover:bg-[#2b9ccc]'
+              }`}
+              onClick={addItemFromModal}
+              disabled={!isModalFormValid()}
+            >
               เพิ่มรายการ
             </button>
           </div>
@@ -193,34 +331,61 @@ export default function CreateOrderPage() {
       </dialog>
 
       <div className="card bg-base-100 shadow-xl">
-        <div className="card-body">
+        <form className="card-body" noValidate>
           <h2 className="card-title text-2xl mb-6">
             <Package className="w-6 h-6" />
-            สร้างใบสั่งซื้อใหม่
+            สร้างใบขอซื้อ
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">วันที่</span>
+                <span className="label-text font-medium">วันที่ขอซื้อ</span>
               </label>
-              <input
-                type="date"
-                className="input input-bordered w-full"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <div className="relative">
+                <button 
+                  type="button"
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className="input input-bordered w-full flex items-center justify-between text-left"
+                  style={{ anchorName: "--order-date" } as React.CSSProperties}
+                >
+                  <span>
+                    {selectedDate ? selectedDate.toLocaleDateString('th-TH') : 'เลือกวันที่'}
+                  </span>
+                  <Calendar className="w-4 h-4" />
+                </button>
+                {showDatePicker && (
+                  <div 
+                    className="dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50"
+                    style={{ positionAnchor: "--order-date" } as React.CSSProperties}
+                  >
+                    <DayPicker 
+                      className="react-day-picker p-4" 
+                      mode="single" 
+                      selected={selectedDate} 
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        setShowDatePicker(false);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">ผู้สั่งซื้อ</span>
+                <span className="label-text font-medium">ชื่อผู้ขอซื้อ</span>
               </label>
               <input
-                className={`input input-bordered w-full ${submitted && !requester ? 'input-error' : ''}`}
-                placeholder="ชื่อผู้สั่งซื้อ"
+                className="input input-bordered validator w-full"
+                placeholder="ชื่อผู้ขอซื้อ"
                 value={requester}
                 onChange={(e) => setRequester(e.target.value)}
+                required
+                minLength={1}
+                title="กรุณาระบุชื่อผู้ขอซื้อ"
               />
+              <div className="validator-hint">กรุณาระบุชื่อผู้ขอซื้อ</div>
             </div>
           </div>
 
@@ -230,7 +395,7 @@ export default function CreateOrderPage() {
               <button 
                 type="button" 
                 onClick={openAddModal}
-                className="btn btn-primary btn-sm"
+                className="btn btn-sm font-normal bg-white border-[#6EC1E4] hover:bg-[#6ec1e4]"
               >
                 <Plus className="w-4 h-4" />
                 เพิ่มรายการ
@@ -241,18 +406,13 @@ export default function CreateOrderPage() {
               <table className="table table-zebra w-full">
                 <thead>
                   <tr>
-                    <th className="w-16">
-                      <Hash className="w-4 h-4" />
-                    </th>
+                    <th>ลำดับที่</th>
                     <th>รายการที่ขอซื้อ</th>
-                    <th className="w-40">
-                      <Calendar className="w-4 h-4" />
-                      วันที่ต้องการ
-                    </th>
-                    <th className="w-24 text-right">จำนวน</th>
-                    <th className="w-32 text-right">ราคา/หน่วย (บาท)</th>
-                    <th className="w-32 text-right">รวม (บาท)</th>
-                    <th className="w-16"></th>
+                    <th>วันที่ต้องการรับ</th>
+                    <th>จำนวน</th>
+                    <th>จำนวนเงิน (บาท)</th>
+                    <th>รวม (บาท)</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -262,17 +422,18 @@ export default function CreateOrderPage() {
                     
                     return (
                       <tr key={idx} className={hasError ? 'bg-error/10' : ''}>
-                        <td className="text-center font-medium">{item.no}</td>
+                        <td className="text-center font-normal">{item.no}</td>
                         
                         <td>
                           <input
                             type="text"
-                            className={`input input-sm input-bordered w-full ${
-                              submitted && !item.description.trim() ? 'input-error' : ''
-                            }`}
+                            className="input input-sm input-bordered validator w-full"
                             placeholder="ระบุรายละเอียดสินค้า"
                             value={item.description}
                             onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                            required
+                            minLength={1}
+                            title="กรุณาระบุรายละเอียดสินค้า"
                           />
                         </td>
                         
@@ -287,31 +448,33 @@ export default function CreateOrderPage() {
                         
                         <td>
                           <input
-                            type="text"
-                            inputMode="decimal"
-                            className={`input input-sm input-bordered w-full text-right ${
-                              submitted && toNum(item.quantity) <= 0 ? 'input-error' : ''
-                            }`}
+                            type="number"
+                            className="input input-sm input-bordered validator w-full text-right"
                             placeholder="จำนวน"
                             value={item.quantity}
                             onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                            required
+                            min="0.01"
+                            step="0.01"
+                            title="กรุณาระบุจำนวน"
                           />
                         </td>
                         
                         <td>
                           <input
-                            type="text"
-                            inputMode="decimal"
-                            className={`input input-sm input-bordered w-full text-right ${
-                              submitted && toNum(item.amount) <= 0 ? 'input-error' : ''
-                            }`}
+                            type="number"
+                            className="input input-sm input-bordered validator w-full text-right"
                             placeholder="ราคา"
                             value={item.amount}
                             onChange={(e) => updateItem(idx, 'amount', e.target.value)}
+                            required
+                            min="0.01"
+                            step="0.01"
+                            title="กรุณาระบุราคา"
                           />
                         </td>
                         
-                        <td className="text-right font-medium">
+                        <td className="text-right font-normal">
                           {total > 0 ? total.toLocaleString('th-TH') : '0'}
                         </td>
                         
@@ -337,33 +500,30 @@ export default function CreateOrderPage() {
                     <Package className="mx-auto h-12 w-12" />
                   </div>
                   <h3 className="text-lg font-medium mb-2">ยังไม่มีรายการสินค้า</h3>
-                  <p className="text-base-content/60 mb-4">คลิก "เพิ่มรายการ" เพื่อเพิ่มสินค้าที่ต้องการสั่งซื้อ</p>
-                  <button 
-                    type="button" 
-                    onClick={openAddModal}
-                    className="btn btn-primary"
-                  >
-                    <Plus className="w-4 h-4" />
-                    เพิ่มรายการแรก
-                  </button>
+                  <p className="text-base-content/60 mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
                 </div>
               )}
             </div>
           </div>
 
           <div className="divider"></div>
+          
           <div className="flex items-center justify-between">
             <div className="text-lg">
-              <span className="text-base-content/70">รวมเป็นเงิน: </span>
-              <span className="font-bold text-2xl text-primary">
+              <span className="text-base">รวมเป็นเงินจำนวน : </span>
+              <span className="text-lg font-bold text-[#6EC1E4]">
                 {grandTotal(items).toLocaleString('th-TH')} บาท
               </span>
             </div>
             <button
               type="button"
-              onClick={doCreate}
-              disabled={saving || invalid()}
-              className="btn btn-primary btn-lg"
+              onClick={showConfirmation}
+              disabled={saving || !isFormValid()}
+              className={`btn text-white ${
+                !isFormValid() 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-[#6EC1E4] hover:bg-[#2b9ccc]'
+              }`}
             >
               {saving ? (
                 <>
@@ -371,12 +531,109 @@ export default function CreateOrderPage() {
                   กำลังบันทึก...
                 </>
               ) : (
-                'สร้างใบสั่งซื้อและส่งขออนุมัติ'
+                'สร้างใบขอซื้อ'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <dialog className={`modal ${showConfirmModal ? 'modal-open' : ''}`}>
+        <div className="modal-box max-w-2xl">
+          <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
+            <Package className="w-6 h-6" />
+            ยืนยันการสร้างใบขอซื้อ
+          </h3>
+          
+          <div className="space-y-6">
+            <div className="bg-base-200 rounded-lg p-4">
+              <h4 className="font-semibold mb-3">ข้อมูลผู้ขอซื้อ</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-gray-600">วันที่ขอซื้อ:</span>
+                  <p className="font-medium">{new Date(date).toLocaleDateString('th-TH')}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">ชื่อผู้ขอซื้อ:</span>
+                  <p className="font-medium">{requester}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-3">รายการสินค้า ({items.length} รายการ)</h4>
+              <div className="overflow-x-auto max-h-60 overflow-y-auto">
+                <table className="table table-sm table-zebra w-full">
+                  <thead className="sticky top-0">
+                    <tr>
+                      <th>ลำดับ</th>
+                      <th>รายการ</th>
+                      <th>วันที่ต้องการรับ</th>
+                      <th>จำนวน</th>
+                      <th>ราคา</th>
+                      <th className="text-right">รวม</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{item.no}</td>
+                        <td className="max-w-xs truncate" title={item.description}>
+                          {item.description}
+                        </td>
+                        <td>
+                          {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString('th-TH') : '-'}
+                        </td>
+                        <td>{toNum(item.quantity).toLocaleString('th-TH')}</td>
+                        <td>{toNum(item.amount).toLocaleString('th-TH')}</td>
+                        <td className="text-right font-medium">
+                          {(toNum(item.quantity) * toNum(item.amount)).toLocaleString('th-TH')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-[#c3e4f4] rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-base font-semibold">รวมเป็นเงินทั้งสิ้น:</span>
+                <span className="text-lg font-bold text-[#6EC1E4]">
+                  {grandTotal(items).toLocaleString('th-TH')} บาท
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-action">
+            <button 
+              className="btn font-normal" 
+              onClick={cancelCreate}
+              disabled={saving}
+            >
+              ยกเลิก
+            </button>
+            <button 
+              className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]" 
+              onClick={confirmCreate}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  กำลังสร้างใบขอซื้อ...
+                </>
+              ) : (
+                'ยืนยันและส่งขออนุมัติ'
               )}
             </button>
           </div>
         </div>
-      </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={cancelCreate}>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }
