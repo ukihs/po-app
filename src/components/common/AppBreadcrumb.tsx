@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,7 +16,13 @@ interface BreadcrumbItem {
 }
 
 export default function AppBreadcrumb() {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const [isClient, setIsClient] = useState(false);
+  const [pathname, setPathname] = useState('');
+
+  useEffect(() => {
+    setIsClient(true);
+    setPathname(window.location.pathname);
+  }, []);
   
   const getBreadcrumbItems = (): BreadcrumbItem[] => {
     const items: BreadcrumbItem[] = [
@@ -59,6 +65,18 @@ export default function AppBreadcrumb() {
   };
 
   const breadcrumbItems = getBreadcrumbItems();
+
+  if (!isClient) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>ระบบใบขอซื้อ</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   return (
     <Breadcrumb>
