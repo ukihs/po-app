@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { signIn, subscribeAuthAndRole } from "../../../lib/auth";
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from "lucide-react";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
+import { Alert, AlertDescription } from "../../ui/alert";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,101 +54,97 @@ export default function LoginPage() {
   const getAlertIcon = () => {
     switch (alertType) {
       case "info":
-        return <Info className="h-5 w-5" />;
+        return <Info className="h-4 w-4" />;
       case "success":
-        return <CheckCircle className="h-5 w-5" />;
+        return <CheckCircle className="h-4 w-4" />;
       case "warning":
-        return <AlertTriangle className="h-5 w-5" />;
+        return <AlertTriangle className="h-4 w-4" />;
       case "error":
-        return <AlertCircle className="h-5 w-5" />;
+        return <AlertCircle className="h-4 w-4" />;
       default:
-        return <Info className="h-5 w-5" />;
+        return <Info className="h-4 w-4" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
       {showAlert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
-          <div
-            role="alert"
-            className={`alert alert-${alertType} alert-soft shadow-lg border-0`}
+          <Alert
+            variant={alertType === "error" ? "destructive" : "default"}
+            className="shadow-lg border-0"
           >
             {getAlertIcon()}
-            <span className="text-sm font-medium">{alertMessage}</span>
-            <button
-              onClick={() => setShowAlert(false)}
-              className="btn btn-sm btn-ghost btn-circle ml-auto"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+            <div className="flex items-center justify-between w-full">
+              <AlertDescription className="text-sm font-medium">
+                {alertMessage}
+              </AlertDescription>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAlert(false)}
+                className="h-6 w-6 ml-2 shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </Alert>
         </div>
       )}
 
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
+      <Card className="max-w-md w-full shadow-xl">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
             <img
               src="/logo.png"
               alt="Beverly Logo"
               className="h-16 w-auto object-contain"
             />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
-        </div>
+          <CardTitle className="text-2xl font-bold">เข้าสู่ระบบ</CardTitle>
+        </CardHeader>
 
-        <div className="space-y-6">
+        <CardContent>
           <form onSubmit={submit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-900 mb-2"
-              >
-                Email
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#64D1E3] focus:border-[#64D1E3] focus:bg-white transition-all duration-200"
-                placeholder="Email"
+                placeholder="อีเมล"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-11"
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-900 mb-2"
-              >
-                Password
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#64D1E3] focus:border-[#64D1E3] focus:bg-white transition-all duration-200"
-                placeholder="Password"
+                placeholder="รหัสผ่าน"
                 value={pass}
                 onChange={(e) => setPass(e.target.value)}
+                className="h-11"
               />
             </div>
 
-              <button
+            <Button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-[#64D1E3] hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#64D1E3] transition-all duration-200 shadow-sm hover:shadow-md"
+              className="w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium"
             >
               Sign In
-            </button>
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

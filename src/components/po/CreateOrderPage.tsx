@@ -1,21 +1,31 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { auth } from '../../firebase/client';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
-import { Plus, Trash2, Package, Calendar, Info } from 'lucide-react';
-import { DayPicker } from 'react-day-picker';
+import { Plus, Trash2, Package, Calendar as CalendarIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import { Toaster } from '../ui/sonner';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Label } from '../ui/label';
+import { Separator } from '../ui/separator';
+import { Calendar } from '../ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { cn } from '../../lib/utils';
 
 export default function CreateOrderPage() {
   const [submitted, setSubmitted] = useState(false);
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [requester, setRequester] = useState('');
   const [items, setItems] = useState<Item[]>([]);
   const [saving, setSaving] = useState(false);
   
   const [showModal, setShowModal] = useState(false);
-  const [showItemDatePicker, setShowItemDatePicker] = useState(false);
   const [selectedItemDate, setSelectedItemDate] = useState<Date | undefined>();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [newItem, setNewItem] = useState<Omit<Item, 'no'>>({
@@ -33,12 +43,6 @@ export default function CreateOrderPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedDate) {
-      setDate(selectedDate.toISOString().split('T')[0]);
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
     if (selectedItemDate) {
       setNewItem(prev => ({ 
         ...prev, 
@@ -46,19 +50,6 @@ export default function CreateOrderPage() {
       }));
     }
   }, [selectedItemDate]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown') && !target.closest('button[style*="anchor-name"]')) {
-        setShowDatePicker(false);
-        setShowItemDatePicker(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const openAddModal = () => {
     setNewItem({
@@ -69,7 +60,6 @@ export default function CreateOrderPage() {
       itemType: 'วัตถุดิบ'
     });
     setSelectedItemDate(undefined);
-    setShowItemDatePicker(false);
     setShowModal(true);
   };
 
@@ -80,21 +70,16 @@ export default function CreateOrderPage() {
            toNum(newItem.amount) > 0;
   };
 
-  const checkFormValidity = () => {
-    const form = document.querySelector('form');
-    return form ? form.checkValidity() : true;
-  };
-
   const addItemFromModal = () => {
     if (!isModalFormValid()) {
       if (!newItem.description.trim()) {
-        alert('กรุณาระบุรายละเอียดสินค้า');
+        toast.error('กรุณาระบุรายละเอียดสินค้า');
       } else if (!newItem.receivedDate.trim()) {
-        alert('กรุณาเลือกวันที่ต้องการรับ');
+        toast.error('กรุณาเลือกวันที่ต้องการรับ');
       } else if (toNum(newItem.quantity) <= 0) {
-        alert('กรุณาระบุจำนวนที่ถูกต้อง');
+        toast.error('กรุณาระบุจำนวนที่ถูกต้อง');
       } else if (toNum(newItem.amount) <= 0) {
-        alert('กรุณาระบุราคาที่ถูกต้อง');
+        toast.error('กรุณาระบุราคาที่ถูกต้อง');
       }
       return;
     }
@@ -115,7 +100,6 @@ export default function CreateOrderPage() {
       itemType: 'วัตถุดิบ'
     });
     setSelectedItemDate(undefined);
-    setShowItemDatePicker(false);
   };
 
   const closeModal = () => {
@@ -128,7 +112,6 @@ export default function CreateOrderPage() {
       itemType: 'วัตถุดิบ'
     });
     setSelectedItemDate(undefined);
-    setShowItemDatePicker(false);
   };
 
   const removeItem = (idx: number) => {
@@ -176,7 +159,7 @@ export default function CreateOrderPage() {
   const showConfirmation = () => {
     setSubmitted(true);
     if (!isFormValid()) {
-      alert(getValidationMessage());
+      toast.error(getValidationMessage());
       return;
     }
     setShowConfirmModal(true);
@@ -187,10 +170,11 @@ export default function CreateOrderPage() {
       setSaving(true);
       setShowConfirmModal(false);
       const itemsWithType = items.map(item => ({ ...item, itemType: 'วัตถุดิบ' as ItemType }));
-      await createOrder({ date, requesterName: requester, items: itemsWithType });
+      const dateString = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
+      await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
       window.location.href = '/orders/tracking';
     } catch (e: any) {
-      alert(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
+      toast.error(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
     } finally {
       setSaving(false);
     }
@@ -202,311 +186,292 @@ export default function CreateOrderPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <dialog id="add_item_modal" className={`modal ${showModal ? 'modal-open' : ''}`}>
-        <div className="modal-box">
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            เพิ่มรายการสินค้า
-          </h3>
+    <div className="w-full">
+      <Toaster />
+      
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <Package className="w-8 h-8 text-[#2b9ccc]" />
+          สร้างใบขอซื้อ
+        </h1>
+        <p className="text-muted-foreground">
+          สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า
+        </p>
+      </div>
+      
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              เพิ่มรายการสินค้า
+            </DialogTitle>
+            <DialogDescription>
+              กรอกข้อมูลรายการสินค้าที่ต้องการขอซื้อ
+            </DialogDescription>
+          </DialogHeader>
           
-          <form className="space-y-4" noValidate>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">รายการที่ขอซื้อ</span>
-              </label>
-              <input
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium">
+                รายการที่ขอซื้อ <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="description"
                 type="text"
-                className="input input-bordered validator w-full"
                 placeholder="ระบุรายละเอียดสินค้า"
                 value={newItem.description}
                 onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
                 required
                 minLength={1}
-                title="กรุณาระบุรายละเอียดสินค้า"
               />
-              <div className="validator-hint">กรุณาระบุรายละเอียดสินค้า</div>
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">วันที่ต้องการรับ <span className="text-error">*</span></span>
-              </label>
-              <div className="relative">
-                <button 
-                  type="button"
-                  onClick={() => setShowItemDatePicker(!showItemDatePicker)}
-                  className={`input input-bordered w-full flex items-center justify-between text-left ${
-                    !newItem.receivedDate.trim() ? 'border-error text-error' : 'border-success text-success'
-                  }`}
-                  style={{ anchorName: "--item-date" } as React.CSSProperties}
-                >
-                  <span className={!selectedItemDate ? 'text-gray-500' : ''}>
-                    {selectedItemDate ? selectedItemDate.toLocaleDateString('th-TH') : 'เลือกวันที่ต้องการรับ *'}
-                  </span>
-                  <Calendar className="w-4 h-4" />
-                </button>
-                {showItemDatePicker && (
-                  <div 
-                    className="dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50"
-                    style={{ positionAnchor: "--item-date" } as React.CSSProperties}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                วันที่ต้องการรับ <span className="text-destructive">*</span>
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-between text-left font-normal",
+                      !selectedItemDate && "text-muted-foreground"
+                    )}
                   >
-                    <DayPicker 
-                      className="react-day-picker p-4" 
-                      mode="single" 
-                      selected={selectedItemDate} 
-                      onSelect={(date) => {
-                        setSelectedItemDate(date);
-                        setShowItemDatePicker(false);
-                      }}
-                    />
-                  </div>
-                )}
-                {!newItem.receivedDate.trim() && (
-                  <div className="text-error text-xs font-normal mt-1">กรุณาเลือกวันที่ต้องการรับ</div>
-                )}
-              </div>
+                    {selectedItemDate ? (
+                      selectedItemDate.toLocaleDateString('th-TH')
+                    ) : (
+                      "เลือกวันที่ต้องการรับ"
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedItemDate}
+                    onSelect={setSelectedItemDate}
+                    captionLayout="dropdown"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">จำนวน</span>
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="quantity" className="text-sm font-medium">
+                  จำนวน <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="quantity"
                   type="number"
-                  className="input input-bordered validator w-full"
                   placeholder="จำนวน"
                   value={newItem.quantity}
                   onChange={(e) => setNewItem(prev => ({ ...prev, quantity: e.target.value }))}
                   required
                   min="0.01"
                   step="0.01"
-                  title="กรุณาระบุจำนวนอย่างน้อย 1 จำนวน"
                 />
-                <div className="validator-hint">กรุณาระบุจำนวน</div>
               </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">ราคาต่อหน่วย (บาท)</span>
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="text-sm font-medium">
+                  ราคาต่อหน่วย (บาท) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="amount"
                   type="number"
-                  className="input input-bordered validator w-full"
                   placeholder="ราคา"
                   value={newItem.amount}
                   onChange={(e) => setNewItem(prev => ({ ...prev, amount: e.target.value }))}
                   required
                   min="0.01"
                   step="0.01"
-                  title="กรุณาระบุราคา"
                 />
-                <div className="validator-hint">กรุณาระบุราคา</div>
               </div>
             </div>
-
           </form>
 
-          <div className="modal-action">
-            <button className="btn font-normal" onClick={closeModal}>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal} className="font-normal">
               ยกเลิก
-            </button>
-            <button 
-              className={`btn text-white ${
-                !isModalFormValid() 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#6EC1E4] hover:bg-[#2b9ccc]'
-              }`}
+            </Button>
+            <Button 
               onClick={addItemFromModal}
               disabled={!isModalFormValid()}
+              className="bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal"
             >
               เพิ่มรายการ
-            </button>
-          </div>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={closeModal}>close</button>
-        </form>
-      </dialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <div className="card bg-base-100 shadow-xl">
-        <form className="card-body" noValidate>
-          <h2 className="card-title text-2xl mb-6">
-            <Package className="w-6 h-6" />
-            สร้างใบขอซื้อ
-          </h2>
+      <Card>
+        <CardContent>
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">วันที่ขอซื้อ</span>
-              </label>
-              <div className="relative">
-                <button 
-                  type="button"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="input input-bordered w-full flex items-center justify-between text-left"
-                  style={{ anchorName: "--order-date" } as React.CSSProperties}
-                >
-                  <span>
-                    {selectedDate ? selectedDate.toLocaleDateString('th-TH') : 'เลือกวันที่'}
-                  </span>
-                  <Calendar className="w-4 h-4" />
-                </button>
-                {showDatePicker && (
-                  <div 
-                    className="dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50"
-                    style={{ positionAnchor: "--order-date" } as React.CSSProperties}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">วันที่ขอซื้อ</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-between text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
                   >
-                    <DayPicker 
-                      className="react-day-picker p-4" 
-                      mode="single" 
-                      selected={selectedDate} 
-                      onSelect={(date) => {
-                        setSelectedDate(date);
-                        setShowDatePicker(false);
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
+                    {selectedDate ? (
+                      selectedDate.toLocaleDateString('th-TH')
+                    ) : (
+                      "เลือกวันที่"
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    captionLayout="dropdown"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">ชื่อผู้ขอซื้อ</span>
-              </label>
-              <input
-                className="input input-bordered validator w-full"
+            <div className="space-y-2">
+              <Label htmlFor="requester" className="text-sm font-medium">
+                ชื่อผู้ขอซื้อ <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="requester"
                 placeholder="ชื่อผู้ขอซื้อ"
                 value={requester}
                 onChange={(e) => setRequester(e.target.value)}
                 required
                 minLength={1}
-                title="กรุณาระบุชื่อผู้ขอซื้อ"
               />
-              <div className="validator-hint">กรุณาระบุชื่อผู้ขอซื้อ</div>
             </div>
           </div>
 
-          <div className="mb-8">
+          <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">รายการสินค้า</h3>
-              <button 
+              <Button 
                 type="button" 
                 onClick={openAddModal}
-                className="btn btn-sm font-normal bg-white border-[#6EC1E4] hover:bg-[#6ec1e4]"
+                variant="outline"
+                size="sm"
+                className="border-[#6EC1E4] text-[#6EC1E4] hover:bg-[#6EC1E4] hover:text-white font-normal"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 mr-2" />
                 เพิ่มรายการ
-              </button>
+              </Button>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>ลำดับที่</th>
-                    <th>รายการที่ขอซื้อ</th>
-                    <th>วันที่ต้องการรับ</th>
-                    <th>จำนวน</th>
-                    <th>จำนวนเงิน (บาท)</th>
-                    <th>รวม (บาท)</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ลำดับที่</TableHead>
+                    <TableHead>รายการที่ขอซื้อ</TableHead>
+                    <TableHead>วันที่ต้องการรับ</TableHead>
+                    <TableHead>จำนวน</TableHead>
+                    <TableHead>จำนวนเงิน (บาท)</TableHead>
+                    <TableHead>รวม (บาท)</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {items.map((item, idx) => {
                     const total = toNum(item.quantity) * toNum(item.amount);
                     const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
                     
                     return (
-                      <tr key={idx} className={hasError ? 'bg-error/10' : ''}>
-                        <td className="text-center font-normal">{item.no}</td>
+                      <TableRow key={idx} className={hasError ? 'bg-destructive/10' : ''}>
+                        <TableCell className="text-center">{item.no}</TableCell>
                         
-                        <td>
-                          <input
+                        <TableCell>
+                          <Input
                             type="text"
-                            className="input input-sm input-bordered validator w-full"
                             placeholder="ระบุรายละเอียดสินค้า"
                             value={item.description}
                             onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                            required
-                            minLength={1}
-                            title="กรุณาระบุรายละเอียดสินค้า"
+                            className={`h-8 ${hasError && !item.description.trim() ? 'border-destructive' : ''}`}
                           />
-                        </td>
+                        </TableCell>
                         
-                        <td>
-                          <input
+                        <TableCell>
+                          <Input
                             type="date"
-                            className="input input-sm input-bordered w-full"
                             value={item.receivedDate}
                             onChange={(e) => updateItem(idx, 'receivedDate', e.target.value)}
+                            className="h-8"
                           />
-                        </td>
+                        </TableCell>
                         
-                        <td>
-                          <input
+                        <TableCell>
+                          <Input
                             type="number"
-                            className="input input-sm input-bordered validator w-full text-right"
                             placeholder="จำนวน"
                             value={item.quantity}
                             onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                            required
+                            className={`h-8 text-right ${hasError && toNum(item.quantity) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
-                            title="กรุณาระบุจำนวน"
                           />
-                        </td>
+                        </TableCell>
                         
-                        <td>
-                          <input
+                        <TableCell>
+                          <Input
                             type="number"
-                            className="input input-sm input-bordered validator w-full text-right"
                             placeholder="ราคา"
                             value={item.amount}
                             onChange={(e) => updateItem(idx, 'amount', e.target.value)}
-                            required
+                            className={`h-8 text-right ${hasError && toNum(item.amount) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
-                            title="กรุณาระบุราคา"
                           />
-                        </td>
+                        </TableCell>
                         
-                        <td className="text-right font-normal">
+                        <TableCell className="text-right">
                           {total > 0 ? total.toLocaleString('th-TH') : '0'}
-                        </td>
+                        </TableCell>
                         
-                        <td className="text-center">
-                          <button
+                        <TableCell className="text-center">
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => removeItem(idx)}
-                            className="btn btn-ghost btn-sm text-error hover:bg-error/10"
-                            title="ลบรายการ"
+                            className="text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               
               {items.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-base-content/100 mb-4">
+                  <div className="text-muted-foreground mb-4">
                     <Package className="mx-auto h-12 w-12" />
                   </div>
                   <h3 className="text-lg font-medium mb-2">ยังไม่มีรายการสินค้า</h3>
-                  <p className="text-base-content/60 mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
+                  <p className="font-normal text-muted-foreground mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="divider"></div>
+          <Separator />
           
           <div className="flex items-center justify-between">
             <div className="text-lg">
@@ -515,46 +480,48 @@ export default function CreateOrderPage() {
                 {grandTotal(items).toLocaleString('th-TH')} บาท
               </span>
             </div>
-            <button
+            <Button
               type="button"
               onClick={showConfirmation}
               disabled={saving || !isFormValid()}
-              className={`btn text-white ${
-                !isFormValid() 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#6EC1E4] hover:bg-[#2b9ccc]'
-              }`}
+              className="bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal"
             >
               {saving ? (
                 <>
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   กำลังบันทึก...
                 </>
               ) : (
                 'สร้างใบขอซื้อ'
               )}
-            </button>
+            </Button>
           </div>
-        </form>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
 
-      <dialog className={`modal ${showConfirmModal ? 'modal-open' : ''}`}>
-        <div className="modal-box max-w-2xl">
-          <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
-            <Package className="w-6 h-6" />
-            ยืนยันการสร้างใบขอซื้อ
-          </h3>
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="w-6 h-6" />
+              ยืนยันการสร้างใบขอซื้อ
+            </DialogTitle>
+            <DialogDescription>
+              กรุณาตรวจสอบข้อมูลก่อนยืนยันการสร้างใบขอซื้อ
+            </DialogDescription>
+          </DialogHeader>
           
           <div className="space-y-6">
-            <div className="bg-base-200 rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4">
               <h4 className="font-semibold mb-3">ข้อมูลผู้ขอซื้อ</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm text-gray-600">วันที่ขอซื้อ:</span>
-                  <p className="font-medium">{new Date(date).toLocaleDateString('th-TH')}</p>
+                  <span className="text-sm text-muted-foreground">วันที่ขอซื้อ:</span>
+                  <p className="font-medium">{selectedDate ? selectedDate.toLocaleDateString('th-TH') : 'ยังไม่เลือกวันที่'}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">ชื่อผู้ขอซื้อ:</span>
+                  <span className="text-sm text-muted-foreground">ชื่อผู้ขอซื้อ:</span>
                   <p className="font-medium">{requester}</p>
                 </div>
               </div>
@@ -563,36 +530,36 @@ export default function CreateOrderPage() {
             <div>
               <h4 className="font-semibold mb-3">รายการสินค้า ({items.length} รายการ)</h4>
               <div className="overflow-x-auto max-h-60 overflow-y-auto">
-                <table className="table table-sm table-zebra w-full">
-                  <thead className="sticky top-0">
-                    <tr>
-                      <th>ลำดับ</th>
-                      <th>รายการ</th>
-                      <th>วันที่ต้องการรับ</th>
-                      <th>จำนวน</th>
-                      <th>ราคา</th>
-                      <th className="text-right">รวม</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader className="sticky top-0">
+                    <TableRow>
+                      <TableHead>ลำดับ</TableHead>
+                      <TableHead>รายการ</TableHead>
+                      <TableHead>วันที่ต้องการรับ</TableHead>
+                      <TableHead>จำนวน</TableHead>
+                      <TableHead>ราคา</TableHead>
+                      <TableHead className="text-right">รวม</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td>{item.no}</td>
-                        <td className="max-w-xs truncate" title={item.description}>
+                      <TableRow key={idx}>
+                        <TableCell>{item.no}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={item.description}>
                           {item.description}
-                        </td>
-                        <td>
+                        </TableCell>
+                        <TableCell>
                           {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString('th-TH') : '-'}
-                        </td>
-                        <td>{toNum(item.quantity).toLocaleString('th-TH')}</td>
-                        <td>{toNum(item.amount).toLocaleString('th-TH')}</td>
-                        <td className="text-right font-medium">
+                        </TableCell>
+                        <TableCell>{toNum(item.quantity).toLocaleString('th-TH')}</TableCell>
+                        <TableCell>{toNum(item.amount).toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="text-right font-medium">
                           {(toNum(item.quantity) * toNum(item.amount)).toLocaleString('th-TH')}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
 
@@ -606,34 +573,31 @@ export default function CreateOrderPage() {
             </div>
           </div>
 
-          <div className="modal-action">
-            <button 
-              className="btn font-normal" 
+          <DialogFooter>
+            <Button 
+              variant="outline"
               onClick={cancelCreate}
               disabled={saving}
             >
               ยกเลิก
-            </button>
-            <button 
-              className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]" 
+            </Button>
+            <Button 
               onClick={confirmCreate}
               disabled={saving}
+              className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
             >
               {saving ? (
                 <>
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   กำลังสร้างใบขอซื้อ...
                 </>
               ) : (
                 'ยืนยันและส่งขออนุมัติ'
               )}
-            </button>
-          </div>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={cancelCreate}>close</button>
-        </form>
-      </dialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

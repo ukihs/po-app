@@ -1,24 +1,237 @@
 import { c as createComponent, j as renderComponent, r as renderTemplate } from '../../chunks/astro/server_D_wosZza.mjs';
 import 'kleur/colors';
-import { $ as $$MainLayout } from '../../chunks/MainLayout_CQdCrJNe.mjs';
-import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_ZYMmSpfc.mjs';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
+import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { b as auth } from '../../chunks/auth_BW0YqYLL.mjs';
-import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_DD8qrIW0.mjs';
-import { Package, Calendar, Plus, Trash2 } from 'lucide-react';
-import { DayPicker } from 'react-day-picker';
+import { c as cn, b as buttonVariants, B as Button, d as auth } from '../../chunks/button_CbkGDZSM.mjs';
+import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_CC8kJ_B9.mjs';
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CTUrDOri.mjs';
+import { C as Card, c as CardContent } from '../../chunks/card_DtesBApW.mjs';
+import { I as Input } from '../../chunks/input_SVu8Wvyu.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Cq20IB_O.mjs';
+import { L as Label } from '../../chunks/label_DljmYlzG.mjs';
+import { getDefaultClassNames, DayPicker } from 'react-day-picker';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 export { renderers } from '../../renderers.mjs';
+
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  captionLayout = "label",
+  buttonVariant = "ghost",
+  formatters,
+  components,
+  ...props
+}) {
+  const defaultClassNames = getDefaultClassNames();
+  return /* @__PURE__ */ jsx(
+    DayPicker,
+    {
+      showOutsideDays,
+      className: cn(
+        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        className
+      ),
+      captionLayout,
+      formatters: {
+        formatMonthDropdown: (date) => date.toLocaleString("default", { month: "short" }),
+        ...formatters
+      },
+      classNames: {
+        root: cn("w-fit", defaultClassNames.root),
+        months: cn(
+          "flex gap-4 flex-col md:flex-row relative",
+          defaultClassNames.months
+        ),
+        month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
+        nav: cn(
+          "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
+          defaultClassNames.nav
+        ),
+        button_previous: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          defaultClassNames.button_previous
+        ),
+        button_next: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          defaultClassNames.button_next
+        ),
+        month_caption: cn(
+          "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
+          defaultClassNames.month_caption
+        ),
+        dropdowns: cn(
+          "w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5",
+          defaultClassNames.dropdowns
+        ),
+        dropdown_root: cn(
+          "relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
+          defaultClassNames.dropdown_root
+        ),
+        dropdown: cn(
+          "absolute bg-popover inset-0 opacity-0",
+          defaultClassNames.dropdown
+        ),
+        caption_label: cn(
+          "select-none font-medium",
+          captionLayout === "label" ? "text-sm" : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
+          defaultClassNames.caption_label
+        ),
+        table: "w-full border-collapse",
+        weekdays: cn("flex", defaultClassNames.weekdays),
+        weekday: cn(
+          "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
+          defaultClassNames.weekday
+        ),
+        week: cn("flex w-full mt-2", defaultClassNames.week),
+        week_number_header: cn(
+          "select-none w-(--cell-size)",
+          defaultClassNames.week_number_header
+        ),
+        week_number: cn(
+          "text-[0.8rem] select-none text-muted-foreground",
+          defaultClassNames.week_number
+        ),
+        day: cn(
+          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+          defaultClassNames.day
+        ),
+        range_start: cn(
+          "rounded-l-md bg-accent",
+          defaultClassNames.range_start
+        ),
+        range_middle: cn("rounded-none", defaultClassNames.range_middle),
+        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
+        today: cn(
+          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          defaultClassNames.today
+        ),
+        outside: cn(
+          "text-muted-foreground aria-selected:text-muted-foreground",
+          defaultClassNames.outside
+        ),
+        disabled: cn(
+          "text-muted-foreground opacity-50",
+          defaultClassNames.disabled
+        ),
+        hidden: cn("invisible", defaultClassNames.hidden),
+        ...classNames
+      },
+      components: {
+        Root: ({ className: className2, rootRef, ...props2 }) => {
+          return /* @__PURE__ */ jsx(
+            "div",
+            {
+              "data-slot": "calendar",
+              ref: rootRef,
+              className: cn(className2),
+              ...props2
+            }
+          );
+        },
+        Chevron: ({ className: className2, orientation, ...props2 }) => {
+          if (orientation === "left") {
+            return /* @__PURE__ */ jsx(ChevronLeftIcon, { className: cn("size-4", className2), ...props2 });
+          }
+          if (orientation === "right") {
+            return /* @__PURE__ */ jsx(
+              ChevronRightIcon,
+              {
+                className: cn("size-4", className2),
+                ...props2
+              }
+            );
+          }
+          return /* @__PURE__ */ jsx(ChevronDownIcon, { className: cn("size-4", className2), ...props2 });
+        },
+        DayButton: CalendarDayButton,
+        WeekNumber: ({ children, ...props2 }) => {
+          return /* @__PURE__ */ jsx("td", { ...props2, children: /* @__PURE__ */ jsx("div", { className: "flex size-(--cell-size) items-center justify-center text-center", children }) });
+        },
+        ...components
+      },
+      ...props
+    }
+  );
+}
+function CalendarDayButton({
+  className,
+  day,
+  modifiers,
+  ...props
+}) {
+  const defaultClassNames = getDefaultClassNames();
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (modifiers.focused) ref.current?.focus();
+  }, [modifiers.focused]);
+  return /* @__PURE__ */ jsx(
+    Button,
+    {
+      ref,
+      variant: "ghost",
+      size: "icon",
+      "data-day": day.date.toLocaleDateString(),
+      "data-selected-single": modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle,
+      "data-range-start": modifiers.range_start,
+      "data-range-end": modifiers.range_end,
+      "data-range-middle": modifiers.range_middle,
+      className: cn(
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+        defaultClassNames.day,
+        className
+      ),
+      ...props
+    }
+  );
+}
+
+function Popover({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(PopoverPrimitive.Root, { "data-slot": "popover", ...props });
+}
+function PopoverTrigger({
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(PopoverPrimitive.Trigger, { "data-slot": "popover-trigger", ...props });
+}
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(PopoverPrimitive.Portal, { children: /* @__PURE__ */ jsx(
+    PopoverPrimitive.Content,
+    {
+      "data-slot": "popover-content",
+      align,
+      sideOffset,
+      className: cn(
+        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+        className
+      ),
+      ...props
+    }
+  ) });
+}
 
 function CreateOrderPage() {
   const [submitted, setSubmitted] = useState(false);
-  const [date, setDate] = useState((/* @__PURE__ */ new Date()).toISOString().split("T")[0]);
   const [selectedDate, setSelectedDate] = useState(/* @__PURE__ */ new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [requester, setRequester] = useState("");
   const [items, setItems] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showItemDatePicker, setShowItemDatePicker] = useState(false);
   const [selectedItemDate, setSelectedItemDate] = useState();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [newItem, setNewItem] = useState({
@@ -34,11 +247,6 @@ function CreateOrderPage() {
     setRequester(u.displayName || (u.email ?? "").split("@")[0]);
   }, []);
   useEffect(() => {
-    if (selectedDate) {
-      setDate(selectedDate.toISOString().split("T")[0]);
-    }
-  }, [selectedDate]);
-  useEffect(() => {
     if (selectedItemDate) {
       setNewItem((prev) => ({
         ...prev,
@@ -46,17 +254,6 @@ function CreateOrderPage() {
       }));
     }
   }, [selectedItemDate]);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const target = event.target;
-      if (!target.closest(".dropdown") && !target.closest('button[style*="anchor-name"]')) {
-        setShowDatePicker(false);
-        setShowItemDatePicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
   const openAddModal = () => {
     setNewItem({
       description: "",
@@ -66,7 +263,6 @@ function CreateOrderPage() {
       itemType: "วัตถุดิบ"
     });
     setSelectedItemDate(void 0);
-    setShowItemDatePicker(false);
     setShowModal(true);
   };
   const isModalFormValid = () => {
@@ -75,13 +271,13 @@ function CreateOrderPage() {
   const addItemFromModal = () => {
     if (!isModalFormValid()) {
       if (!newItem.description.trim()) {
-        alert("กรุณาระบุรายละเอียดสินค้า");
+        toast.error("กรุณาระบุรายละเอียดสินค้า");
       } else if (!newItem.receivedDate.trim()) {
-        alert("กรุณาเลือกวันที่ต้องการรับ");
+        toast.error("กรุณาเลือกวันที่ต้องการรับ");
       } else if (toNum(newItem.quantity) <= 0) {
-        alert("กรุณาระบุจำนวนที่ถูกต้อง");
+        toast.error("กรุณาระบุจำนวนที่ถูกต้อง");
       } else if (toNum(newItem.amount) <= 0) {
-        alert("กรุณาระบุราคาที่ถูกต้อง");
+        toast.error("กรุณาระบุราคาที่ถูกต้อง");
       }
       return;
     }
@@ -100,7 +296,6 @@ function CreateOrderPage() {
       itemType: "วัตถุดิบ"
     });
     setSelectedItemDate(void 0);
-    setShowItemDatePicker(false);
   };
   const closeModal = () => {
     setShowModal(false);
@@ -112,7 +307,6 @@ function CreateOrderPage() {
       itemType: "วัตถุดิบ"
     });
     setSelectedItemDate(void 0);
-    setShowItemDatePicker(false);
   };
   const removeItem = (idx) => {
     setItems((prev) => prev.filter((_, i) => i !== idx).map((it, i) => ({ ...it, no: i + 1 })));
@@ -146,7 +340,7 @@ function CreateOrderPage() {
   const showConfirmation = () => {
     setSubmitted(true);
     if (!isFormValid()) {
-      alert(getValidationMessage());
+      toast.error(getValidationMessage());
       return;
     }
     setShowConfirmModal(true);
@@ -156,10 +350,11 @@ function CreateOrderPage() {
       setSaving(true);
       setShowConfirmModal(false);
       const itemsWithType = items.map((item) => ({ ...item, itemType: "วัตถุดิบ" }));
-      await createOrder({ date, requesterName: requester, items: itemsWithType });
+      const dateString = selectedDate?.toISOString().split("T")[0] || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
       window.location.href = "/orders/tracking";
     } catch (e) {
-      alert(e?.message ?? "บันทึกใบสั่งซื้อไม่สำเร็จ");
+      toast.error(e?.message ?? "บันทึกใบสั่งซื้อไม่สำเร็จ");
     } finally {
       setSaving(false);
     }
@@ -168,276 +363,261 @@ function CreateOrderPage() {
     setShowConfirmModal(false);
     setSaving(false);
   };
-  return /* @__PURE__ */ jsxs("div", { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8", children: [
-    /* @__PURE__ */ jsxs("dialog", { id: "add_item_modal", className: `modal ${showModal ? "modal-open" : ""}`, children: [
-      /* @__PURE__ */ jsxs("div", { className: "modal-box", children: [
-        /* @__PURE__ */ jsxs("h3", { className: "font-bold text-lg mb-4 flex items-center gap-2", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
+    /* @__PURE__ */ jsx(Toaster, {}),
+    /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
+      /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
+        /* @__PURE__ */ jsx(Package, { className: "w-8 h-8 text-[#2b9ccc]" }),
+        "สร้างใบขอซื้อ"
+      ] }),
+      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า" })
+    ] }),
+    /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-[500px]", children: [
+      /* @__PURE__ */ jsxs(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-5 h-5" }),
           "เพิ่มรายการสินค้า"
         ] }),
-        /* @__PURE__ */ jsxs("form", { className: "space-y-4", noValidate: true, children: [
-          /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-            /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsx("span", { className: "label-text font-medium", children: "รายการที่ขอซื้อ" }) }),
-            /* @__PURE__ */ jsx(
-              "input",
-              {
-                type: "text",
-                className: "input input-bordered validator w-full",
-                placeholder: "ระบุรายละเอียดสินค้า",
-                value: newItem.description,
-                onChange: (e) => setNewItem((prev) => ({ ...prev, description: e.target.value })),
-                required: true,
-                minLength: 1,
-                title: "กรุณาระบุรายละเอียดสินค้า"
-              }
-            ),
-            /* @__PURE__ */ jsx("div", { className: "validator-hint", children: "กรุณาระบุรายละเอียดสินค้า" })
+        /* @__PURE__ */ jsx(DialogDescription, { children: "กรอกข้อมูลรายการสินค้าที่ต้องการขอซื้อ" })
+      ] }),
+      /* @__PURE__ */ jsxs("form", { className: "space-y-4", onSubmit: (e) => e.preventDefault(), children: [
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxs(Label, { htmlFor: "description", className: "text-sm font-medium", children: [
+            "รายการที่ขอซื้อ ",
+            /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
           ] }),
-          /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-            /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsxs("span", { className: "label-text font-medium", children: [
-              "วันที่ต้องการรับ ",
-              /* @__PURE__ */ jsx("span", { className: "text-error", children: "*" })
-            ] }) }),
-            /* @__PURE__ */ jsxs("div", { className: "relative", children: [
-              /* @__PURE__ */ jsxs(
-                "button",
-                {
-                  type: "button",
-                  onClick: () => setShowItemDatePicker(!showItemDatePicker),
-                  className: `input input-bordered w-full flex items-center justify-between text-left ${!newItem.receivedDate.trim() ? "border-error text-error" : "border-success text-success"}`,
-                  style: { anchorName: "--item-date" },
-                  children: [
-                    /* @__PURE__ */ jsx("span", { className: !selectedItemDate ? "text-gray-500" : "", children: selectedItemDate ? selectedItemDate.toLocaleDateString("th-TH") : "เลือกวันที่ต้องการรับ *" }),
-                    /* @__PURE__ */ jsx(Calendar, { className: "w-4 h-4" })
-                  ]
-                }
-              ),
-              showItemDatePicker && /* @__PURE__ */ jsx(
-                "div",
-                {
-                  className: "dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50",
-                  style: { positionAnchor: "--item-date" },
-                  children: /* @__PURE__ */ jsx(
-                    DayPicker,
-                    {
-                      className: "react-day-picker p-4",
-                      mode: "single",
-                      selected: selectedItemDate,
-                      onSelect: (date2) => {
-                        setSelectedItemDate(date2);
-                        setShowItemDatePicker(false);
-                      }
-                    }
-                  )
-                }
-              ),
-              !newItem.receivedDate.trim() && /* @__PURE__ */ jsx("div", { className: "text-error text-xs font-normal mt-1", children: "กรุณาเลือกวันที่ต้องการรับ" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-            /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-              /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsx("span", { className: "label-text font-medium", children: "จำนวน" }) }),
-              /* @__PURE__ */ jsx(
-                "input",
-                {
-                  type: "number",
-                  className: "input input-bordered validator w-full",
-                  placeholder: "จำนวน",
-                  value: newItem.quantity,
-                  onChange: (e) => setNewItem((prev) => ({ ...prev, quantity: e.target.value })),
-                  required: true,
-                  min: "0.01",
-                  step: "0.01",
-                  title: "กรุณาระบุจำนวนอย่างน้อย 1 จำนวน"
-                }
-              ),
-              /* @__PURE__ */ jsx("div", { className: "validator-hint", children: "กรุณาระบุจำนวน" })
-            ] }),
-            /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-              /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsx("span", { className: "label-text font-medium", children: "ราคาต่อหน่วย (บาท)" }) }),
-              /* @__PURE__ */ jsx(
-                "input",
-                {
-                  type: "number",
-                  className: "input input-bordered validator w-full",
-                  placeholder: "ราคา",
-                  value: newItem.amount,
-                  onChange: (e) => setNewItem((prev) => ({ ...prev, amount: e.target.value })),
-                  required: true,
-                  min: "0.01",
-                  step: "0.01",
-                  title: "กรุณาระบุราคา"
-                }
-              ),
-              /* @__PURE__ */ jsx("div", { className: "validator-hint", children: "กรุณาระบุราคา" })
-            ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "modal-action", children: [
-          /* @__PURE__ */ jsx("button", { className: "btn font-normal", onClick: closeModal, children: "ยกเลิก" }),
           /* @__PURE__ */ jsx(
-            "button",
+            Input,
             {
-              className: `btn text-white ${!isModalFormValid() ? "bg-gray-400 cursor-not-allowed" : "bg-[#6EC1E4] hover:bg-[#2b9ccc]"}`,
-              onClick: addItemFromModal,
-              disabled: !isModalFormValid(),
-              children: "เพิ่มรายการ"
+              id: "description",
+              type: "text",
+              placeholder: "ระบุรายละเอียดสินค้า",
+              value: newItem.description,
+              onChange: (e) => setNewItem((prev) => ({ ...prev, description: e.target.value })),
+              required: true,
+              minLength: 1
             }
           )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsx("form", { method: "dialog", className: "modal-backdrop", children: /* @__PURE__ */ jsx("button", { onClick: closeModal, children: "close" }) })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "card bg-base-100 shadow-xl", children: /* @__PURE__ */ jsxs("form", { className: "card-body", noValidate: true, children: [
-      /* @__PURE__ */ jsxs("h2", { className: "card-title text-2xl mb-6", children: [
-        /* @__PURE__ */ jsx(Package, { className: "w-6 h-6" }),
-        "สร้างใบขอซื้อ"
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8", children: [
-        /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-          /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsx("span", { className: "label-text font-medium", children: "วันที่ขอซื้อ" }) }),
-          /* @__PURE__ */ jsxs("div", { className: "relative", children: [
-            /* @__PURE__ */ jsxs(
-              "button",
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxs(Label, { className: "text-sm font-medium", children: [
+            "วันที่ต้องการรับ ",
+            /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
+          ] }),
+          /* @__PURE__ */ jsxs(Popover, { children: [
+            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(
+              Button,
               {
-                type: "button",
-                onClick: () => setShowDatePicker(!showDatePicker),
-                className: "input input-bordered w-full flex items-center justify-between text-left",
-                style: { anchorName: "--order-date" },
+                variant: "outline",
+                className: cn(
+                  "w-full justify-between text-left font-normal",
+                  !selectedItemDate && "text-muted-foreground"
+                ),
                 children: [
-                  /* @__PURE__ */ jsx("span", { children: selectedDate ? selectedDate.toLocaleDateString("th-TH") : "เลือกวันที่" }),
-                  /* @__PURE__ */ jsx(Calendar, { className: "w-4 h-4" })
+                  selectedItemDate ? selectedItemDate.toLocaleDateString("th-TH") : "เลือกวันที่ต้องการรับ",
+                  /* @__PURE__ */ jsx(Calendar$1, { className: "ml-auto h-4 w-4 opacity-50" })
                 ]
               }
-            ),
-            showDatePicker && /* @__PURE__ */ jsx(
-              "div",
+            ) }),
+            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
+              Calendar,
               {
-                className: "dropdown absolute top-full left-0 mt-2 bg-base-100 rounded-box shadow-lg border z-50",
-                style: { positionAnchor: "--order-date" },
-                children: /* @__PURE__ */ jsx(
-                  DayPicker,
-                  {
-                    className: "react-day-picker p-4",
-                    mode: "single",
-                    selected: selectedDate,
-                    onSelect: (date2) => {
-                      setSelectedDate(date2);
-                      setShowDatePicker(false);
-                    }
-                  }
-                )
+                mode: "single",
+                selected: selectedItemDate,
+                onSelect: setSelectedItemDate,
+                captionLayout: "dropdown"
+              }
+            ) })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxs(Label, { htmlFor: "quantity", className: "text-sm font-medium", children: [
+              "จำนวน ",
+              /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
+            ] }),
+            /* @__PURE__ */ jsx(
+              Input,
+              {
+                id: "quantity",
+                type: "number",
+                placeholder: "จำนวน",
+                value: newItem.quantity,
+                onChange: (e) => setNewItem((prev) => ({ ...prev, quantity: e.target.value })),
+                required: true,
+                min: "0.01",
+                step: "0.01"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxs(Label, { htmlFor: "amount", className: "text-sm font-medium", children: [
+              "ราคาต่อหน่วย (บาท) ",
+              /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
+            ] }),
+            /* @__PURE__ */ jsx(
+              Input,
+              {
+                id: "amount",
+                type: "number",
+                placeholder: "ราคา",
+                value: newItem.amount,
+                onChange: (e) => setNewItem((prev) => ({ ...prev, amount: e.target.value })),
+                required: true,
+                min: "0.01",
+                step: "0.01"
               }
             )
           ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs(DialogFooter, { children: [
+        /* @__PURE__ */ jsx(Button, { variant: "outline", onClick: closeModal, className: "font-normal", children: "ยกเลิก" }),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            onClick: addItemFromModal,
+            disabled: !isModalFormValid(),
+            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal",
+            children: "เพิ่มรายการ"
+          }
+        )
+      ] })
+    ] }) }),
+    /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("form", { className: "space-y-6", onSubmit: (e) => e.preventDefault(), children: [
+      /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { className: "text-sm font-medium", children: "วันที่ขอซื้อ" }),
+          /* @__PURE__ */ jsxs(Popover, { children: [
+            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(
+              Button,
+              {
+                variant: "outline",
+                className: cn(
+                  "w-full justify-between text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                ),
+                children: [
+                  selectedDate ? selectedDate.toLocaleDateString("th-TH") : "เลือกวันที่",
+                  /* @__PURE__ */ jsx(Calendar$1, { className: "ml-auto h-4 w-4 opacity-50" })
+                ]
+              }
+            ) }),
+            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
+              Calendar,
+              {
+                mode: "single",
+                selected: selectedDate,
+                onSelect: setSelectedDate,
+                captionLayout: "dropdown"
+              }
+            ) })
+          ] })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "form-control", children: [
-          /* @__PURE__ */ jsx("label", { className: "label", children: /* @__PURE__ */ jsx("span", { className: "label-text font-medium", children: "ชื่อผู้ขอซื้อ" }) }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxs(Label, { htmlFor: "requester", className: "text-sm font-medium", children: [
+            "ชื่อผู้ขอซื้อ ",
+            /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
+          ] }),
           /* @__PURE__ */ jsx(
-            "input",
+            Input,
             {
-              className: "input input-bordered validator w-full",
+              id: "requester",
               placeholder: "ชื่อผู้ขอซื้อ",
               value: requester,
               onChange: (e) => setRequester(e.target.value),
               required: true,
-              minLength: 1,
-              title: "กรุณาระบุชื่อผู้ขอซื้อ"
+              minLength: 1
             }
-          ),
-          /* @__PURE__ */ jsx("div", { className: "validator-hint", children: "กรุณาระบุชื่อผู้ขอซื้อ" })
+          )
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "mb-8", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-4", children: [
           /* @__PURE__ */ jsx("h3", { className: "text-lg font-semibold", children: "รายการสินค้า" }),
           /* @__PURE__ */ jsxs(
-            "button",
+            Button,
             {
               type: "button",
               onClick: openAddModal,
-              className: "btn btn-sm font-normal bg-white border-[#6EC1E4] hover:bg-[#6ec1e4]",
+              variant: "outline",
+              size: "sm",
+              className: "border-[#6EC1E4] text-[#6EC1E4] hover:bg-[#6EC1E4] hover:text-white font-normal",
               children: [
-                /* @__PURE__ */ jsx(Plus, { className: "w-4 h-4" }),
+                /* @__PURE__ */ jsx(Plus, { className: "w-4 h-4 mr-2" }),
                 "เพิ่มรายการ"
               ]
             }
           )
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "overflow-x-auto", children: [
-          /* @__PURE__ */ jsxs("table", { className: "table table-zebra w-full", children: [
-            /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { children: [
-              /* @__PURE__ */ jsx("th", { children: "ลำดับที่" }),
-              /* @__PURE__ */ jsx("th", { children: "รายการที่ขอซื้อ" }),
-              /* @__PURE__ */ jsx("th", { children: "วันที่ต้องการรับ" }),
-              /* @__PURE__ */ jsx("th", { children: "จำนวน" }),
-              /* @__PURE__ */ jsx("th", { children: "จำนวนเงิน (บาท)" }),
-              /* @__PURE__ */ jsx("th", { children: "รวม (บาท)" }),
-              /* @__PURE__ */ jsx("th", {})
+          /* @__PURE__ */ jsxs(Table, { children: [
+            /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+              /* @__PURE__ */ jsx(TableHead, { children: "ลำดับที่" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "รายการที่ขอซื้อ" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "วันที่ต้องการรับ" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "จำนวนเงิน (บาท)" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "รวม (บาท)" }),
+              /* @__PURE__ */ jsx(TableHead, {})
             ] }) }),
-            /* @__PURE__ */ jsx("tbody", { children: items.map((item, idx) => {
+            /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => {
               const total = toNum(item.quantity) * toNum(item.amount);
               const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
-              return /* @__PURE__ */ jsxs("tr", { className: hasError ? "bg-error/10" : "", children: [
-                /* @__PURE__ */ jsx("td", { className: "text-center font-normal", children: item.no }),
-                /* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx(
-                  "input",
+              return /* @__PURE__ */ jsxs(TableRow, { className: hasError ? "bg-destructive/10" : "", children: [
+                /* @__PURE__ */ jsx(TableCell, { className: "text-center", children: item.no }),
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                  Input,
                   {
                     type: "text",
-                    className: "input input-sm input-bordered validator w-full",
                     placeholder: "ระบุรายละเอียดสินค้า",
                     value: item.description,
                     onChange: (e) => updateItem(idx, "description", e.target.value),
-                    required: true,
-                    minLength: 1,
-                    title: "กรุณาระบุรายละเอียดสินค้า"
+                    className: `h-8 ${hasError && !item.description.trim() ? "border-destructive" : ""}`
                   }
                 ) }),
-                /* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx(
-                  "input",
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                  Input,
                   {
                     type: "date",
-                    className: "input input-sm input-bordered w-full",
                     value: item.receivedDate,
-                    onChange: (e) => updateItem(idx, "receivedDate", e.target.value)
+                    onChange: (e) => updateItem(idx, "receivedDate", e.target.value),
+                    className: "h-8"
                   }
                 ) }),
-                /* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx(
-                  "input",
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                  Input,
                   {
                     type: "number",
-                    className: "input input-sm input-bordered validator w-full text-right",
                     placeholder: "จำนวน",
                     value: item.quantity,
                     onChange: (e) => updateItem(idx, "quantity", e.target.value),
-                    required: true,
+                    className: `h-8 text-right ${hasError && toNum(item.quantity) <= 0 ? "border-destructive" : ""}`,
                     min: "0.01",
-                    step: "0.01",
-                    title: "กรุณาระบุจำนวน"
+                    step: "0.01"
                   }
                 ) }),
-                /* @__PURE__ */ jsx("td", { children: /* @__PURE__ */ jsx(
-                  "input",
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                  Input,
                   {
                     type: "number",
-                    className: "input input-sm input-bordered validator w-full text-right",
                     placeholder: "ราคา",
                     value: item.amount,
                     onChange: (e) => updateItem(idx, "amount", e.target.value),
-                    required: true,
+                    className: `h-8 text-right ${hasError && toNum(item.amount) <= 0 ? "border-destructive" : ""}`,
                     min: "0.01",
-                    step: "0.01",
-                    title: "กรุณาระบุราคา"
+                    step: "0.01"
                   }
                 ) }),
-                /* @__PURE__ */ jsx("td", { className: "text-right font-normal", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
-                /* @__PURE__ */ jsx("td", { className: "text-center", children: /* @__PURE__ */ jsx(
-                  "button",
+                /* @__PURE__ */ jsx(TableCell, { className: "text-right", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
+                /* @__PURE__ */ jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsx(
+                  Button,
                   {
                     type: "button",
+                    variant: "ghost",
+                    size: "sm",
                     onClick: () => removeItem(idx),
-                    className: "btn btn-ghost btn-sm text-error hover:bg-error/10",
-                    title: "ลบรายการ",
+                    className: "text-destructive hover:bg-destructive/10",
                     children: /* @__PURE__ */ jsx(Trash2, { className: "w-4 h-4" })
                   }
                 ) })
@@ -445,13 +625,13 @@ function CreateOrderPage() {
             }) })
           ] }),
           items.length === 0 && /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-            /* @__PURE__ */ jsx("div", { className: "text-base-content/100 mb-4", children: /* @__PURE__ */ jsx(Package, { className: "mx-auto h-12 w-12" }) }),
+            /* @__PURE__ */ jsx("div", { className: "text-muted-foreground mb-4", children: /* @__PURE__ */ jsx(Package, { className: "mx-auto h-12 w-12" }) }),
             /* @__PURE__ */ jsx("h3", { className: "text-lg font-medium mb-2", children: "ยังไม่มีรายการสินค้า" }),
-            /* @__PURE__ */ jsx("p", { className: "text-base-content/60 mb-4", children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
+            /* @__PURE__ */ jsx("p", { className: "font-normal text-muted-foreground mb-4", children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "divider" }),
+      /* @__PURE__ */ jsx(Separator, {}),
       /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
         /* @__PURE__ */ jsxs("div", { className: "text-lg", children: [
           /* @__PURE__ */ jsx("span", { className: "text-base", children: "รวมเป็นเงินจำนวน : " }),
@@ -461,99 +641,99 @@ function CreateOrderPage() {
           ] })
         ] }),
         /* @__PURE__ */ jsx(
-          "button",
+          Button,
           {
             type: "button",
             onClick: showConfirmation,
             disabled: saving || !isFormValid(),
-            className: `btn text-white ${!isFormValid() ? "bg-gray-400 cursor-not-allowed" : "bg-[#6EC1E4] hover:bg-[#2b9ccc]"}`,
+            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal",
             children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
-              /* @__PURE__ */ jsx("span", { className: "loading loading-spinner loading-sm" }),
+              /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
               "กำลังบันทึก..."
             ] }) : "สร้างใบขอซื้อ"
           }
         )
       ] })
-    ] }) }),
-    /* @__PURE__ */ jsxs("dialog", { className: `modal ${showConfirmModal ? "modal-open" : ""}`, children: [
-      /* @__PURE__ */ jsxs("div", { className: "modal-box max-w-2xl", children: [
-        /* @__PURE__ */ jsxs("h3", { className: "font-bold text-xl mb-6 flex items-center gap-2", children: [
+    ] }) }) }),
+    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-2xl", children: [
+      /* @__PURE__ */ jsxs(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-6 h-6" }),
           "ยืนยันการสร้างใบขอซื้อ"
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
-          /* @__PURE__ */ jsxs("div", { className: "bg-base-200 rounded-lg p-4", children: [
-            /* @__PURE__ */ jsx("h4", { className: "font-semibold mb-3", children: "ข้อมูลผู้ขอซื้อ" }),
-            /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-600", children: "วันที่ขอซื้อ:" }),
-                /* @__PURE__ */ jsx("p", { className: "font-medium", children: new Date(date).toLocaleDateString("th-TH") })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-600", children: "ชื่อผู้ขอซื้อ:" }),
-                /* @__PURE__ */ jsx("p", { className: "font-medium", children: requester })
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsxs("h4", { className: "font-semibold mb-3", children: [
-              "รายการสินค้า (",
-              items.length,
-              " รายการ)"
+        /* @__PURE__ */ jsx(DialogDescription, { children: "กรุณาตรวจสอบข้อมูลก่อนยืนยันการสร้างใบขอซื้อ" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
+        /* @__PURE__ */ jsxs("div", { className: "bg-muted rounded-lg p-4", children: [
+          /* @__PURE__ */ jsx("h4", { className: "font-semibold mb-3", children: "ข้อมูลผู้ขอซื้อ" }),
+          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "วันที่ขอซื้อ:" }),
+              /* @__PURE__ */ jsx("p", { className: "font-medium", children: selectedDate ? selectedDate.toLocaleDateString("th-TH") : "ยังไม่เลือกวันที่" })
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60 overflow-y-auto", children: /* @__PURE__ */ jsxs("table", { className: "table table-sm table-zebra w-full", children: [
-              /* @__PURE__ */ jsx("thead", { className: "sticky top-0", children: /* @__PURE__ */ jsxs("tr", { children: [
-                /* @__PURE__ */ jsx("th", { children: "ลำดับ" }),
-                /* @__PURE__ */ jsx("th", { children: "รายการ" }),
-                /* @__PURE__ */ jsx("th", { children: "วันที่ต้องการรับ" }),
-                /* @__PURE__ */ jsx("th", { children: "จำนวน" }),
-                /* @__PURE__ */ jsx("th", { children: "ราคา" }),
-                /* @__PURE__ */ jsx("th", { className: "text-right", children: "รวม" })
-              ] }) }),
-              /* @__PURE__ */ jsx("tbody", { children: items.map((item, idx) => /* @__PURE__ */ jsxs("tr", { children: [
-                /* @__PURE__ */ jsx("td", { children: item.no }),
-                /* @__PURE__ */ jsx("td", { className: "max-w-xs truncate", title: item.description, children: item.description }),
-                /* @__PURE__ */ jsx("td", { children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
-                /* @__PURE__ */ jsx("td", { children: toNum(item.quantity).toLocaleString("th-TH") }),
-                /* @__PURE__ */ jsx("td", { children: toNum(item.amount).toLocaleString("th-TH") }),
-                /* @__PURE__ */ jsx("td", { className: "text-right font-medium", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
-              ] }, idx)) })
-            ] }) })
-          ] }),
-          /* @__PURE__ */ jsx("div", { className: "bg-[#c3e4f4] rounded-lg p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center", children: [
-            /* @__PURE__ */ jsx("span", { className: "text-base font-semibold", children: "รวมเป็นเงินทั้งสิ้น:" }),
-            /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-[#6EC1E4]", children: [
-              grandTotal(items).toLocaleString("th-TH"),
-              " บาท"
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "ชื่อผู้ขอซื้อ:" }),
+              /* @__PURE__ */ jsx("p", { className: "font-medium", children: requester })
             ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsxs("h4", { className: "font-semibold mb-3", children: [
+            "รายการสินค้า (",
+            items.length,
+            " รายการ)"
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60 overflow-y-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
+            /* @__PURE__ */ jsx(TableHeader, { className: "sticky top-0", children: /* @__PURE__ */ jsxs(TableRow, { children: [
+              /* @__PURE__ */ jsx(TableHead, { children: "ลำดับ" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "รายการ" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "วันที่ต้องการรับ" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
+              /* @__PURE__ */ jsx(TableHead, { children: "ราคา" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "text-right", children: "รวม" })
+            ] }) }),
+            /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => /* @__PURE__ */ jsxs(TableRow, { children: [
+              /* @__PURE__ */ jsx(TableCell, { children: item.no }),
+              /* @__PURE__ */ jsx(TableCell, { className: "max-w-xs truncate", title: item.description, children: item.description }),
+              /* @__PURE__ */ jsx(TableCell, { children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
+              /* @__PURE__ */ jsx(TableCell, { children: toNum(item.quantity).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { children: toNum(item.amount).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { className: "text-right font-medium", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
+            ] }, idx)) })
           ] }) })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "modal-action", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "btn font-normal",
-              onClick: cancelCreate,
-              disabled: saving,
-              children: "ยกเลิก"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              className: "btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]",
-              onClick: confirmCreate,
-              disabled: saving,
-              children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
-                /* @__PURE__ */ jsx("span", { className: "loading loading-spinner loading-sm" }),
-                "กำลังสร้างใบขอซื้อ..."
-              ] }) : "ยืนยันและส่งขออนุมัติ"
-            }
-          )
-        ] })
+        /* @__PURE__ */ jsx("div", { className: "bg-[#c3e4f4] rounded-lg p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-base font-semibold", children: "รวมเป็นเงินทั้งสิ้น:" }),
+          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-[#6EC1E4]", children: [
+            grandTotal(items).toLocaleString("th-TH"),
+            " บาท"
+          ] })
+        ] }) })
       ] }),
-      /* @__PURE__ */ jsx("form", { method: "dialog", className: "modal-backdrop", children: /* @__PURE__ */ jsx("button", { onClick: cancelCreate, children: "close" }) })
-    ] })
+      /* @__PURE__ */ jsxs(DialogFooter, { children: [
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            variant: "outline",
+            onClick: cancelCreate,
+            disabled: saving,
+            children: "ยกเลิก"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            onClick: confirmCreate,
+            disabled: saving,
+            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc]",
+            children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
+              /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
+              "กำลังสร้างใบขอซื้อ..."
+            ] }) : "ยืนยันและส่งขออนุมัติ"
+          }
+        )
+      ] })
+    ] }) })
   ] });
 }
 

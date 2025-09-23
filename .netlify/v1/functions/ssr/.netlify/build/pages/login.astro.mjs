@@ -2,9 +2,14 @@ import { c as createComponent, i as renderHead, j as renderComponent, r as rende
 import 'kleur/colors';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { s as subscribeAuthAndRole, a as signIn } from '../chunks/auth_BW0YqYLL.mjs';
+import { s as subscribeAuthAndRole, B as Button, a as signIn } from '../chunks/button_CbkGDZSM.mjs';
 import { X, Info, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
+import { I as Input } from '../chunks/input_SVu8Wvyu.mjs';
+import { L as Label } from '../chunks/label_DljmYlzG.mjs';
+import { C as Card, a as CardHeader, b as CardTitle, c as CardContent } from '../chunks/card_DtesBApW.mjs';
+import { A as Alert, a as AlertDescription } from '../chunks/alert_C6FtGMbo.mjs';
 /* empty css                                */
+/* empty css                                 */
 export { renderers } from '../renderers.mjs';
 
 function LoginPage() {
@@ -45,40 +50,44 @@ function LoginPage() {
   const getAlertIcon = () => {
     switch (alertType) {
       case "info":
-        return /* @__PURE__ */ jsx(Info, { className: "h-5 w-5" });
+        return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
       case "success":
-        return /* @__PURE__ */ jsx(CheckCircle, { className: "h-5 w-5" });
+        return /* @__PURE__ */ jsx(CheckCircle, { className: "h-4 w-4" });
       case "warning":
-        return /* @__PURE__ */ jsx(AlertTriangle, { className: "h-5 w-5" });
+        return /* @__PURE__ */ jsx(AlertTriangle, { className: "h-4 w-4" });
       case "error":
-        return /* @__PURE__ */ jsx(AlertCircle, { className: "h-5 w-5" });
+        return /* @__PURE__ */ jsx(AlertCircle, { className: "h-4 w-4" });
       default:
-        return /* @__PURE__ */ jsx(Info, { className: "h-5 w-5" });
+        return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
     }
   };
-  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8 relative", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative", children: [
     showAlert && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ jsxs(
-      "div",
+      Alert,
       {
-        role: "alert",
-        className: `alert alert-${alertType} alert-soft shadow-lg border-0`,
+        variant: alertType === "error" ? "destructive" : "default",
+        className: "shadow-lg border-0",
         children: [
           getAlertIcon(),
-          /* @__PURE__ */ jsx("span", { className: "text-sm font-medium", children: alertMessage }),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              onClick: () => setShowAlert(false),
-              className: "btn btn-sm btn-ghost btn-circle ml-auto",
-              children: /* @__PURE__ */ jsx(X, { className: "h-4 w-4" })
-            }
-          )
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between w-full", children: [
+            /* @__PURE__ */ jsx(AlertDescription, { className: "text-sm font-medium", children: alertMessage }),
+            /* @__PURE__ */ jsx(
+              Button,
+              {
+                variant: "ghost",
+                size: "icon",
+                onClick: () => setShowAlert(false),
+                className: "h-6 w-6 ml-2 shrink-0",
+                children: /* @__PURE__ */ jsx(X, { className: "h-4 w-4" })
+              }
+            )
+          ] })
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxs("div", { className: "max-w-md w-full space-y-8", children: [
-      /* @__PURE__ */ jsxs("div", { className: "text-center", children: [
-        /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-6", children: /* @__PURE__ */ jsx(
+    /* @__PURE__ */ jsxs(Card, { className: "max-w-md w-full shadow-xl", children: [
+      /* @__PURE__ */ jsxs(CardHeader, { className: "text-center space-y-4", children: [
+        /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(
           "img",
           {
             src: "/logo.png",
@@ -86,62 +95,48 @@ function LoginPage() {
             className: "h-16 w-auto object-contain"
           }
         ) }),
-        /* @__PURE__ */ jsx("h2", { className: "text-3xl font-bold text-gray-900 mb-2", children: "Sign In" })
+        /* @__PURE__ */ jsx(CardTitle, { className: "text-2xl font-bold", children: "เข้าสู่ระบบ" })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "space-y-6", children: /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-6", children: [
-        /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-6", children: [
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "email", children: "Email" }),
           /* @__PURE__ */ jsx(
-            "label",
-            {
-              htmlFor: "email",
-              className: "block text-sm font-medium text-gray-900 mb-2",
-              children: "Email"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
+            Input,
             {
               id: "email",
               name: "email",
               type: "email",
               autoComplete: "email",
               required: true,
-              className: "w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#64D1E3] focus:border-[#64D1E3] focus:bg-white transition-all duration-200",
-              placeholder: "Email",
+              placeholder: "อีเมล",
               value: email,
-              onChange: (e) => setEmail(e.target.value)
+              onChange: (e) => setEmail(e.target.value),
+              className: "h-11"
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "password", children: "Password" }),
           /* @__PURE__ */ jsx(
-            "label",
-            {
-              htmlFor: "password",
-              className: "block text-sm font-medium text-gray-900 mb-2",
-              children: "Password"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
+            Input,
             {
               id: "password",
               name: "password",
               type: "password",
               autoComplete: "current-password",
               required: true,
-              className: "w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#64D1E3] focus:border-[#64D1E3] focus:bg-white transition-all duration-200",
-              placeholder: "Password",
+              placeholder: "รหัสผ่าน",
               value: pass,
-              onChange: (e) => setPass(e.target.value)
+              onChange: (e) => setPass(e.target.value),
+              className: "h-11"
             }
           )
         ] }),
         /* @__PURE__ */ jsx(
-          "button",
+          Button,
           {
             type: "submit",
-            className: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-[#64D1E3] hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#64D1E3] transition-all duration-200 shadow-sm hover:shadow-md",
+            className: "w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium",
             children: "Sign In"
           }
         )
@@ -151,7 +146,7 @@ function LoginPage() {
 }
 
 const $$Login = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`<html lang="th" data-theme="light"> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 font-sans"> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/auth/LoginPage", "client:component-export": "default" })} </body></html>`;
+  return renderTemplate`<html lang="th" data-theme="light" data-astro-cid-sgpqyurt> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100" data-astro-cid-sgpqyurt> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/auth/LoginPage", "client:component-export": "default", "data-astro-cid-sgpqyurt": true })} </body></html>`;
 }, "C:/Projects/Astro/test03/po-app/src/pages/login.astro", void 0);
 
 const $$file = "C:/Projects/Astro/test03/po-app/src/pages/login.astro";

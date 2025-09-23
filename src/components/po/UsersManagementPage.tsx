@@ -6,7 +6,6 @@ import {
   Edit, 
   Trash2, 
   Mail, 
-  Phone,
   Calendar,
   Clock,
   Shield,
@@ -18,6 +17,18 @@ import {
   ArrowDownAZ,
   ArrowUpAZ,
 } from 'lucide-react';
+
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination';
+import { toast } from 'sonner';
+import { Toaster } from '../ui/sonner';
 
 interface User {
   uid: string;
@@ -180,7 +191,7 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast('User created successfully', 'success');
+        showToast('สร้างผู้ใช้สำเร็จ', 'success');
         setShowCreateModal(false);
         setNewUser({
           email: '',
@@ -244,7 +255,7 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast('User updated successfully', 'success');
+        showToast('อัปเดตผู้ใช้สำเร็จ', 'success');
         setShowEditModal(false);
         fetchUsers(currentPage, searchTerm, sortOrder);
       } else {
@@ -267,7 +278,7 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast('User deleted successfully', 'success');
+        showToast('ลบผู้ใช้สำเร็จ', 'success');
         setShowDeleteModal(false);
         setSelectedUser(null);
         fetchUsers(currentPage, searchTerm, sortOrder);
@@ -281,17 +292,19 @@ export default function UsersManagementPage() {
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    const toast = document.createElement('div');
-    toast.className = `alert ${type === 'success' ? 'alert-success' : type === 'error' ? 'alert-error' : 'alert-info'} fixed top-4 right-4 z-50 w-auto max-w-sm`;
-    toast.innerHTML = `
-      <span>${message}</span>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      document.body.removeChild(toast);
-    }, 3000);
+    switch (type) {
+      case 'success':
+        toast.success(message);
+        break;
+      case 'error':
+        toast.error(message);
+        break;
+      case 'info':
+        toast.info(message);
+        break;
+      default:
+        toast(message);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -341,40 +354,44 @@ export default function UsersManagementPage() {
 
   const getRoleBadge = (role?: string) => {
     const userRole = role || 'buyer';
-    const roleConfig: Record<string, { color: string; icon: React.ReactNode; name: string }> = {
+    const roleConfig: Record<string, { 
+      className: string; 
+      icon: React.ReactNode; 
+      name: string 
+    }> = {
       superadmin: { 
-        color: 'badge-soft badge-error', 
+        className: 'bg-red-500 hover:bg-red-600 text-white border-red-500', 
         icon: <Crown className="h-3 w-3" />, 
         name: 'ผู้ดูแลระบบ' 
       },
       supervisor: { 
-        color: 'badge-soft badge-warning', 
+        className: 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500', 
         icon: <UserCheck className="h-3 w-3" />, 
         name: 'หัวหน้างาน' 
       },
       procurement: { 
-        color: 'badge-soft badge-info', 
+        className: 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500', 
         icon: <Package className="h-3 w-3" />, 
         name: 'ฝ่ายจัดซื้อ' 
       },
       buyer: { 
-        color: 'badge-soft badge-success', 
+        className: 'bg-green-500 hover:bg-green-600 text-white border-green-500', 
         icon: <ShoppingCart className="h-3 w-3" />, 
         name: 'ผู้ขอซื้อ' 
       }
     };
     
     const config = roleConfig[userRole] || {
-      color: 'badge-soft badge-neutral',
+      className: 'bg-gray-500 hover:bg-gray-600 text-white border-gray-500',
       icon: <Shield className="h-3 w-3" />,
       name: userRole.charAt(0).toUpperCase() + userRole.slice(1)
     };
     
     return (
-      <div className={`badge badge-sm ${config.color} gap-1`}>
+      <Badge className={`gap-1 ${config.className}`}>
         {config.icon}
         {config.name}
-      </div>
+      </Badge>
     );
   };
 
@@ -382,502 +399,499 @@ export default function UsersManagementPage() {
     fetchUsers();
   }, []);
 
-  // Validate form whenever newUser data changes
   useEffect(() => {
     validateForm();
   }, [newUser]);
 
-  // Validate edit form whenever editUser data changes
   useEffect(() => {
     validateEditForm();
   }, [editUser]);
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-base-content mb-2 flex items-center gap-3">
-            <Users className="h-8 w-8 text-[#2b9ccc]" />
-            การจัดการผู้ใช้งาน
-          </h1>
-          <p className="text-base-content/70">
-            หน้าจัดการผู้ใช้งานในระบบทั้งหมด
-          </p>
-        </div>
+    <div className="w-full">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <Users className="h-8 w-8 text-[#2b9ccc]" />
+          การจัดการผู้ใช้งาน
+        </h1>
+        <p className="text-muted-foreground">
+          หน้าจัดการผู้ใช้งานในระบบทั้งหมด
+        </p>
+      </div>
 
-      <div className="card bg-base-100 shadow-sm mb-4">
-        <div className="card-body">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+      <Toaster />
+
+      <Card>
+        <CardHeader className="pb-2 px-6">
+          <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
             <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
-              <label className="input input-bordered flex items-center gap-2 flex-1">
-                <Search className="h-4 w-4 opacity-50" />
-                <input
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
                   type="text"
                   placeholder="ค้นหาด้วยชื่อผู้ใช้หรืออีเมล"
-                  className="grow"
+                  className="pl-10 w-full lg:w-64"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 {searchTerm && (
-                  <kbd className="kbd kbd-sm">Enter</kbd>
+                  <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-muted px-1.5 py-0.5 text-xs rounded">Enter</kbd>
                 )}
-              </label>
+              </div>
             </form>
 
             <div className="flex gap-2">
-              <button
-                className="btn font-normal"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => fetchUsers(currentPage, searchTerm, sortOrder)}
                 disabled={loading}
               >
                 {loading ? (
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
                 รีเฟรช
-              </button>
-              <button
-                className="btn bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]"
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => setShowCreateModal(true)}
+                className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
               >
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-4 w-4 mr-2" />
                 เพิ่มผู้ใช้
-              </button>
+              </Button>
             </div>
           </div>
-
-        </div>
-      </div>
-
-      <div className="card bg-base-100 shadow-sm">
-        <div className="card-body p-0">
+        </CardHeader>
+        <CardContent className="px-6 pb-6 pt-0">
           {loading ? (
             <div className="flex justify-center items-center p-12">
-              <span className="loading loading-spinner loading-lg"></span>
+              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
               <span className="ml-4 text-lg">โหลดข้อมูลผู้ใช้งาน...</span>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center p-12">
               <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลผู้ใช้งาน</h3>
-              <p className="text-base-content/70 mb-4">
-                {searchTerm ? 'Try adjusting your search terms' : 'Create your first user to get started'}
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? 'ลองปรับเงื่อนไขการค้นหา' : 'สร้างผู้ใช้คนแรกเพื่อเริ่มต้น'}
               </p>
-              <button
-                className="btn btn-primary"
+              <Button
                 onClick={() => setShowCreateModal(true)}
               >
-                Create First User
-              </button>
+                สร้างผู้ใช้คนแรก
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ชื่อผู้ใช้</th>
-                    <th>อีเมล</th>
-                    <th>บทบาท</th>
-                    <th>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ชื่อผู้ใช้</TableHead>
+                    <TableHead>อีเมล</TableHead>
+                    <TableHead>บทบาท</TableHead>
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         สร้างเมื่อวันที่
-                        <label className="swap swap-rotate cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={sortOrder === 'asc'} 
-                            onChange={handleSortToggle}
-                          />
-                          <ArrowDownAZ className="swap-off h-4 w-4 text-primary" />
-                          <ArrowUpAZ className="swap-on h-4 w-4 text-secondary" />
-                        </label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSortToggle}
+                          className="h-6 w-6 p-0"
+                        >
+                          {sortOrder === 'asc' ? (
+                            <ArrowUpAZ className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownAZ className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
-                    </th>
-                    <th>ลงชื่อเข้าใช้ล่าสุด</th>
-                    <th>การดำเนินการ</th>
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                    <TableHead>ลงชื่อเข้าใช้ล่าสุด</TableHead>
+                    <TableHead>การดำเนินการ</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {users.map((user) => (
-                    <tr key={user.uid} className="hover">
-                      <td>
+                    <TableRow key={user.uid} className="hover">
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="avatar">
-                            <div className="mask mask-squircle h-12 w-12 bg-neutral text-neutral-content">
-                              <div className="flex items-center justify-center w-full h-full text-lg font-bold">
-                                {(user.displayName || user.email || 'U')[0].toUpperCase()}
-                              </div>
-                            </div>
-                          </div>
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback className="text-lg font-normal">
+                              {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                           <div>
                             <div className="font-normal">
                               {user.displayName || 'ยังไม่กำหนดชื่อ'}
                             </div>
                           </div>
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td>
+                      <TableCell>
                         <div className="text-sm">
                           {user.email && (
                             <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3 opacity-50" />
+                              <Mail className="h-3 w-3 text-muted-foreground" />
                               {user.email}
                             </div>
                           )}
-                          {user.phoneNumber && (
-                            <div className="flex items-center gap-1 text-xs opacity-70 mt-1">
-                              <Phone className="h-3 w-3 opacity-50" />
-                              {user.phoneNumber}
-                            </div>
-                          )}
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td>
+                      <TableCell>
                         {getRoleBadge(user.role)}
-                      </td>
+                      </TableCell>
 
-                      <td>
+                      <TableCell>
                         <div className="flex items-center gap-1 text-xs">
-                          <Calendar className="h-3 w-3 opacity-50" />
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
                           {formatDate(user.metadata.creationTime)}
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td>
+                      <TableCell>
                         <div className="flex items-center gap-1 text-xs">
-                          <Clock className="h-3 w-3 opacity-50" />
+                          <Clock className="h-3 w-3 text-muted-foreground" />
                           {formatDate(user.metadata.lastSignInTime)}
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td>
+                      <TableCell>
                         <div className="flex gap-1">
-                          <button
-                            className="btn btn-ghost btn-xs"
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEditUser(user)}
                           >
                             <Edit className="h-3 w-3" />
-                          </button>
-                          <button
-                            className="btn btn-ghost btn-xs text-error"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeleteUser(user)}
+                            className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-3 w-3" />
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
 
           {pagination && pagination.totalUsers > pagination.limit && (
             <div className="flex justify-center p-4">
-              <div className="join">
-                <button
-                  className="join-item btn font-normal"
-                  disabled={!pagination.hasPreviousPage}
-                  onClick={() => {
-                    const newPage = currentPage - 1;
-                    setCurrentPage(newPage);
-                    fetchUsers(newPage, searchTerm, sortOrder);
-                  }}
-                >
-                  ก่อนหน้า
-                </button>
-                
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, currentPage - 2) + i;
-                  if (pageNum > pagination.totalPages) return null;
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      className={`join-item btn ${pageNum === currentPage ? 'btn-active' : ''} font-normal`}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
                       onClick={() => {
-                        setCurrentPage(pageNum);
-                        fetchUsers(pageNum, searchTerm, sortOrder);
+                        if (pagination.hasPreviousPage) {
+                          const newPage = currentPage - 1;
+                          setCurrentPage(newPage);
+                          fetchUsers(newPage, searchTerm, sortOrder);
+                        }
                       }}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                
-                <button
-                  className="join-item btn font-normal"
-                  disabled={!pagination.hasNextPage}
-                  onClick={() => {
-                    const newPage = currentPage + 1;
-                    setCurrentPage(newPage);
-                    fetchUsers(newPage, searchTerm, sortOrder);
-                  }}
-                >
-                  ถัดไป
-                </button>
-              </div>
+                      className={!pagination.hasPreviousPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, currentPage - 2) + i;
+                    if (pageNum > pagination.totalPages) return null;
+                    
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink 
+                          onClick={() => {
+                            setCurrentPage(pageNum);
+                            fetchUsers(pageNum, searchTerm, sortOrder);
+                          }}
+                          isActive={pageNum === currentPage}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => {
+                        if (pagination.hasNextPage) {
+                          const newPage = currentPage + 1;
+                          setCurrentPage(newPage);
+                          fetchUsers(newPage, searchTerm, sortOrder);
+                        }
+                      }}
+                      className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {showCreateModal && (
-        <div className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-fit max-w-sm mx-auto">
-            <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
-              <UserPlus className="h-5 w-5 text-primary" />
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
               เพิ่มผู้ใช้
-            </h3>
-            
-            <form className="space-y-4 w-auto" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">อีเมล</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <input 
-                  type="email" 
-                  className={`input input-bordered w-full ${validationErrors.email ? 'input-error' : ''}`}
-                  placeholder="กรอกอีเมล"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  required
-                  pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                />
-                {validationErrors.email && (
-                  <label className="label">
-                    <span className="text-xs text-error">กรุณากรอกอีเมลที่ถูกต้อง</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">รหัสผ่าน</span>
-                  <span className="text-xs text-error">*</span>
-                </label>
-                <input 
-                  type="password" 
-                  className={`input input-bordered w-full ${validationErrors.password ? 'input-error' : ''}`}
-                  placeholder="กรอกรหัสผ่าน"
-                  value={newUser.password}
-                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                  minLength={6}
-                  required
-                />
-                {validationErrors.password && (
-                  <label className="label">
-                    <span className="text-xs text-error">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">ชื่อที่แสดง</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  className={`input input-bordered w-full ${validationErrors.displayName ? 'input-error' : ''}`}
-                  placeholder="กรอกชื่อที่แสดง"
-                  value={newUser.displayName}
-                  onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
-                  minLength={2}
-                  required
-                />
-                {validationErrors.displayName && (
-                  <label className="label">
-                    <span className="text-xs text-error">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">บทบาท</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <select
-                  className={`select select-bordered w-full ${validationErrors.role ? 'select-error' : ''}`}
-                  value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
-                  required
-                >
-                  <option value="">เลือกบทบาท</option>
-                  <option value="buyer">ผู้ขอซื้อ</option>
-                  <option value="supervisor">หัวหน้างาน</option>
-                  <option value="procurement">ฝ่ายจัดซื้อ</option>
-                  <option value="superadmin">ผู้ดูแลระบบ</option>
-                </select>
-                {validationErrors.role && (
-                  <label className="label">
-                    <span className="text-xs text-error">กรุณาเลือกบทบาท</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="modal-action">
-                <button 
-                  type="button"
-                  className="btn font-normal" 
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setNewUser({
-                      email: '',
-                      displayName: '',
-                      password: '',
-                      role: 'buyer'
-                    });
-                    setValidationErrors({
-                      email: false,
-                      displayName: false,
-                      password: false,
-                      role: false
-                    });
-                    setFormValid(false);
-                  }}
-                >
-                  ยกเลิก
-                </button>
-                <button 
-                  type="submit"
-                  className={`btn ${formValid ? 'bg-[#6EC1E4] text-white hover:bg-[#2b9ccc]' : 'btn-disabled'}`}
-                  onClick={createUser}
-                  disabled={!formValid}
-                >
-                  เพิ่มผู้ใช้
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && selectedUser && (
-        <div className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-fit max-w-sm mx-auto">
-            <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
-              <Edit className="h-5 w-5 text-warning" />
-              แก้ไขข้อมูลผู้ใช้
-            </h3>
-            
-            <form className="space-y-4 w-auto" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">อีเมลของผู้ใช้</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <input
-                  type="email"
-                  className={`input input-bordered w-full ${editValidationErrors.email ? 'input-error' : ''}`}
-                  placeholder="กรอกอีเมล"
-                  value={editUser.email}
-                  onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                  required
-                  pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                />
-                {editValidationErrors.email && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">กรุณากรอกอีเมลที่ถูกต้อง</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">ชื่อที่แสดง</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <input
-                  type="text"
-                  className={`input input-bordered w-full ${editValidationErrors.displayName ? 'input-error' : ''}`}
-                  placeholder="กรอกชื่อที่แสดง"
-                  value={editUser.displayName}
-                  onChange={(e) => setEditUser({...editUser, displayName: e.target.value})}
-                  minLength={2}
-                  required
-                />
-                {editValidationErrors.displayName && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">บทบาท</span>
-                  <span className="label-text-alt text-error">*</span>
-                </label>
-                <select
-                  className={`select select-bordered w-full ${editValidationErrors.role ? 'select-error' : ''}`}
-                  value={editUser.role}
-                  onChange={(e) => setEditUser({...editUser, role: e.target.value})}
-                  required
-                >
-                  <option value="">เลือกบทบาท</option>
-                  <option value="buyer">Buyer (ผู้ขอซื้อ)</option>
-                  <option value="supervisor">Supervisor (หัวหน้างาน)</option>
-                  <option value="procurement">Procurement (ฝ่ายจัดซื้อ)</option>
-                  <option value="superadmin">Super Admin (ผู้ดูแลระบบ)</option>
-                </select>
-                {editValidationErrors.role && (
-                  <label className="label">
-                    <span className="label-text-alt text-error">กรุณาเลือกบทบาท</span>
-                  </label>
-                )}
-              </div>
-
-              <div className="modal-action">
-                <button 
-                  type="button"
-                  className="btn font-normal" 
-                  onClick={() => setShowEditModal(false)}
-                >
-                  ยกเลิก
-                </button>
-                <button 
-                  type="submit"
-                  className={`btn ${editFormValid ? 'btn-warning' : 'btn-disabled'}`}
-                  onClick={updateUser}
-                  disabled={!editFormValid}
-                >
-                  {editFormValid ? 'บันทึก' : 'กรุณากรอกข้อมูลให้ครบถ้วน'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showDeleteModal && selectedUser && (
-        <div className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-auto max-w-lg">
-            <h3 className="font-bold text-lg flex items-center gap-2 mb-4">
-              <Trash2 className="h-5 w-5 text-error" />
-              ยืนยันการลบผู้ใช้
-            </h3>
-            
-            <div className="py-4">
-              <p className="text-base">
-                คุณต้องการลบผู้ใช้นี้หรือไม่?
-              </p>
+            </DialogTitle>
+            <DialogDescription>
+              กรอกข้อมูลผู้ใช้ใหม่ในระบบ
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                อีเมล <span className="text-destructive">*</span>
+              </label>
+              <Input 
+                id="email"
+                type="email" 
+                className={validationErrors.email ? 'border-destructive' : ''}
+                placeholder="กรอกอีเมล"
+                value={newUser.email}
+                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                required
+                pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+              />
+              {validationErrors.email && (
+                <p className="text-xs text-destructive">กรุณากรอกอีเมลที่ถูกต้อง</p>
+              )}
             </div>
 
-            <div className="modal-action">
-              <button className="btn font-normal" onClick={() => setShowDeleteModal(false)}>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                รหัสผ่าน <span className="text-destructive">*</span>
+              </label>
+              <Input 
+                id="password"
+                type="password" 
+                className={validationErrors.password ? 'border-destructive' : ''}
+                placeholder="กรอกรหัสผ่าน"
+                value={newUser.password}
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                minLength={6}
+                required
+              />
+              {validationErrors.password && (
+                <p className="text-xs text-destructive">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="displayName" className="text-sm font-medium">
+                ชื่อที่แสดง <span className="text-destructive">*</span>
+              </label>
+              <Input 
+                id="displayName"
+                type="text" 
+                className={validationErrors.displayName ? 'border-destructive' : ''}
+                placeholder="กรอกชื่อที่แสดง"
+                value={newUser.displayName}
+                onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
+                minLength={2}
+                required
+              />
+              {validationErrors.displayName && (
+                <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="role" className="text-sm font-medium">
+                บทบาท <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={newUser.role}
+                onValueChange={(value) => setNewUser({...newUser, role: value})}
+              >
+                <SelectTrigger className={validationErrors.role ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="เลือกบทบาท" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="buyer">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="supervisor">หัวหน้างาน</SelectItem>
+                  <SelectItem value="procurement">ฝ่ายจัดซื้อ</SelectItem>
+                  <SelectItem value="superadmin">ผู้ดูแลระบบ</SelectItem>
+                </SelectContent>
+              </Select>
+              {validationErrors.role && (
+                <p className="text-xs text-destructive">กรุณาเลือกบทบาท</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setNewUser({
+                    email: '',
+                    displayName: '',
+                    password: '',
+                    role: 'buyer'
+                  });
+                  setValidationErrors({
+                    email: false,
+                    displayName: false,
+                    password: false,
+                    role: false
+                  });
+                  setFormValid(false);
+                }}
+              >
                 ยกเลิก
-              </button>
-              <button className="btn btn-error" onClick={deleteUser}>
-                ตกลง
-              </button>
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
+                onClick={createUser}
+                disabled={!formValid}
+              >
+                เพิ่มผู้ใช้
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              แก้ไขข้อมูลผู้ใช้
+            </DialogTitle>
+            <DialogDescription>
+              แก้ไขข้อมูลผู้ใช้ในระบบ
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-2">
+              <label htmlFor="edit-email" className="text-sm font-medium">
+                อีเมลของผู้ใช้ <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="edit-email"
+                type="email"
+                className={editValidationErrors.email ? 'border-destructive' : ''}
+                placeholder="กรอกอีเมล"
+                value={editUser.email}
+                onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                required
+                pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+              />
+              {editValidationErrors.email && (
+                <p className="text-xs text-destructive">กรุณากรอกอีเมลที่ถูกต้อง</p>
+              )}
             </div>
+
+            <div className="space-y-2">
+              <label htmlFor="edit-displayName" className="text-sm font-medium">
+                ชื่อที่แสดง <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="edit-displayName"
+                type="text"
+                className={editValidationErrors.displayName ? 'border-destructive' : ''}
+                placeholder="กรอกชื่อที่แสดง"
+                value={editUser.displayName}
+                onChange={(e) => setEditUser({...editUser, displayName: e.target.value})}
+                minLength={2}
+                required
+              />
+              {editValidationErrors.displayName && (
+                <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="edit-role" className="text-sm font-medium">
+                บทบาท <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={editUser.role}
+                onValueChange={(value) => setEditUser({...editUser, role: value})}
+              >
+                <SelectTrigger className={editValidationErrors.role ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="เลือกบทบาท" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="buyer">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="supervisor">หัวหน้างาน</SelectItem>
+                  <SelectItem value="procurement">ฝ่ายจัดซื้อ</SelectItem>
+                  <SelectItem value="superadmin">ผู้ดูแลระบบ</SelectItem>
+                </SelectContent>
+              </Select>
+              {editValidationErrors.role && (
+                <p className="text-xs text-destructive">กรุณาเลือกบทบาท</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setShowEditModal(false)}
+              >
+                ยกเลิก
+              </Button>
+              <Button 
+                type="submit"
+                onClick={updateUser}
+                disabled={!editFormValid}
+              >
+                {editFormValid ? 'บันทึก' : 'กรุณากรอกข้อมูลให้ครบถ้วน'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              ยืนยันการลบผู้ใช้
+            </DialogTitle>
+            <DialogDescription>
+              คุณต้องการลบผู้ใช้นี้หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              ผู้ใช้: {selectedUser?.displayName || selectedUser?.email}
+            </p>
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              ยกเลิก
+            </Button>
+            <Button variant="destructive" onClick={deleteUser}>
+              ลบผู้ใช้
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

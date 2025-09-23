@@ -1,6 +1,5 @@
 ---
-import Header from '../components/common/Navbar';
-import TabNavigation from '../components/common/Tabbar';
+import SidebarLayout from '../components/common/SidebarLayout';
 import '../styles/global.css';
 const title = Astro.props.title ?? 'ระบบใบสั่งซื้อ';
 ---
@@ -19,10 +18,8 @@ const title = Astro.props.title ?? 'ระบบใบสั่งซื้อ';
   </head>
 
   <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 text-slate-900">
-    <Header client:idle />
-    <TabNavigation client:visible />
-    <main class="container-nice mx-auto">
+    <SidebarLayout client:load>
       <slot />
-    </main>
+    </SidebarLayout>
   </body>
 </html>
