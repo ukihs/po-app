@@ -363,10 +363,9 @@ export default function CreateOrderPage() {
               <h3 className="text-lg font-semibold">รายการสินค้า</h3>
               <Button 
                 type="button" 
+                variant="default"
                 onClick={openAddModal}
-                variant="outline"
                 size="sm"
-                className="border-[#6EC1E4] text-[#6EC1E4] hover:bg-[#6EC1E4] hover:text-white font-normal"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 เพิ่มรายการ
