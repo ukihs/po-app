@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_CSazvNRn.mjs';
 import 'kleur/colors';
-import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_7FeNQSy_.mjs';
+import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_mOJIEv95.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
@@ -539,10 +539,9 @@ function CreateOrderPage() {
             Button,
             {
               type: "button",
+              variant: "default",
               onClick: openAddModal,
-              variant: "outline",
               size: "sm",
-              className: "border-[#6EC1E4] text-[#6EC1E4] hover:bg-[#6EC1E4] hover:text-white font-normal",
               children: [
                 /* @__PURE__ */ jsx(Plus, { className: "w-4 h-4 mr-2" }),
                 "เพิ่มรายการ"

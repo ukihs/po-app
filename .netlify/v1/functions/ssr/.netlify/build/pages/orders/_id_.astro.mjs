@@ -1,6 +1,6 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_CSazvNRn.mjs';
 import 'kleur/colors';
-import { $ as $$MainLayout } from '../../chunks/MainLayout_7FeNQSy_.mjs';
+import { $ as $$MainLayout } from '../../chunks/MainLayout_mOJIEv95.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { e as auth, f as db } from '../../chunks/button_DlB-774j.mjs';

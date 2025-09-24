@@ -9,7 +9,6 @@ import { L as Label } from '../chunks/label_BgHliXqP.mjs';
 import { C as Card, a as CardHeader, b as CardTitle, c as CardContent } from '../chunks/card_REjXmj5-.mjs';
 import { A as Alert, a as AlertDescription } from '../chunks/alert_CQFjLQA5.mjs';
 /* empty css                                */
-/* empty css                                 */
 export { renderers } from '../renderers.mjs';
 
 function LoginPage() {
@@ -165,7 +164,7 @@ function LoginPage() {
 }
 
 const $$Login = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`<html lang="th" data-theme="light" data-astro-cid-sgpqyurt> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100" data-astro-cid-sgpqyurt> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/auth/LoginPage", "client:component-export": "default", "data-astro-cid-sgpqyurt": true })} </body></html>`;
+  return renderTemplate`<html lang="th" data-theme="light"> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100"> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/auth/LoginPage", "client:component-export": "default" })} </body></html>`;
 }, "C:/Projects/Astro/test03/po-app/src/pages/login.astro", void 0);
 
 const $$file = "C:/Projects/Astro/test03/po-app/src/pages/login.astro";
