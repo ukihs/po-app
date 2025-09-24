@@ -1,13 +1,13 @@
 ---
 import '../styles/global.css';
-import { ArrowLeft, LogIn, Shield } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 ---
 
 <html lang="th">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>403 - ไม่ได้รับอนุญาต</title>
+    <title>500 - Internal Server Error</title>
     <style>
         * {
             margin: 0;
@@ -236,17 +236,22 @@ import { ArrowLeft, LogIn, Shield } from 'lucide-react';
 
     <img src="/logo.png" alt="Bederly Logo" class="logo" />
     
-    <div class="error-code">403</div>
-    <h1 class="error-title">คุณไม่ได้รับอนุญาต</h1>
+    <div class="error-code">500</div>
+    <h1 class="error-title">Internal Server Error</h1>
     <p class="error-subtitle">
-        คุณไม่มีสิทธิ์เข้าถึงหน้านี้<br>
-        กรุณาติดต่อผู้ดูแลระบบ เพื่อขอสิทธิ์เข้าถึงหน้านี้
+        ขออภัย ขณะนี้เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์<br>
+        กรุณาลองใหม่อีกครั้งในภายหลัง
     </p>
     
     <div class="btn-container">
         <a href="javascript:history.back()" class="btn btn-secondary">
             <ArrowLeft className="h-4 w-4" />
             ย้อนกลับ
+        </a>
+        
+        <a href="javascript:location.reload()" class="btn btn-primary">
+            <RefreshCw className="h-4 w-4" />
+            รีเฟรช
         </a>
     </div>
 </body>
