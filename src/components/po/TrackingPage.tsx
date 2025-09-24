@@ -492,9 +492,9 @@ export default function TrackingPage() {
             </DialogTitle>
             <DialogDescription>
               {confirmData && (
-                <p className="text-base">
+                <span className="text-base">
                   คุณต้องการ{confirmData.approved ? 'อนุมัติ' : 'ไม่อนุมัติ'}ใบขอซื้อนี้หรือไม่?
-                </p>
+                </span>
               )}
             </DialogDescription>
           </DialogHeader>

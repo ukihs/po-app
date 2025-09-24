@@ -1,7 +1,17 @@
 import type { APIRoute } from 'astro';
+import { verifyApiAuth, createUnauthorizedResponse, createForbiddenResponse, hasApiRole } from '../../../lib/api-auth';
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ request, url }) => {
   try {
+    const user = await verifyApiAuth(request);
+    if (!user) {
+      return createUnauthorizedResponse('Authentication required');
+    }
+
+    if (!hasApiRole(user, 'superadmin')) {
+      return createForbiddenResponse('Access denied. Superadmin role required');
+    }
+
     const { serverAuth, serverDb } = await import('../../../firebase/server');
     
     const searchParams = url.searchParams;
@@ -100,16 +110,8 @@ export const GET: APIRoute = async ({ url }) => {
         endIndex: Math.min(endIndex, totalUsers)
       },
       search: search || null,
-      debug: {
-        totalFromFirebase: allUsers.length,
-        afterFiltering: filteredUsers.length,
-        paginatedCount: users.length,
-        searchApplied: !!search,
-        pagesScanned: pageCount
-      },
       timestamp: new Date().toISOString()
     };
-    
     
     return new Response(JSON.stringify(response, null, 2), {
       status: 200,
@@ -119,7 +121,6 @@ export const GET: APIRoute = async ({ url }) => {
     });
     
   } catch (error) {
-    
     return new Response(JSON.stringify({
       error: 'Failed to fetch users',
       message: error instanceof Error ? error.message : String(error),

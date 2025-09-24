@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { signIn, subscribeAuthAndRole } from "../../../lib/auth";
+import { signIn, subscribeAuthAndRole, createAuthCookie } from "../../../lib/auth";
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -18,10 +18,35 @@ export default function LoginPage() {
   const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
-    const off = subscribeAuthAndRole((user, role) => {
+    const off = subscribeAuthAndRole(async (user, role) => {
       if (!user || !role) return;
-      if (role === "buyer") window.location.href = "/orders/create";
-      else window.location.href = "/orders/list";
+      
+      try {
+        // สร้าง server-side session
+        const idToken = await createAuthCookie();
+        if (idToken) {
+          const response = await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+          });
+          
+          if (response.ok) {
+            const { sessionId } = await response.json();
+            // ตั้งค่า session cookie
+            document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
+          }
+        }
+        
+        // นำทางตาม role
+        if (role === "buyer") window.location.href = "/orders/create";
+        else if (role === "supervisor" || role === "procurement") window.location.href = "/orders/list";
+        else if (role === "superadmin") window.location.href = "/users";
+      } catch (error) {
+        console.error('Failed to create session:', error);
+      }
     });
     return off;
   }, []);

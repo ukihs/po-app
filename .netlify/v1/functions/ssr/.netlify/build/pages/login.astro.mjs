@@ -1,13 +1,13 @@
-import { c as createComponent, i as renderHead, j as renderComponent, r as renderTemplate } from '../chunks/astro/server_D_wosZza.mjs';
+import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_CSazvNRn.mjs';
 import 'kleur/colors';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { s as subscribeAuthAndRole, B as Button, a as signIn } from '../chunks/button_CbkGDZSM.mjs';
+import { s as subscribeAuthAndRole, B as Button, a as signIn, c as createAuthCookie } from '../chunks/button_DlB-774j.mjs';
 import { X, Info, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
-import { I as Input } from '../chunks/input_SVu8Wvyu.mjs';
-import { L as Label } from '../chunks/label_DljmYlzG.mjs';
-import { C as Card, a as CardHeader, b as CardTitle, c as CardContent } from '../chunks/card_DtesBApW.mjs';
-import { A as Alert, a as AlertDescription } from '../chunks/alert_C6FtGMbo.mjs';
+import { I as Input } from '../chunks/input_BS4MHdRU.mjs';
+import { L as Label } from '../chunks/label_BgHliXqP.mjs';
+import { C as Card, a as CardHeader, b as CardTitle, c as CardContent } from '../chunks/card_REjXmj5-.mjs';
+import { A as Alert, a as AlertDescription } from '../chunks/alert_CQFjLQA5.mjs';
 /* empty css                                */
 /* empty css                                 */
 export { renderers } from '../renderers.mjs';
@@ -20,10 +20,29 @@ function LoginPage() {
   const [alertType, setAlertType] = useState("error");
   const [alertMessage, setAlertMessage] = useState("");
   useEffect(() => {
-    const off = subscribeAuthAndRole((user, role) => {
+    const off = subscribeAuthAndRole(async (user, role) => {
       if (!user || !role) return;
-      if (role === "buyer") window.location.href = "/orders/create";
-      else window.location.href = "/orders/list";
+      try {
+        const idToken = await createAuthCookie();
+        if (idToken) {
+          const response = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ idToken })
+          });
+          if (response.ok) {
+            const { sessionId } = await response.json();
+            document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
+          }
+        }
+        if (role === "buyer") window.location.href = "/orders/create";
+        else if (role === "supervisor" || role === "procurement") window.location.href = "/orders/list";
+        else if (role === "superadmin") window.location.href = "/users";
+      } catch (error) {
+        console.error("Failed to create session:", error);
+      }
     });
     return off;
   }, []);

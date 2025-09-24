@@ -1,7 +1,17 @@
 import type { APIRoute } from 'astro';
+import { verifyApiAuth, createUnauthorizedResponse, createForbiddenResponse, hasApiRole } from '../../../lib/api-auth';
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ request, params }) => {
   try {
+    const user = await verifyApiAuth(request);
+    if (!user) {
+      return createUnauthorizedResponse('Authentication required');
+    }
+
+    if (!hasApiRole(user, 'superadmin')) {
+      return createForbiddenResponse('Access denied. Superadmin role required');
+    }
+
     const { serverAuth, serverDb } = await import('../../../firebase/server');
     const { uid } = params;
     
@@ -25,10 +35,9 @@ export const GET: APIRoute = async ({ params }) => {
         userRole = userDoc.data()?.role || 'buyer';
       }
     } catch (error) {
-      // Silent fail - use default role
     }
     
-    const user = {
+    const userData = {
       uid: userRecord.uid,
       email: userRecord.email,
       displayName: userRecord.displayName,
@@ -44,13 +53,12 @@ export const GET: APIRoute = async ({ params }) => {
       role: userRole
     };
     
-    return new Response(JSON.stringify({ user, timestamp: new Date().toISOString() }, null, 2), {
+    return new Response(JSON.stringify({ user: userData, timestamp: new Date().toISOString() }, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
     
   } catch (error) {
-    
     return new Response(JSON.stringify({
       error: 'User not found',
       message: error instanceof Error ? error.message : String(error),
@@ -64,6 +72,15 @@ export const GET: APIRoute = async ({ params }) => {
 
 export const PUT: APIRoute = async ({ params, request }) => {
   try {
+    const user = await verifyApiAuth(request);
+    if (!user) {
+      return createUnauthorizedResponse('Authentication required');
+    }
+
+    if (!hasApiRole(user, 'superadmin')) {
+      return createForbiddenResponse('Access denied. Superadmin role required');
+    }
+
     const { serverAuth, serverDb } = await import('../../../firebase/server');
     const { uid } = params;
     
@@ -113,7 +130,6 @@ export const PUT: APIRoute = async ({ params, request }) => {
           });
         }
         } catch (error) {
-          // Silent fail for Firestore update
         }
       }
     
@@ -135,7 +151,6 @@ export const PUT: APIRoute = async ({ params, request }) => {
     });
     
   } catch (error) {
-    
     return new Response(JSON.stringify({
       error: 'Failed to update user',
       message: error instanceof Error ? error.message : String(error),
@@ -147,8 +162,17 @@ export const PUT: APIRoute = async ({ params, request }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ params }) => {
+export const DELETE: APIRoute = async ({ request, params }) => {
   try {
+    const user = await verifyApiAuth(request);
+    if (!user) {
+      return createUnauthorizedResponse('Authentication required');
+    }
+
+    if (!hasApiRole(user, 'superadmin')) {
+      return createForbiddenResponse('Access denied. Superadmin role required');
+    }
+
     const { serverAuth } = await import('../../../firebase/server');
     const { uid } = params;
     
@@ -174,7 +198,6 @@ export const DELETE: APIRoute = async ({ params }) => {
     });
     
   } catch (error) {
-    
     return new Response(JSON.stringify({
       error: 'Failed to delete user',
       message: error instanceof Error ? error.message : String(error),

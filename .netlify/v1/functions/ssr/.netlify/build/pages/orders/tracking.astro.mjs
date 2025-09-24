@@ -1,18 +1,18 @@
-import { c as createComponent, j as renderComponent, r as renderTemplate } from '../../chunks/astro/server_D_wosZza.mjs';
+import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_CSazvNRn.mjs';
 import 'kleur/colors';
-import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_BMBBl4kn.mjs';
+import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_7FeNQSy_.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { c as cn, s as subscribeAuthAndRole, e as db, B as Button } from '../../chunks/button_CbkGDZSM.mjs';
+import { b as cn, s as subscribeAuthAndRole, f as db, B as Button } from '../../chunks/button_DlB-774j.mjs';
 import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_CC8kJ_B9.mjs';
+import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_D3wEJ3wJ.mjs';
 import { RefreshCw, AlertCircle, FileText, Tag, Activity, XCircle, CheckCircle, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CTUrDOri.mjs';
-import { C as Card, c as CardContent } from '../../chunks/card_DtesBApW.mjs';
-import { B as Badge } from '../../chunks/badge_B6FwYeEP.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_C6FtGMbo.mjs';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_tgcavCM2.mjs';
+import { C as Card, c as CardContent } from '../../chunks/card_REjXmj5-.mjs';
+import { B as Badge } from '../../chunks/badge_D3xF9Gku.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_CQFjLQA5.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const StepperContext = createContext(void 0);
@@ -578,7 +578,7 @@ function TrackingPage() {
           /* @__PURE__ */ jsx(XCircle, { className: "w-6 h-6 text-red-500" }),
           "ยืนยันการไม่อนุมัติ"
         ] }) }),
-        /* @__PURE__ */ jsx(DialogDescription, { children: confirmData && /* @__PURE__ */ jsxs("p", { className: "text-base", children: [
+        /* @__PURE__ */ jsx(DialogDescription, { children: confirmData && /* @__PURE__ */ jsxs("span", { className: "text-base", children: [
           "คุณต้องการ",
           confirmData.approved ? "อนุมัติ" : "ไม่อนุมัติ",
           "ใบขอซื้อนี้หรือไม่?"

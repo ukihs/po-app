@@ -1,4 +1,3 @@
-// src/lib/auth.ts
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -12,15 +11,11 @@ import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/fires
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
 
-// สร้าง/อัปเดตข้อมูลผู้ใช้ใน Firestore (ไม่เขียนทับ role ที่มีอยู่)
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
-  
-  // ตรวจสอบว่ามี document อยู่แล้วหรือไม่
   const existingDoc = await getDoc(ref);
   
   if (existingDoc.exists()) {
-    // ถ้ามี document แล้ว อัปเดตเฉพาะ fields ที่จำเป็น (ไม่ทำ role)
     await setDoc(
       ref,
       {
@@ -32,19 +27,17 @@ export async function ensureUserDoc(user: User, displayName?: string) {
       { merge: true }
     );
   } else {
-    // ถ้าไม่มี document สร้างใหม่พร้อม role เริ่มต้น
     await setDoc(ref, {
       uid: user.uid,
       email: user.email ?? '',
       displayName: displayName ?? user.displayName ?? (user.email?.split('@')[0] ?? ''),
-      role: 'buyer', // ตั้ง role เริ่มต้นเฉพาะตอนสร้างใหม่
+      role: 'buyer',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
   }
 }
 
-// สมัครสมาชิก
 export async function signUp(email: string, password: string, displayName?: string) {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   if (displayName) await updateProfile(user, { displayName });
@@ -52,11 +45,9 @@ export async function signUp(email: string, password: string, displayName?: stri
   return user;
 }
 
-// ล็อกอิน - ไม่เรียก ensureUserDoc เพื่อป้องกันการเขียนทับ role
 export async function signIn(email: string, password: string) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
   
-  // เรียก ensureUserDoc เฉพาะเมื่อจำเป็น (เผื่อ user document หาย)
   try {
     const userRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userRef);
@@ -70,12 +61,53 @@ export async function signIn(email: string, password: string) {
   return user;
 }
 
-// ออกจากระบบ
-export async function signOutUser() {
-  await signOut(auth);
+export async function createAuthCookie() {
+  const user = auth.currentUser;
+  if (!user) return null;
+  
+  try {
+    const idToken = await user.getIdToken();
+    return idToken;
+  } catch (error) {
+    console.error('Failed to get ID token:', error);
+    return null;
+  }
 }
 
-// subscribe ทั้ง auth + role จาก /users/{uid}
+export async function signOutUser() {
+  try {
+    const sessionId = getCookieValue('session-id');
+    if (sessionId) {
+      await fetch('/api/auth/session', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+    }
+  } catch (error) {
+    console.error('Failed to destroy server session:', error);
+  }
+  
+  await signOut(auth);
+  
+  if (typeof document !== 'undefined') {
+    document.cookie = 'session-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  }
+}
+
+function getCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  return null;
+}
+
 export function subscribeAuthAndRole(
   cb: (user: User | null, role: Role | null) => void
 ) {
@@ -95,13 +127,9 @@ export function subscribeAuthAndRole(
     offUserDoc = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         const role = (snap.data()?.role ?? 'buyer') as Role;
-        console.log('Auth subscription - User:', user.email, 'Role:', role);
         cb(user, role);
       } else {
-        console.warn('User document not found, creating...');
-        // สร้าง document ถ้าไม่มี
         ensureUserDoc(user).then(() => {
-          // หลังสร้างแล้วจะ trigger onSnapshot อีกครั้ง
         }).catch(console.error);
       }
     }, (error) => {

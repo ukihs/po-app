@@ -1,6 +1,5 @@
-// src/lib/notify.ts
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase/client';
+import { db } from '../firebase/client';
 
 export type AppRole = 'buyer' | 'supervisor' | 'procurement';
 
@@ -14,22 +13,13 @@ type PushNotifInput = {
   toUids?: string[];
   toRoles?: AppRole[];
 };
-
-/**
- * บันทึกแจ้งเตือนไปยัง Firestore
- * doc รูปแบบ:
- * {
- *   recipients: ['uid_xxx', 'role_supervisor', ...],
- *   title, body, orderId, createdAt, readBy:[]
- * }
- */
 export async function pushNotification(input: PushNotifInput) {
   const recips = [
     ...(input.toUids ?? []).map(recipientsForUid),
     ...(input.toRoles ?? []).map(recipientsForRole),
   ];
 
-  if (recips.length === 0) throw new Error('ต้องระบุผู้รับ (uid/role) อย่างน้อย 1 ราย');
+  if (recips.length === 0) throw new Error('Must specify at least one recipient');
 
   await addDoc(collection(db, 'notifications'), {
     recipients: recips,
@@ -41,15 +31,14 @@ export async function pushNotification(input: PushNotifInput) {
   });
 }
 
-/** ยิงแจ้งเตือนตอนผู้ซื้อส่งคำขอสั่งซื้อ -> หัวหน้างาน */
 export async function notifyOrderSubmitted(opts: {
   orderId: string;
   requesterName: string;
 }) {
   await pushNotification({
-    title: 'คำขอสั่งซื้อใหม่',
+    title: 'มีใบขอซื้อใหม่',
     body: `${opts.requesterName} ส่งคำขอสั่งซื้อ #${opts.orderId}`,
     orderId: opts.orderId,
-    toRoles: ['supervisor'], // หัวหน้างานเห็น
+    toRoles: ['supervisor'],
   });
 }

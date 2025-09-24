@@ -33,7 +33,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   useEffect(() => {
     const off = subscribeAuthAndRole((u, r) => {
-      console.log('AppSidebar - User:', u?.email, 'Role:', r);
       setUser(u);
       setRole(r);
       setIsLoading(false);

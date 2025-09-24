@@ -21,11 +21,3 @@ export const app = getFirebaseApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-if (typeof window !== 'undefined') {
-  const ok = !!firebaseConfig.apiKey && firebaseConfig.apiKey?.startsWith('AIza');
-  console.log('[Firebase TEST]', {
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    hasApiKey: ok,
-  });
-}

@@ -1,18 +1,18 @@
 import type { APIRoute } from 'astro';
+import { validateSuperadminAccess, createErrorResponse, createSuccessResponse } from '../../../lib/users-api-helpers';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const authResult = await validateSuperadminAccess(request);
+    if (authResult.error) {
+      return authResult.error;
+    }
+
     const { serverAuth, serverDb } = await import('../../../firebase/server');
     const userData = await request.json();
     
     if (!userData.email) {
-      return new Response(JSON.stringify({
-        error: 'Missing required fields',
-        message: 'Email is required'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return createErrorResponse('Email is required', 400);
     }
     
     const createUserData: any = {
@@ -38,8 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
       updatedAt: new Date()
     });
     
-    
-    return new Response(JSON.stringify({
+    return createSuccessResponse({
       success: true,
       user: {
         uid: userRecord.uid,
@@ -54,22 +53,13 @@ export const POST: APIRoute = async ({ request }) => {
           lastSignInTime: userRecord.metadata.lastSignInTime
         },
         role: userRole
-      },
-      timestamp: new Date().toISOString()
-    }, null, 2), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' }
-    });
+      }
+    }, 201);
     
   } catch (error) {
-    
-    return new Response(JSON.stringify({
-      error: 'Failed to create user',
-      message: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return createErrorResponse(
+      error instanceof Error ? error.message : 'Failed to create user',
+      500
+    );
   }
 };
