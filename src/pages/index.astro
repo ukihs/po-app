@@ -1,15 +1,27 @@
 ---
 import '../styles/globals.css';
----
+import { validateServerSession } from '../lib/server-session';
 
-<html lang="th">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url=/login" />
-    <title>กำลังนำทางไปยังหน้าเข้าสู่ระบบ…</title>
-  </head>
-  <body class="font-sans">
-    <p class="p-4 text-slate-600">กำลังนำทางไปยังหน้าเข้าสู่ระบบ… หากไม่ถูกนำทางอัตโนมัติ <a class="underline" href="/login">คลิกที่นี่</a></p>
-    <script>location.replace('/login')</script>
-  </body>
-</html>
+const sessionId = Astro.cookies.get('session-id')?.value;
+let redirectUrl = '/login';
+
+if (sessionId) {
+  try {
+    const user = validateServerSession(sessionId);
+    if (user) {
+      if (user.role === 'buyer') {
+        redirectUrl = '/orders/create';
+      } else if (user.role === 'supervisor' || user.role === 'procurement') {
+        redirectUrl = '/orders/list';
+      } else if (user.role === 'superadmin') {
+        redirectUrl = '/users';
+      }
+    }
+  } catch (error) {
+    console.error('Session validation failed:', error);
+    redirectUrl = '/login';
+  }
+}
+
+return Astro.redirect(redirectUrl);
+---

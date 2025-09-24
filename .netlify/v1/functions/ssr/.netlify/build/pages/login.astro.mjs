@@ -1,4 +1,4 @@
-import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_CSazvNRn.mjs';
+import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_BkuRanWd.mjs';
 import 'kleur/colors';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';

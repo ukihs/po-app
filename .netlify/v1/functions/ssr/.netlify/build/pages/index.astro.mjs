@@ -1,11 +1,34 @@
-import { d as createComponent, j as renderHead, n as renderScript, r as renderTemplate } from '../chunks/astro/server_CSazvNRn.mjs';
+import { d as createComponent, e as createAstro } from '../chunks/astro/server_BkuRanWd.mjs';
 import 'kleur/colors';
 import 'clsx';
 /* empty css                                */
+import { v as validateServerSession } from '../chunks/server-session_Dx1rwvde.mjs';
 export { renderers } from '../renderers.mjs';
 
+const $$Astro = createAstro();
 const $$Index = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`<html lang="th"> <head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/login"><title>กำลังนำทางไปยังหน้าเข้าสู่ระบบ…</title>${renderHead()}</head> <body class="font-sans"> <p class="p-4 text-slate-600">กำลังนำทางไปยังหน้าเข้าสู่ระบบ… หากไม่ถูกนำทางอัตโนมัติ <a class="underline" href="/login">คลิกที่นี่</a></p> ${renderScript($$result, "C:/Projects/Astro/test03/po-app/src/pages/index.astro?astro&type=script&index=0&lang.ts")} </body> </html>`;
+  const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
+  Astro2.self = $$Index;
+  const sessionId = Astro2.cookies.get("session-id")?.value;
+  let redirectUrl = "/login";
+  if (sessionId) {
+    try {
+      const user = validateServerSession(sessionId);
+      if (user) {
+        if (user.role === "buyer") {
+          redirectUrl = "/orders/create";
+        } else if (user.role === "supervisor" || user.role === "procurement") {
+          redirectUrl = "/orders/list";
+        } else if (user.role === "superadmin") {
+          redirectUrl = "/users";
+        }
+      }
+    } catch (error) {
+      console.error("Session validation failed:", error);
+      redirectUrl = "/login";
+    }
+  }
+  return Astro2.redirect(redirectUrl);
 }, "C:/Projects/Astro/test03/po-app/src/pages/index.astro", void 0);
 
 const $$file = "C:/Projects/Astro/test03/po-app/src/pages/index.astro";
