@@ -2,9 +2,6 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-@plugin "daisyui" {
-  themes: light --default;
-}
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

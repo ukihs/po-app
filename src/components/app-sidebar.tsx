@@ -167,6 +167,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
+          <div className="flex items-center justify-center pt-4 pb-2">
+            <img 
+              src="/logo.png" 
+              alt="Bederly Logo" 
+              className="h-12 w-auto object-contain"
+            />
+          </div>
           <div className="flex items-center gap-2 px-2 py-2">
             <div className="flex items-center gap-2">
               <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
@@ -191,6 +198,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
+        <div className="flex items-center justify-center pt-2 pb-2">
+          <img 
+            src="/logo.png" 
+            alt="Bederly Logo" 
+            className="h-10 w-auto object-contain"
+          />
+        </div>
         <TeamSwitcher teams={getTeams()} />
       </SidebarHeader>
       <SidebarContent>
