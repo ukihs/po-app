@@ -1,130 +1,112 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, 
   UserPlus, 
   RefreshCw, 
-  Edit, 
-  Trash2, 
-  Mail, 
-  Calendar,
-  Clock,
-  Shield,
-  ShoppingCart,
   Users,
-  UserCheck,
-  Package,
-  Crown,
-  ArrowDownAZ,
-  ArrowUpAZ,
+  Edit,
+  Trash2,
+  Check,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader } from '../ui/card';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { toast } from 'sonner';
 import { Toaster } from '../ui/sonner';
+import UsersDataTable from './UsersDataTable';
+import { cn } from '../../lib/utils';
 
 interface User {
   uid: string;
   email?: string;
+  firstName?: string;
+  lastName?: string;
   displayName?: string;
-  phoneNumber?: string;
-  emailVerified: boolean;
-  disabled: boolean;
-  metadata: {
-    creationTime?: string;
-    lastSignInTime?: string;
-  };
-  customClaims?: Record<string, any>;
   role?: string;
+  supervisorName?: string;
+  supervisorUid?: string;
 }
 
-interface UsersResponse {
-  users: User[];
-  pagination: {
-    currentPage: number;
-    limit: number;
-    totalUsers: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startIndex: number;
-    endIndex: number;
-  };
-  search: string | null;
-  debug?: {
-    totalFromFirebase: number;
-    afterFiltering: number;
-    paginatedCount: number;
-    searchApplied: boolean;
-    pagesScanned: number;
-  };
-}
 
 export default function UsersManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState<UsersResponse['pagination'] | null>(null);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   const [newUser, setNewUser] = useState({
     email: '',
-    displayName: '',
+    firstName: '',
+    lastName: '',
     password: '',
-    role: 'buyer'
+    role: 'buyer',
+    supervisorName: '',
+    supervisorUid: '',
+    department: ''
   });
 
   const [validationErrors, setValidationErrors] = useState({
     email: false,
-    displayName: false,
+    firstName: false,
+    lastName: false,
     password: false,
-    role: false
+    role: false,
+    supervisorName: false,
+    department: false
   });
 
   const [formValid, setFormValid] = useState(false);
 
   const [editUser, setEditUser] = useState({
     email: '',
-    displayName: '',
-    role: 'buyer'
+    firstName: '',
+    lastName: '',
+    role: 'buyer',
+    supervisorName: '',
+    supervisorUid: ''
   });
 
   const [editValidationErrors, setEditValidationErrors] = useState({
     email: false,
-    displayName: false,
+    firstName: false,
+    lastName: false,
     role: false
   });
 
   const [editFormValid, setEditFormValid] = useState(false);
 
-  const fetchUsers = async (page = 1, search = '', sort = sortOrder) => {
+  const [supervisors, setSupervisors] = useState<User[]>([]);
+  const [supervisorOpen, setSupervisorOpen] = useState(false);
+  const [supervisorValue, setSupervisorValue] = useState('');
+  
+  const [editSupervisorOpen, setEditSupervisorOpen] = useState(false);
+  const [editSupervisorValue, setEditSupervisorValue] = useState('');
+
+  const fetchUsers = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10',
-        sort: sort,
-        ...(search && { search })
+        page: '1',
+        limit: '100',
+        sort: 'desc'
       });
 
       const response = await fetch(`/api/users?${params}`);
-      const data: UsersResponse = await response.json();
+      const data = await response.json();
 
       if (response.ok) {
         setUsers(data.users);
-        setPagination(data.pagination);
+        const supervisorList = data.users.filter((user: User) => 
+          user.role === 'supervisor'
+        );
+        setSupervisors(supervisorList);
       } else {
         console.error('Failed to fetch users:', data);
         showToast('Failed to fetch users', 'error');
@@ -146,7 +128,11 @@ export default function UsersManagementPage() {
     return password.length >= 6;
   };
 
-  const validateDisplayName = (name: string): boolean => {
+  const validateFirstName = (name: string): boolean => {
+    return name.trim().length >= 2;
+  };
+
+  const validateLastName = (name: string): boolean => {
     return name.trim().length >= 2;
   };
 
@@ -157,9 +143,12 @@ export default function UsersManagementPage() {
   const validateForm = () => {
     const errors = {
       email: !validateEmail(newUser.email),
-      displayName: !validateDisplayName(newUser.displayName),
+      firstName: !validateFirstName(newUser.firstName),
+      lastName: !validateLastName(newUser.lastName),
       password: !validatePassword(newUser.password),
-      role: !validateRole(newUser.role)
+      role: !validateRole(newUser.role),
+      supervisorName: false,
+      department: false
     };
 
     setValidationErrors(errors);
@@ -179,7 +168,11 @@ export default function UsersManagementPage() {
     try {
       const userData = {
         ...newUser,
-        role: newUser.role
+        displayName: `${newUser.firstName} ${newUser.lastName}`.trim(),
+        role: newUser.role,
+        supervisorName: newUser.supervisorName,
+        supervisorUid: newUser.supervisorUid,
+        department: newUser.department
       };
       
       const response = await fetch('/api/users/create', {
@@ -195,18 +188,26 @@ export default function UsersManagementPage() {
         setShowCreateModal(false);
         setNewUser({
           email: '',
-          displayName: '',
+          firstName: '',
+          lastName: '',
           password: '',
-          role: 'buyer'
+          role: 'buyer',
+          supervisorName: '',
+          supervisorUid: '',
+          department: ''
         });
         setValidationErrors({
           email: false,
-          displayName: false,
+          firstName: false,
+          lastName: false,
           password: false,
-          role: false
+          role: false,
+          supervisorName: false,
+          department: false
         });
         setFormValid(false);
-        fetchUsers(currentPage, searchTerm, sortOrder);
+        setSupervisorValue('');
+        fetchUsers();
       } else {
         showToast(data.message || 'Failed to create user', 'error');
       }
@@ -219,7 +220,8 @@ export default function UsersManagementPage() {
   const validateEditForm = () => {
     const errors = {
       email: !validateEmail(editUser.email),
-      displayName: !validateDisplayName(editUser.displayName),
+      firstName: !validateFirstName(editUser.firstName),
+      lastName: !validateLastName(editUser.lastName),
       role: !validateRole(editUser.role)
     };
 
@@ -242,8 +244,12 @@ export default function UsersManagementPage() {
     try {
       const userData = {
         email: editUser.email,
-        displayName: editUser.displayName,
-        role: editUser.role
+        firstName: editUser.firstName,
+        lastName: editUser.lastName,
+        displayName: `${editUser.firstName} ${editUser.lastName}`.trim(),
+        role: editUser.role,
+        supervisorName: editUser.supervisorName || null,
+        supervisorUid: editUser.supervisorUid || null
       };
       
       const response = await fetch(`/api/users/${selectedUser.uid}`, {
@@ -257,7 +263,7 @@ export default function UsersManagementPage() {
       if (response.ok) {
         showToast('อัปเดตผู้ใช้สำเร็จ', 'success');
         setShowEditModal(false);
-        fetchUsers(currentPage, searchTerm, sortOrder);
+        fetchUsers();
       } else {
         showToast(data.message || 'Failed to update user', 'error');
       }
@@ -281,7 +287,7 @@ export default function UsersManagementPage() {
         showToast('ลบผู้ใช้สำเร็จ', 'success');
         setShowDeleteModal(false);
         setSelectedUser(null);
-        fetchUsers(currentPage, searchTerm, sortOrder);
+        fetchUsers();
       } else {
         showToast(data.message || 'Failed to delete user', 'error');
       }
@@ -307,32 +313,30 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchUsers(1, searchTerm, sortOrder);
-  };
-
-  const handleSortToggle = () => {
-    const newSortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
-    setSortOrder(newSortOrder);
-    setCurrentPage(1);
-    fetchUsers(1, searchTerm, newSortOrder);
-  };
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
+    
+    const nameParts = (user.displayName || '').split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
     setEditUser({
       email: user.email || '',
-      displayName: user.displayName || '',
-      role: user.role || 'buyer'
+      firstName: firstName,
+      lastName: lastName,
+      role: user.role || 'buyer',
+      supervisorName: user.supervisorName || '',
+      supervisorUid: user.supervisorUid || ''
     });
     setEditValidationErrors({
       email: false,
-      displayName: false,
+      firstName: false,
+      lastName: false,
       role: false
     });
     setEditFormValid(false);
+    setEditSupervisorValue(user.supervisorUid || '');
     setShowEditModal(true);
   };
 
@@ -341,59 +345,6 @@ export default function UsersManagementPage() {
     setShowDeleteModal(true);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'ยังไม่มีการลงชื่อเข้าใช้งาน';
-    return new Date(dateString).toLocaleString('th-TH', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getRoleBadge = (role?: string) => {
-    const userRole = role || 'buyer';
-    const roleConfig: Record<string, { 
-      className: string; 
-      icon: React.ReactNode; 
-      name: string 
-    }> = {
-      superadmin: { 
-        className: 'bg-red-500 hover:bg-red-600 text-white border-red-500', 
-        icon: <Crown className="h-3 w-3" />, 
-        name: 'ผู้ดูแลระบบ' 
-      },
-      supervisor: { 
-        className: 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500', 
-        icon: <UserCheck className="h-3 w-3" />, 
-        name: 'หัวหน้างาน' 
-      },
-      procurement: { 
-        className: 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500', 
-        icon: <Package className="h-3 w-3" />, 
-        name: 'ฝ่ายจัดซื้อ' 
-      },
-      buyer: { 
-        className: 'bg-green-500 hover:bg-green-600 text-white border-green-500', 
-        icon: <ShoppingCart className="h-3 w-3" />, 
-        name: 'ผู้ขอซื้อ' 
-      }
-    };
-    
-    const config = roleConfig[userRole] || {
-      className: 'bg-gray-500 hover:bg-gray-600 text-white border-gray-500',
-      icon: <Shield className="h-3 w-3" />,
-      name: userRole.charAt(0).toUpperCase() + userRole.slice(1)
-    };
-    
-    return (
-      <Badge className={`gap-1 ${config.className}`}>
-        {config.icon}
-        {config.name}
-      </Badge>
-    );
-  };
 
   useEffect(() => {
     fetchUsers();
@@ -424,27 +375,15 @@ export default function UsersManagementPage() {
       <Card>
         <CardHeader className="pb-2 px-6">
           <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-            <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="ค้นหาด้วยชื่อผู้ใช้หรืออีเมล"
-                  className="pl-10 w-full lg:w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-muted px-1.5 py-0.5 text-xs rounded">Enter</kbd>
-                )}
-              </div>
-            </form>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold">รายการผู้ใช้งาน</h2>
+            </div>
 
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchUsers(currentPage, searchTerm, sortOrder)}
+                onClick={fetchUsers}
                 disabled={loading}
               >
                 {loading ? (
@@ -466,183 +405,17 @@ export default function UsersManagementPage() {
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-6 pt-0">
-          {loading ? (
-            <div className="flex justify-center items-center p-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-              <span className="ml-4 text-lg">โหลดข้อมูลผู้ใช้งาน...</span>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center p-12">
-              <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลผู้ใช้งาน</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'ลองปรับเงื่อนไขการค้นหา' : 'สร้างผู้ใช้คนแรกเพื่อเริ่มต้น'}
-              </p>
-              <Button
-                onClick={() => setShowCreateModal(true)}
-              >
-                สร้างผู้ใช้คนแรก
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ชื่อผู้ใช้</TableHead>
-                    <TableHead>อีเมล</TableHead>
-                    <TableHead>บทบาท</TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        สร้างเมื่อวันที่
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSortToggle}
-                          className="h-6 w-6 p-0"
-                        >
-                          {sortOrder === 'asc' ? (
-                            <ArrowUpAZ className="h-4 w-4" />
-                          ) : (
-                            <ArrowDownAZ className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </TableHead>
-                    <TableHead>ลงชื่อเข้าใช้ล่าสุด</TableHead>
-                    <TableHead>การดำเนินการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.uid} className="hover">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12">
-                            <AvatarFallback className="text-lg font-normal">
-                              {(user.displayName || user.email || 'U')[0].toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-normal">
-                              {user.displayName || 'ยังไม่กำหนดชื่อ'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="text-sm">
-                          {user.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              {user.email}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        {getRoleBadge(user.role)}
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-xs">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          {formatDate(user.metadata.creationTime)}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-xs">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          {formatDate(user.metadata.lastSignInTime)}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteUser(user)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-
-          {pagination && pagination.totalUsers > pagination.limit && (
-            <div className="flex justify-center p-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => {
-                        if (pagination.hasPreviousPage) {
-                          const newPage = currentPage - 1;
-                          setCurrentPage(newPage);
-                          fetchUsers(newPage, searchTerm, sortOrder);
-                        }
-                      }}
-                      className={!pagination.hasPreviousPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    const pageNum = Math.max(1, currentPage - 2) + i;
-                    if (pageNum > pagination.totalPages) return null;
-                    
-                    return (
-                      <PaginationItem key={pageNum}>
-                        <PaginationLink 
-                          onClick={() => {
-                            setCurrentPage(pageNum);
-                            fetchUsers(pageNum, searchTerm, sortOrder);
-                          }}
-                          isActive={pageNum === currentPage}
-                          className="cursor-pointer"
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  })}
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => {
-                        if (pagination.hasNextPage) {
-                          const newPage = currentPage + 1;
-                          setCurrentPage(newPage);
-                          fetchUsers(newPage, searchTerm, sortOrder);
-                        }
-                      }}
-                      className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <UsersDataTable 
+            data={users}
+            loading={loading}
+            onEditUser={handleEditUser}
+            onDeleteUser={handleDeleteUser}
+          />
         </CardContent>
       </Card>
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="h-5 w-5" />
@@ -653,7 +426,47 @@ export default function UsersManagementPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="firstName" className="text-sm font-medium">
+                  ชื่อ <span className="text-destructive">*</span>
+                </label>
+                <Input 
+                  id="firstName"
+                  type="text" 
+                  className={validationErrors.firstName ? 'border-destructive' : ''}
+                  placeholder="กรอกชื่อ"
+                  value={newUser.firstName}
+                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                  minLength={2}
+                  required
+                />
+                {validationErrors.firstName && (
+                  <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="lastName" className="text-sm font-medium">
+                  นามสกุล <span className="text-destructive">*</span>
+                </label>
+                <Input 
+                  id="lastName"
+                  type="text" 
+                  className={validationErrors.lastName ? 'border-destructive' : ''}
+                  placeholder="กรอกนามสกุล"
+                  value={newUser.lastName}
+                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                  minLength={2}
+                  required
+                />
+                {validationErrors.lastName && (
+                  <p className="text-xs text-destructive">นามสกุลต้องมีอย่างน้อย 2 ตัวอักษร</p>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 อีเมล <span className="text-destructive">*</span>
@@ -693,22 +506,86 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="displayName" className="text-sm font-medium">
-                ชื่อที่แสดง <span className="text-destructive">*</span>
+              <label htmlFor="department" className="text-sm font-medium">
+                แผนก
               </label>
-              <Input 
-                id="displayName"
-                type="text" 
-                className={validationErrors.displayName ? 'border-destructive' : ''}
-                placeholder="กรอกชื่อที่แสดง"
-                value={newUser.displayName}
-                onChange={(e) => setNewUser({...newUser, displayName: e.target.value})}
-                minLength={2}
-                required
+              <Input
+                id="department"
+                type="text"
+                placeholder="กรอกแผนก"
+                value={newUser.department}
+                onChange={(e) => setNewUser({...newUser, department: e.target.value})}
               />
-              {validationErrors.displayName && (
-                <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
-              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="supervisor" className="text-sm font-medium">
+                หัวหน้างาน
+              </label>
+              <Popover open={supervisorOpen} onOpenChange={setSupervisorOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={supervisorOpen}
+                    className="w-full justify-between"
+                  >
+                    {supervisorValue
+                      ? supervisors.find((supervisor) => supervisor.uid === supervisorValue)?.displayName
+                      : "เลือกหัวหน้างาน..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
+                    <CommandList>
+                      <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() => {
+                            setSupervisorValue("");
+                            setNewUser({...newUser, supervisorName: '', supervisorUid: ''});
+                            setSupervisorOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              supervisorValue === "" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          ไม่มีหัวหน้างาน
+                        </CommandItem>
+                        {supervisors.map((supervisor) => (
+                          <CommandItem
+                            key={supervisor.uid}
+                            value={supervisor.uid}
+                            onSelect={(currentValue) => {
+                              setSupervisorValue(currentValue === supervisorValue ? "" : currentValue);
+                              setNewUser({
+                                ...newUser, 
+                                supervisorName: currentValue === supervisorValue ? '' : supervisor.displayName || '',
+                                supervisorUid: currentValue === supervisorValue ? '' : supervisor.uid
+                              });
+                              setSupervisorOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                supervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {supervisor.displayName || supervisor.email}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -734,32 +611,41 @@ export default function UsersManagementPage() {
               )}
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
               <Button 
                 type="button"
                 variant="outline" 
+                className="w-full sm:w-auto"
                 onClick={() => {
                   setShowCreateModal(false);
                   setNewUser({
                     email: '',
-                    displayName: '',
+                    firstName: '',
+                    lastName: '',
                     password: '',
-                    role: 'buyer'
+                    role: 'buyer',
+                    supervisorName: '',
+                    supervisorUid: '',
+                    department: ''
                   });
                   setValidationErrors({
                     email: false,
-                    displayName: false,
+                    firstName: false,
+                    lastName: false,
                     password: false,
-                    role: false
+                    role: false,
+                    supervisorName: false,
+                    department: false
                   });
                   setFormValid(false);
+                  setSupervisorValue('');
                 }}
               >
                 ยกเลิก
               </Button>
               <Button 
                 type="submit"
-                className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
+                className="w-full sm:w-auto bg-[#6EC1E4] hover:bg-[#2b9ccc]"
                 onClick={createUser}
                 disabled={!formValid}
               >
@@ -771,7 +657,7 @@ export default function UsersManagementPage() {
       </Dialog>
 
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
@@ -782,10 +668,50 @@ export default function UsersManagementPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="edit-firstName" className="text-sm font-medium">
+                  ชื่อ <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  id="edit-firstName"
+                  type="text"
+                  className={editValidationErrors.firstName ? 'border-destructive' : ''}
+                  placeholder="กรอกชื่อ"
+                  value={editUser.firstName}
+                  onChange={(e) => setEditUser({...editUser, firstName: e.target.value})}
+                  minLength={2}
+                  required
+                />
+                {editValidationErrors.firstName && (
+                  <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="edit-lastName" className="text-sm font-medium">
+                  นามสกุล <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  id="edit-lastName"
+                  type="text"
+                  className={editValidationErrors.lastName ? 'border-destructive' : ''}
+                  placeholder="กรอกนามสกุล"
+                  value={editUser.lastName}
+                  onChange={(e) => setEditUser({...editUser, lastName: e.target.value})}
+                  minLength={2}
+                  required
+                />
+                {editValidationErrors.lastName && (
+                  <p className="text-xs text-destructive">นามสกุลต้องมีอย่างน้อย 2 ตัวอักษร</p>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="edit-email" className="text-sm font-medium">
-                อีเมลของผู้ใช้ <span className="text-destructive">*</span>
+                อีเมล <span className="text-destructive">*</span>
               </label>
               <Input
                 id="edit-email"
@@ -803,22 +729,73 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="edit-displayName" className="text-sm font-medium">
-                ชื่อที่แสดง <span className="text-destructive">*</span>
+              <label htmlFor="edit-supervisor" className="text-sm font-medium">
+                หัวหน้างาน
               </label>
-              <Input
-                id="edit-displayName"
-                type="text"
-                className={editValidationErrors.displayName ? 'border-destructive' : ''}
-                placeholder="กรอกชื่อที่แสดง"
-                value={editUser.displayName}
-                onChange={(e) => setEditUser({...editUser, displayName: e.target.value})}
-                minLength={2}
-                required
-              />
-              {editValidationErrors.displayName && (
-                <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
-              )}
+              <Popover open={editSupervisorOpen} onOpenChange={setEditSupervisorOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={editSupervisorOpen}
+                    className="w-full justify-between"
+                  >
+                    {editSupervisorValue
+                      ? supervisors.find((supervisor) => supervisor.uid === editSupervisorValue)?.displayName
+                      : "เลือกหัวหน้างาน..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
+                    <CommandList>
+                      <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() => {
+                            setEditSupervisorValue("");
+                            setEditUser({...editUser, supervisorName: '', supervisorUid: ''});
+                            setEditSupervisorOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              editSupervisorValue === "" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          ไม่มีหัวหน้างาน
+                        </CommandItem>
+                        {supervisors.map((supervisor) => (
+                          <CommandItem
+                            key={supervisor.uid}
+                            value={supervisor.uid}
+                            onSelect={(currentValue) => {
+                              setEditSupervisorValue(currentValue === editSupervisorValue ? "" : currentValue);
+                              setEditUser({
+                                ...editUser, 
+                                supervisorName: currentValue === editSupervisorValue ? '' : supervisor.displayName || '',
+                                supervisorUid: currentValue === editSupervisorValue ? '' : supervisor.uid
+                              });
+                              setEditSupervisorOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                editSupervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {supervisor.displayName || supervisor.email}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -844,16 +821,18 @@ export default function UsersManagementPage() {
               )}
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
               <Button 
                 type="button"
                 variant="outline" 
+                className="w-full sm:w-auto"
                 onClick={() => setShowEditModal(false)}
               >
                 ยกเลิก
               </Button>
               <Button 
                 type="submit"
+                className="w-full sm:w-auto"
                 onClick={updateUser}
                 disabled={!editFormValid}
               >
@@ -865,7 +844,7 @@ export default function UsersManagementPage() {
       </Dialog>
 
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trash2 className="h-5 w-5 text-destructive" />
@@ -883,10 +862,18 @@ export default function UsersManagementPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto"
+              onClick={() => setShowDeleteModal(false)}
+            >
               ยกเลิก
             </Button>
-            <Button variant="destructive" onClick={deleteUser}>
+            <Button 
+              variant="destructive" 
+              className="w-full sm:w-auto"
+              onClick={deleteUser}
+            >
               ลบผู้ใช้
             </Button>
           </DialogFooter>

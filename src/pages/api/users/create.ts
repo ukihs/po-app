@@ -16,24 +16,25 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     const createUserData: any = {
-      email: userData.email,
-      emailVerified: userData.emailVerified || false,
-      disabled: userData.disabled || false
+      email: userData.email
     };
     
     if (userData.displayName) createUserData.displayName = userData.displayName;
-    if (userData.phoneNumber) createUserData.phoneNumber = userData.phoneNumber;
-    if (userData.photoURL) createUserData.photoURL = userData.photoURL;
     if (userData.password) createUserData.password = userData.password;
     
     const userRecord = await serverAuth.createUser(createUserData);
     
-    const userRole = userData.customClaims?.role || userData.role || 'buyer';
+    const userRole = userData.role || 'buyer';
     await serverDb.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email: userRecord.email || '',
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
       displayName: userRecord.displayName || '',
       role: userRole,
+      supervisorName: userData.supervisorName || null,
+      supervisorUid: userData.supervisorUid || null,
+      department: userData.department || null,
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -44,14 +45,6 @@ export const POST: APIRoute = async ({ request }) => {
         uid: userRecord.uid,
         email: userRecord.email,
         displayName: userRecord.displayName,
-        photoURL: userRecord.photoURL,
-        phoneNumber: userRecord.phoneNumber,
-        emailVerified: userRecord.emailVerified,
-        disabled: userRecord.disabled,
-        metadata: {
-          creationTime: userRecord.metadata.creationTime,
-          lastSignInTime: userRecord.metadata.lastSignInTime
-        },
         role: userRole
       }
     }, 201);

@@ -41,19 +41,10 @@ export const GET: APIRoute = async ({ request, params }) => {
       uid: userRecord.uid,
       email: userRecord.email,
       displayName: userRecord.displayName,
-      phoneNumber: userRecord.phoneNumber,
-      emailVerified: userRecord.emailVerified,
-      disabled: userRecord.disabled,
-      metadata: {
-        creationTime: userRecord.metadata.creationTime,
-        lastSignInTime: userRecord.metadata.lastSignInTime,
-        lastRefreshTime: userRecord.metadata.lastRefreshTime
-      },
-      customClaims: userRecord.customClaims || {},
       role: userRole
     };
     
-    return new Response(JSON.stringify({ user: userData, timestamp: new Date().toISOString() }, null, 2), {
+    return new Response(JSON.stringify({ user: userData }, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -61,8 +52,7 @@ export const GET: APIRoute = async ({ request, params }) => {
   } catch (error) {
     return new Response(JSON.stringify({
       error: 'User not found',
-      message: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
+      message: error instanceof Error ? error.message : String(error)
     }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' }
@@ -95,7 +85,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
     
     const updateData = await request.json();
     
-    const allowedFields = ['email', 'displayName', 'phoneNumber', 'photoURL', 'disabled', 'emailVerified'];
+    const allowedFields = ['email', 'firstName', 'lastName', 'displayName', 'supervisorName', 'supervisorUid', 'department'];
     const sanitizedData: any = {};
     
     for (const field of allowedFields) {
@@ -106,8 +96,8 @@ export const PUT: APIRoute = async ({ params, request }) => {
     
     const updatedUser = await serverAuth.updateUser(uid, sanitizedData);
     
-    if (updateData.customClaims?.role || updateData.role) {
-      const newRole = updateData.customClaims?.role || updateData.role;
+    if (updateData.role) {
+      const newRole = updateData.role;
       const userDocRef = serverDb.collection('users').doc(uid);
       
       try {
@@ -116,15 +106,25 @@ export const PUT: APIRoute = async ({ params, request }) => {
           await userDocRef.update({
             role: newRole,
             email: updatedUser.email || '',
+            firstName: updateData.firstName || '',
+            lastName: updateData.lastName || '',
             displayName: updatedUser.displayName || '',
+            supervisorName: updateData.supervisorName || null,
+            supervisorUid: updateData.supervisorUid || null,
+            department: updateData.department || null,
             updatedAt: new Date()
           });
         } else {
           await userDocRef.set({
             uid: uid,
             email: updatedUser.email || '',
+            firstName: updateData.firstName || '',
+            lastName: updateData.lastName || '',
             displayName: updatedUser.displayName || '',
             role: newRole,
+            supervisorName: updateData.supervisorName || null,
+            supervisorUid: updateData.supervisorUid || null,
+            department: updateData.department || null,
             createdAt: new Date(),
             updatedAt: new Date()
           });
@@ -133,18 +133,40 @@ export const PUT: APIRoute = async ({ params, request }) => {
         }
       }
     
+    if (updateData.displayName && updateData.role === 'supervisor') {
+      try {
+        const subordinatesQuery = serverDb.collection('users')
+          .where('supervisorUid', '==', uid);
+        
+        const subordinatesSnapshot = await subordinatesQuery.get();
+        
+        if (!subordinatesSnapshot.empty) {
+          const batch = serverDb.batch();
+          
+          subordinatesSnapshot.forEach((doc) => {
+            const subordinateRef = serverDb.collection('users').doc(doc.id);
+            batch.update(subordinateRef, {
+              supervisorName: updateData.displayName,
+              updatedAt: new Date()
+            });
+          });
+          
+          await batch.commit();
+          console.log(`Updated ${subordinatesSnapshot.size} subordinates with new supervisor name: ${updateData.displayName}`);
+        }
+      } catch (error) {
+        console.error('Error updating subordinates supervisor name:', error);
+      }
+    }
+    
     return new Response(JSON.stringify({
       success: true,
       user: {
         uid: updatedUser.uid,
         email: updatedUser.email,
         displayName: updatedUser.displayName,
-        phoneNumber: updatedUser.phoneNumber,
-        emailVerified: updatedUser.emailVerified,
-        disabled: updatedUser.disabled,
-        role: updateData.customClaims?.role || updateData.role || 'buyer'
-      },
-      timestamp: new Date().toISOString()
+        role: updateData.role || 'buyer'
+      }
     }, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
@@ -153,8 +175,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
   } catch (error) {
     return new Response(JSON.stringify({
       error: 'Failed to update user',
-      message: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
+      message: error instanceof Error ? error.message : String(error)
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -190,8 +211,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({
       success: true,
       message: 'User deleted successfully',
-      uid,
-      timestamp: new Date().toISOString()
+      uid
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
@@ -200,8 +220,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
   } catch (error) {
     return new Response(JSON.stringify({
       error: 'Failed to delete user',
-      message: error instanceof Error ? error.message : String(error),
-      timestamp: new Date().toISOString()
+      message: error instanceof Error ? error.message : String(error)
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
