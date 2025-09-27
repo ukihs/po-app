@@ -1,9 +1,9 @@
 import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_BkuRanWd.mjs';
 import 'kleur/colors';
-import { jsxs, jsx } from 'react/jsx-runtime';
-import { useState, useEffect } from 'react';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
+import { useState, useEffect, useCallback } from 'react';
 import { s as subscribeAuthAndRole, B as Button, a as signIn, c as createAuthCookie } from '../chunks/button_DlB-774j.mjs';
-import { X, Info, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Info, AlertCircle, AlertTriangle, CheckCircle, X, Loader2 } from 'lucide-react';
 import { I as Input } from '../chunks/input_BS4MHdRU.mjs';
 import { L as Label } from '../chunks/label_BgHliXqP.mjs';
 import { C as Card, a as CardHeader, b as CardTitle, c as CardContent } from '../chunks/card_REjXmj5-.mjs';
@@ -11,13 +11,24 @@ import { A as Alert, a as AlertDescription } from '../chunks/alert_CQFjLQA5.mjs'
 /* empty css                                */
 export { renderers } from '../renderers.mjs';
 
+const getRedirectUrl = (role) => {
+  const redirects = {
+    buyer: "/orders/create",
+    supervisor: "/orders/tracking",
+    procurement: "/orders/list",
+    superadmin: "/users"
+  };
+  return redirects[role] || "/login";
+};
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
-  const [err, setErr] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertType, setAlertType] = useState("error");
-  const [alertMessage, setAlertMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState({
+    show: false,
+    type: "error",
+    message: ""
+  });
   useEffect(() => {
     const off = subscribeAuthAndRole(async (user, role) => {
       if (!user || !role) return;
@@ -36,37 +47,61 @@ function LoginPage() {
             document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
           }
         }
-        if (role === "buyer") window.location.href = "/orders/create";
-        else if (role === "supervisor" || role === "procurement") window.location.href = "/orders/list";
-        else if (role === "superadmin") window.location.href = "/users";
+        window.location.href = getRedirectUrl(role);
       } catch (error) {
         console.error("Failed to create session:", error);
       }
     });
     return off;
   }, []);
-  const submit = async (e) => {
-    e.preventDefault();
-    setErr("");
-    setShowAlert(false);
-    try {
-      if (!email || !pass) throw new Error("กรอกอีเมลและรหัสผ่าน");
-      await signIn(email.trim(), pass);
-      setAlertType("success");
-      setAlertMessage("เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
-      setShowAlert(true);
-    } catch (e2) {
-      setErr(e2?.message ?? "เข้าสู่ระบบไม่สำเร็จ");
-      setAlertType("error");
-      setAlertMessage(e2?.message ?? "เข้าสู่ระบบไม่สำเร็จ");
-      setShowAlert(true);
+  const showAlertMessage = useCallback((type, message) => {
+    setAlert({ show: true, type, message });
+    if (type === "error") {
       setTimeout(() => {
-        setShowAlert(false);
+        setAlert((prev) => ({ ...prev, show: false }));
       }, 4e3);
     }
+  }, []);
+  const submit = async (e) => {
+    e.preventDefault();
+    setAlert((prev) => ({ ...prev, show: false }));
+    setIsLoading(true);
+    try {
+      if (!email.trim() || !pass) {
+        throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
+      }
+      await signIn(email.trim(), pass);
+      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
+    } catch (e2) {
+      const error = e2;
+      let message = "เข้าสู่ระบบไม่สำเร็จ";
+      if (error.code) {
+        switch (error.code) {
+          case "auth/user-not-found":
+            message = "ไม่พบผู้ใช้นี้ในระบบ";
+            break;
+          case "auth/wrong-password":
+            message = "รหัสผ่านไม่ถูกต้อง";
+            break;
+          case "auth/invalid-email":
+            message = "รูปแบบอีเมลไม่ถูกต้อง";
+            break;
+          case "auth/too-many-requests":
+            message = "พยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่";
+            break;
+          default:
+            message = error.message || message;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+      showAlertMessage("error", message);
+    } finally {
+      setIsLoading(false);
+    }
   };
-  const getAlertIcon = () => {
-    switch (alertType) {
+  const getAlertIcon = useCallback(() => {
+    switch (alert.type) {
       case "info":
         return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
       case "success":
@@ -78,24 +113,27 @@ function LoginPage() {
       default:
         return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
     }
-  };
+  }, [alert.type]);
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative", children: [
-    showAlert && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ jsxs(
+    alert.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ jsxs(
       Alert,
       {
-        variant: alertType === "error" ? "destructive" : "default",
+        variant: alert.type === "error" ? "destructive" : "default",
         className: "shadow-lg border-0",
+        role: "alert",
+        "aria-live": "polite",
         children: [
           getAlertIcon(),
           /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between w-full", children: [
-            /* @__PURE__ */ jsx(AlertDescription, { className: "text-sm font-medium", children: alertMessage }),
+            /* @__PURE__ */ jsx(AlertDescription, { className: "text-sm font-medium", children: alert.message }),
             /* @__PURE__ */ jsx(
               Button,
               {
                 variant: "ghost",
                 size: "icon",
-                onClick: () => setShowAlert(false),
+                onClick: () => setAlert((prev) => ({ ...prev, show: false })),
                 className: "h-6 w-6 ml-2 shrink-0",
+                "aria-label": "ปิดการแจ้งเตือน",
                 children: /* @__PURE__ */ jsx(X, { className: "h-4 w-4" })
               }
             )
@@ -117,7 +155,7 @@ function LoginPage() {
       ] }),
       /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-6", children: [
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ jsx(Label, { htmlFor: "email", children: "Email" }),
+          /* @__PURE__ */ jsx(Label, { htmlFor: "email", children: "อีเมล" }),
           /* @__PURE__ */ jsx(
             Input,
             {
@@ -126,15 +164,17 @@ function LoginPage() {
               type: "email",
               autoComplete: "email",
               required: true,
-              placeholder: "อีเมล",
+              placeholder: "กรอกอีเมลของคุณ",
               value: email,
               onChange: (e) => setEmail(e.target.value),
-              className: "h-11"
+              className: "h-11",
+              disabled: isLoading,
+              "aria-describedby": "email-error"
             }
           )
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ jsx(Label, { htmlFor: "password", children: "Password" }),
+          /* @__PURE__ */ jsx(Label, { htmlFor: "password", children: "รหัสผ่าน" }),
           /* @__PURE__ */ jsx(
             Input,
             {
@@ -143,10 +183,12 @@ function LoginPage() {
               type: "password",
               autoComplete: "current-password",
               required: true,
-              placeholder: "รหัสผ่าน",
+              placeholder: "กรอกรหัสผ่านของคุณ",
               value: pass,
               onChange: (e) => setPass(e.target.value),
-              className: "h-11"
+              className: "h-11",
+              disabled: isLoading,
+              "aria-describedby": "password-error"
             }
           )
         ] }),
@@ -154,8 +196,13 @@ function LoginPage() {
           Button,
           {
             type: "submit",
-            className: "w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium",
-            children: "Sign In"
+            disabled: isLoading,
+            className: "w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed",
+            "aria-label": isLoading ? "กำลังเข้าสู่ระบบ" : "เข้าสู่ระบบ",
+            children: isLoading ? /* @__PURE__ */ jsxs(Fragment, { children: [
+              /* @__PURE__ */ jsx(Loader2, { className: "mr-2 h-4 w-4 animate-spin" }),
+              "กำลังเข้าสู่ระบบ..."
+            ] }) : "เข้าสู่ระบบ"
           }
         )
       ] }) })

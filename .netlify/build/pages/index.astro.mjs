@@ -17,7 +17,9 @@ const $$Index = createComponent(($$result, $$props, $$slots) => {
       if (user) {
         if (user.role === "buyer") {
           redirectUrl = "/orders/create";
-        } else if (user.role === "supervisor" || user.role === "procurement") {
+        } else if (user.role === "supervisor") {
+          redirectUrl = "/orders/tracking";
+        } else if (user.role === "procurement") {
           redirectUrl = "/orders/list";
         } else if (user.role === "superadmin") {
           redirectUrl = "/users";

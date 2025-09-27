@@ -1,28 +1,47 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { signIn, subscribeAuthAndRole, createAuthCookie } from "../../../lib/auth";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
 import { Alert, AlertDescription } from "../../ui/alert";
 
+interface LoginError extends Error {
+  code?: string;
+}
+
+interface AlertState {
+  show: boolean;
+  type: 'info' | 'success' | 'warning' | 'error';
+  message: string;
+}
+
+const getRedirectUrl = (role: string): string => {
+  const redirects: Record<string, string> = {
+    buyer: '/orders/create',
+    supervisor: '/orders/tracking',
+    procurement: '/orders/list',
+    superadmin: '/users'
+  };
+  return redirects[role] || '/login';
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
-  const [err, setErr] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertType, setAlertType] = useState<
-    "info" | "success" | "warning" | "error"
-  >("error");
-  const [alertMessage, setAlertMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState<AlertState>({
+    show: false,
+    type: 'error',
+    message: ''
+  });
 
   useEffect(() => {
     const off = subscribeAuthAndRole(async (user, role) => {
       if (!user || !role) return;
       
       try {
-        // สร้าง server-side session
         const idToken = await createAuthCookie();
         if (idToken) {
           const response = await fetch('/api/auth/session', {
@@ -35,15 +54,11 @@ export default function LoginPage() {
           
           if (response.ok) {
             const { sessionId } = await response.json();
-            // ตั้งค่า session cookie
             document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
           }
         }
         
-        // นำทางตาม role
-        if (role === "buyer") window.location.href = "/orders/create";
-        else if (role === "supervisor" || role === "procurement") window.location.href = "/orders/list";
-        else if (role === "superadmin") window.location.href = "/users";
+        window.location.href = getRedirectUrl(role);
       } catch (error) {
         console.error('Failed to create session:', error);
       }
@@ -51,33 +66,60 @@ export default function LoginPage() {
     return off;
   }, []);
 
+  const showAlertMessage = useCallback((type: AlertState['type'], message: string) => {
+    setAlert({ show: true, type, message });
+    if (type === 'error') {
+      setTimeout(() => {
+        setAlert(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  }, []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr("");
-    setShowAlert(false);
+    setAlert(prev => ({ ...prev, show: false }));
+    setIsLoading(true);
 
     try {
-      if (!email || !pass) throw new Error("กรอกอีเมลและรหัสผ่าน");
+      if (!email.trim() || !pass) {
+        throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
+      }
+
       await signIn(email.trim(), pass);
+      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
+    } catch (e: unknown) {
+      const error = e as LoginError;
+      let message = "เข้าสู่ระบบไม่สำเร็จ";
 
-      setAlertType("success");
-      setAlertMessage("เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
-      setShowAlert(true);
-    } catch (e: any) {
-      setErr(e?.message ?? "เข้าสู่ระบบไม่สำเร็จ");
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+            message = "ไม่พบผู้ใช้นี้ในระบบ";
+            break;
+          case 'auth/wrong-password':
+            message = "รหัสผ่านไม่ถูกต้อง";
+            break;
+          case 'auth/invalid-email':
+            message = "รูปแบบอีเมลไม่ถูกต้อง";
+            break;
+          case 'auth/too-many-requests':
+            message = "พยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่";
+            break;
+          default:
+            message = error.message || message;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
 
-      setAlertType("error");
-      setAlertMessage(e?.message ?? "เข้าสู่ระบบไม่สำเร็จ");
-      setShowAlert(true);
-
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 4000);
+      showAlertMessage("error", message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const getAlertIcon = () => {
-    switch (alertType) {
+  const getAlertIcon = useCallback(() => {
+    switch (alert.type) {
       case "info":
         return <Info className="h-4 w-4" />;
       case "success":
@@ -89,26 +131,29 @@ export default function LoginPage() {
       default:
         return <Info className="h-4 w-4" />;
     }
-  };
+  }, [alert.type]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
-      {showAlert && (
+      {alert.show && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
           <Alert
-            variant={alertType === "error" ? "destructive" : "default"}
+            variant={alert.type === "error" ? "destructive" : "default"}
             className="shadow-lg border-0"
+            role="alert"
+            aria-live="polite"
           >
             {getAlertIcon()}
             <div className="flex items-center justify-between w-full">
               <AlertDescription className="text-sm font-medium">
-                {alertMessage}
+                {alert.message}
               </AlertDescription>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowAlert(false)}
+                onClick={() => setAlert(prev => ({ ...prev, show: false }))}
                 className="h-6 w-6 ml-2 shrink-0"
+                aria-label="ปิดการแจ้งเตือน"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -132,40 +177,53 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={submit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">อีเมล</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="อีเมล"
+                placeholder="กรอกอีเมลของคุณ"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
+                disabled={isLoading}
+                aria-describedby="email-error"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">รหัสผ่าน</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder="รหัสผ่าน"
+                placeholder="กรอกรหัสผ่านของคุณ"
                 value={pass}
                 onChange={(e) => setPass(e.target.value)}
                 className="h-11"
+                disabled={isLoading}
+                aria-describedby="password-error"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium"
+              disabled={isLoading}
+              className="w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={isLoading ? "กำลังเข้าสู่ระบบ" : "เข้าสู่ระบบ"}
             >
-              Sign In
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  กำลังเข้าสู่ระบบ...
+                </>
+              ) : (
+                "เข้าสู่ระบบ"
+              )}
             </Button>
           </form>
         </CardContent>

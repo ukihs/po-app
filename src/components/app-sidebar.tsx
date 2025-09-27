@@ -1,7 +1,6 @@
 "use client"
 
-import * as React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import { subscribeAuthAndRole } from "@/lib/auth"
 import {
   Plus,
@@ -13,7 +12,6 @@ import {
   Building2,
   type LucideIcon,
 } from "lucide-react"
-
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
@@ -21,158 +19,165 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 
+interface User {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+}
+
+interface NavItem {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  isActive: boolean;
+}
+
+type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('');
 
   useEffect(() => {
-    const off = subscribeAuthAndRole((u, r) => {
-      setUser(u);
-      setRole(r);
-      setIsLoading(false);
-
-      if (r && u) {
-        sessionStorage.setItem('po_user_role', r);
-        sessionStorage.setItem('po_user_email', u.email || '');
-        sessionStorage.setItem('po_user_data', JSON.stringify(u));
-      } else {
-        sessionStorage.removeItem('po_user_role');
-        sessionStorage.removeItem('po_user_email');
-        sessionStorage.removeItem('po_user_data');
+    const savedRole = sessionStorage.getItem('po_user_role');
+    const savedUserData = sessionStorage.getItem('po_user_data');
+    
+    if (savedRole && savedUserData) {
+      try {
+        setUser(JSON.parse(savedUserData));
+        setRole(savedRole as Role);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to parse saved user data:', error);
       }
+    }
 
-      if (!u && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-        window.location.href = '/login';
+    const off = subscribeAuthAndRole((u, r) => {
+      try {
+        setUser(u);
+        setRole(r);
+        setIsLoading(false);
+
+        if (r && u) {
+          sessionStorage.setItem('po_user_role', r);
+          sessionStorage.setItem('po_user_email', u.email || '');
+          sessionStorage.setItem('po_user_data', JSON.stringify(u));
+        } else {
+          sessionStorage.removeItem('po_user_role');
+          sessionStorage.removeItem('po_user_email');
+          sessionStorage.removeItem('po_user_data');
+        }
+
+        if (!u && !['/login', '/register'].includes(window.location.pathname)) {
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error('Auth state error:', error);
+        setIsLoading(false);
       }
     });
     return off;
   }, []);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes('/create')) setActiveTab('create');
-    else if (path.includes('/tracking')) setActiveTab('tracking');
-    else if (path.includes('/notifications')) setActiveTab('notifications');
-    else if (path.includes('/list')) setActiveTab('list');
-    else if (path.includes('/users')) setActiveTab('users');
-    else setActiveTab('');
+    const updateActiveTab = () => {
+      const path = window.location.pathname;
+      const tabMap: Record<string, string> = {
+        '/create': 'create',
+        '/tracking': 'tracking',
+        '/notifications': 'notifications',
+        '/list': 'list',
+        '/users': 'users'
+      };
+      
+      const activeTab = Object.entries(tabMap).find(([key]) => path.includes(key))?.[1] || '';
+      setActiveTab(activeTab);
+    };
+
+    updateActiveTab();
+
+    const handleNavigation = () => {
+      setTimeout(updateActiveTab, 100);
+    };
+
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('astro:page-load', handleNavigation);
+
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('astro:page-load', handleNavigation);
+    };
   }, []);
 
-  const getRoleDisplayName = () => {
-    switch (role) {
-      case 'buyer': return 'ผู้ขอซื้อ';
-      case 'supervisor': return 'หัวหน้างาน';
-      case 'procurement': return 'ฝ่ายจัดซื้อ';
-      case 'superadmin': return 'ผู้ดูแลระบบ';
-      default: return 'กำลังโหลด...';
-    }
-  };
+  const getRoleDisplayName = useCallback(() => {
+    const roleNames: Record<Role, string> = {
+      buyer: 'ผู้ขอซื้อ',
+      supervisor: 'หัวหน้างาน',
+      procurement: 'ฝ่ายจัดซื้อ',
+      superadmin: 'ผู้ดูแลระบบ'
+    };
+    return roleNames[role as Role] || 'กำลังโหลด...';
+  }, [role]);
 
-  const getNavMainItems = () => {
-    const baseItems = [];
+  const getNavMainItems = useMemo((): NavItem[] => {
+    const roleMenus: Record<Role, NavItem[]> = {
+      buyer: [
+        { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
+        { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' },
+        { title: "การแจ้งเตือน", url: "/orders/notifications", icon: Bell, isActive: activeTab === 'notifications' }
+      ],
+      supervisor: [
+        { title: "ติดตามและอนุมัติ", url: "/orders/tracking", icon: CheckCircle2, isActive: activeTab === 'tracking' },
+        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' }
+      ],
+      procurement: [
+        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
+        { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' }
+      ],
+      superadmin: [
+        { title: "จัดการผู้ใช้งาน", url: "/users", icon: Users, isActive: activeTab === 'users' }
+      ]
+    };
 
-    if (role === 'buyer') {
-      baseItems.push(
-        {
-          title: "สร้างใบสั่งซื้อ",
-          url: "/orders/create",
-          icon: Plus,
-          isActive: activeTab === 'create',
-        },
-        {
-          title: "ติดตามสถานะ",
-          url: "/orders/tracking",
-          icon: FileText,
-          isActive: activeTab === 'tracking',
-        },
-        {
-          title: "การแจ้งเตือน",
-          url: "/orders/notifications",
-          icon: Bell,
-          isActive: activeTab === 'notifications',
-        }
-      );
-    } else if (role === 'supervisor') {
-      baseItems.push(
-        {
-          title: "ติดตามและอนุมัติ",
-          url: "/orders/tracking",
-          icon: CheckCircle2,
-          isActive: activeTab === 'tracking',
-        },
-        {
-          title: "รายการใบสั่งซื้อ",
-          url: "/orders/list",
-          icon: List,
-          isActive: activeTab === 'list',
-        }
-      );
-    } else if (role === 'procurement') {
-      baseItems.push(
-        {
-          title: "รายการใบสั่งซื้อ",
-          url: "/orders/list",
-          icon: List,
-          isActive: activeTab === 'list',
-        },
-        {
-          title: "ติดตามสถานะ",
-          url: "/orders/tracking",
-          icon: FileText,
-          isActive: activeTab === 'tracking',
-        }
-      );
-    } else if (role === 'superadmin') {
-      baseItems.push(
-        {
-          title: "จัดการผู้ใช้งาน",
-          url: "/users",
-          icon: Users,
-          isActive: activeTab === 'users',
-        }
-      );
-    }
-
-    return baseItems;
-  };
+    return roleMenus[role as Role] || [];
+  }, [role, activeTab]);
 
 
-  const getTeams = () => {
-    return [
-      {
-        name: "ระบบใบขอซื้อ",
-        logo: Building2,
-        plan: getRoleDisplayName(),
-      },
-    ];
-  };
+  const getTeams = useMemo(() => [{
+    name: "ระบบใบขอซื้อ",
+    logo: Building2,
+    plan: getRoleDisplayName(),
+  }], [getRoleDisplayName]);
 
-  const getUserData = () => {
+  const getUserData = useMemo(() => {
     if (!user) return { name: "ผู้ใช้", email: "user@example.com", avatar: "" };
     
+    const displayName = user.displayName || user.email?.split('@')[0] || "ผู้ใช้";
+    const email = user.email || "user@example.com";
+    
     return {
-      name: user.displayName || user.email?.split('@')[0] || "ผู้ใช้",
-      email: user.email || "user@example.com",
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&size=64&background=64D1E3&color=ffffff&rounded=true`,
+      name: displayName,
+      email,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&size=64&background=64D1E3&color=ffffff&rounded=true`,
     };
-  };
+  }, [user]);
 
   if (isLoading || !user || !role) {
     return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <div className="flex items-center justify-center pt-4 pb-2">
-            <img 
-              src="/logo.png" 
-              alt="Bederly Logo" 
-              className="h-12 w-auto object-contain"
-            />
+          <div className="flex items-center justify-center pt-2 pb-2">
+            <img src="/logo.png" alt="Bederly Logo" className="h-10 w-auto object-contain" />
           </div>
           <div className="flex items-center gap-2 px-2 py-2">
             <div className="flex items-center gap-2">
@@ -187,9 +192,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="p-4">
-            <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-          </div>
+          <SidebarGroup>
+            <SidebarGroupLabel>Menu</SidebarGroupLabel>
+            <SidebarMenu>
+              {[1, 2, 3].map((i) => (
+                <SidebarMenuItem key={i}>
+                  <div className="flex h-8 items-center gap-2 rounded-md px-2">
+                    <div className="size-4 bg-sidebar-accent rounded animate-pulse"></div>
+                    <div className="h-4 bg-sidebar-accent rounded animate-pulse flex-1"></div>
+                  </div>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
         </SidebarContent>
       </Sidebar>
     );
@@ -199,21 +214,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-center pt-2 pb-2">
-          <img 
-            src="/logo.png" 
-            alt="Bederly Logo" 
-            className="h-10 w-auto object-contain"
-          />
+          <img src="/logo.png" alt="Bederly Logo" className="h-10 w-auto object-contain" />
         </div>
-        <TeamSwitcher teams={getTeams()} />
+        <TeamSwitcher teams={getTeams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={getNavMainItems()} />
+        <NavMain items={getNavMainItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={getUserData()} />
+        <NavUser user={getUserData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

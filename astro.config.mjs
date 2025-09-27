@@ -14,4 +14,8 @@ export default defineConfig({
   },
   
   integrations: [react()],
+  
+  experimental: {
+    clientPrerender: true,
+  },
 });
