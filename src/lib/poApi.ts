@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
 
-export type ItemType = 'วัตถุดิบ' | 'เครื่องมือ' | 'วัสดุสิ้นเปลือง' | 'Software';
+export type ItemType = 'วัตถุดิบ' | 'เครื่องมือ' | 'วัสดุสิ้นเปลือง' | 'Software/Hardware';
 export type ProcurementStatus = 'จัดซื้อ' | 'ของมาส่ง' | 'ส่งมอบของ' | 'คลังสินค้า' | 'จัดซื้อ_2' | 'ของมาส่ง_2' | 'ส่งมอบของ_2';
 
 export type Item = {
@@ -544,7 +544,7 @@ export const getItemTypeColor = (itemType: ItemType): string => {
       return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'วัสดุสิ้นเปลือง':
       return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'Software':
+    case 'Software/Hardware':
       return 'bg-purple-100 text-purple-800 border-purple-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';

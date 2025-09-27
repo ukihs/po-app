@@ -16,7 +16,12 @@ import {
   Truck,
   Tag,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Search,
+  Filter,
+  Eye,
+  LayoutGrid,
+  Table2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '../ui/sonner';
@@ -26,6 +31,17 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Alert, AlertDescription } from '../ui/alert';
+import { Input } from '../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { 
   Stepper, 
   StepperItem, 
@@ -68,6 +84,7 @@ interface OrderData {
 export default function TrackingPage() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<OrderData[]>([]);
+  const [filteredRows, setFilteredRows] = useState<OrderData[]>([]);
   const [err, setErr] = useState('');
   const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
@@ -79,6 +96,11 @@ export default function TrackingPage() {
     orderNo: number;
     requesterName: string;
   } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     let offOrders: any;
@@ -149,6 +171,7 @@ export default function TrackingPage() {
             });
             
             setRows(list);
+            setFilteredRows(list);
             setErr('');
             setLoading(false);
           },
@@ -168,6 +191,26 @@ export default function TrackingPage() {
       offAuth?.();
     };
   }, []);
+
+  useEffect(() => {
+    let filtered = rows;
+
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(order => 
+        order.requesterName.toLowerCase().includes(searchLower) ||
+        order.orderNo.toString().includes(searchTerm) ||
+        order.id.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+
+    setFilteredRows(filtered);
+    setCurrentPage(1);
+  }, [rows, searchTerm, statusFilter]);
 
   const showApprovalModal = (orderId: string, approved: boolean, orderNo: number, requesterName: string) => {
     setConfirmData({
@@ -252,6 +295,22 @@ export default function TrackingPage() {
     return status;
   };
 
+  const paginatedRows = filteredRows.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const refreshData = () => {
+    window.location.reload();
+  };
+
+
   if (loading) {
     return (
       <div className="w-full">
@@ -326,8 +385,193 @@ export default function TrackingPage() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        {rows.map((order) => (
+      <Card className="mb-6">
+        <CardHeader className="pb-2 px-6">
+          <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
+            <div className="flex gap-2 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="สถานะทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">สถานะทั้งหมด</SelectItem>
+                  <SelectItem value="pending">รออนุมัติ</SelectItem>
+                  <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
+                  <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
+                  <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
+                  <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    มุมมอง
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>เลือกมุมมอง</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setViewMode('card')}>
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    แบบการ์ด
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setViewMode('table')}>
+                    <Table2 className="h-4 w-4 mr-2" />
+                    แบบตาราง
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshData}
+                disabled={loading}
+              >
+                {loading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                รีเฟรช
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="px-6 pb-4 pt-0">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>แสดง {filteredRows.length} รายการจาก {rows.length} รายการทั้งหมด</span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">หน้า {currentPage} จาก {totalPages}</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredRows.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-bold mb-2">ไม่พบข้อมูล</h3>
+          <p className="text-muted-foreground">
+            {searchTerm || statusFilter !== 'all' 
+              ? 'ลองปรับเงื่อนไขการค้นหาหรือกรอง' 
+              : 'ยังไม่มีใบขอซื้อในระบบ'}
+          </p>
+        </div>
+      ) : viewMode === 'table' ? (
+        <Card>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>หมายเลขใบขอซื้อ</TableHead>
+                  <TableHead>ผู้ขอซื้อ</TableHead>
+                  <TableHead>วันที่</TableHead>
+                  <TableHead>ยอดรวม</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead>การดำเนินการ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedRows.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">
+                      {generateOrderNumber(order.orderNo, order.date)}
+                    </TableCell>
+                    <TableCell>{order.requesterName}</TableCell>
+                    <TableCell>{order.date}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {order.total.toLocaleString('th-TH')} บาท
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(order.status)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`/orders/${order.id}`, '_blank')}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          ดูรายละเอียด
+                        </Button>
+                        {role === 'supervisor' && order.status === 'pending' && (
+                          <>
+                            <Button
+                              onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
+                              disabled={processingOrders.has(order.id)}
+                              size="sm"
+                              className="bg-green-500 text-white hover:bg-green-600"
+                            >
+                              {processingOrders.has(order.id) ? (
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                              )}
+                              อนุมัติ
+                            </Button>
+                            <Button
+                              onClick={() => showApprovalModal(order.id, false, order.orderNo, order.requesterName)}
+                              disabled={processingOrders.has(order.id)}
+                              size="sm"
+                              variant="destructive"
+                            >
+                              {processingOrders.has(order.id) ? (
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <XCircle className="w-3 h-3 mr-1" />
+                              )}
+                              ไม่อนุมัติ
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {paginatedRows.map((order) => (
           <Card key={order.id} className="shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -435,10 +679,19 @@ export default function TrackingPage() {
                      </div>
                    </div>
                    
-                   {role === 'supervisor' && order.status === 'pending' && (
-                     <div className="mt-4 flex justify-end">
+                   <div className="mt-4 flex justify-between items-center">
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => window.open(`/orders/${order.id}`, '_blank')}
+                     >
+                       <Eye className="h-4 w-4 mr-1" />
+                       ดูรายละเอียด
+                     </Button>
+                     
+                     {role === 'supervisor' && order.status === 'pending' && (
                        <div className="flex gap-2">
-                       <Button
+                         <Button
                            onClick={() => showApprovalModal(order.id, false, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
@@ -465,14 +718,65 @@ export default function TrackingPage() {
                            อนุมัติ
                          </Button>
                        </div>
-                     </div>
-                   )}
+                     )}
+                   </div>
                 </div>
               )}
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
+      
+      {totalPages > 1 && (
+        <Card className="mt-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} 
+                จาก {filteredRows.length} รายการ
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  หน้าแรก
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  ก่อนหน้า
+                </Button>
+                <span className="text-sm px-3">
+                  หน้า {currentPage} จาก {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  ถัดไป
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  หน้าสุดท้าย
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>

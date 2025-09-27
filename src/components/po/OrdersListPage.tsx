@@ -10,14 +10,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { subscribeAuthAndRole } from '../../lib/auth';
-import { ChevronDown, ChevronRight, Loader2, Search, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
+import OrdersDataTable from './OrdersDataTable';
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | null;
 type OrderStatus = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
@@ -47,34 +44,6 @@ type Order = {
   itemsStatuses?: Record<string, string>;
 };
 
-const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
-
-const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: 'approved',    label: 'อนุมัติแล้ว' },
-  { value: 'in_progress', label: 'กำลังดำเนินการ' },
-  { value: 'delivered',   label: 'ได้รับแล้ว' },
-];
-
-const STATUS_TH: Record<OrderStatus,string> = {
-  pending:'รออนุมัติ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', in_progress:'กำลังดำเนินการ', delivered:'ได้รับแล้ว'
-};
-const STATUS_BADGE: Record<OrderStatus,string> = {
-  pending:'bg-yellow-100 text-yellow-800',
-  approved:'bg-emerald-100 text-emerald-800',
-  rejected:'bg-rose-100 text-rose-800',
-  in_progress:'bg-sky-100 text-sky-800',
-  delivered:'bg-emerald-100 text-emerald-800',
-};
-
-const ITEM_STATUS_G1 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ', 'สินค้าเข้าคลัง'] as const;
-const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ'] as const;
-const getItemStatusOptions = (category?: string) =>
-  category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
-
-const fmtTS = (ts:any) =>
-  ts?.toDate
-    ? ts.toDate().toLocaleString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
-    : '—';
 
 type Drafts = Record<string, Record<number, {category?:string; itemStatus?:string}>>;
 
@@ -87,7 +56,6 @@ export default function OrdersListPage(){
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set());
   const [drafts, setDrafts] = useState<Drafts>({});
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     let unsub: (()=>void)|undefined;
@@ -128,23 +96,6 @@ export default function OrdersListPage(){
   },[]);
 
   const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Filter orders based on search term
-    // This will be implemented with the filtered orders
-  };
-
-  const filteredOrders = orders.filter(order => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      order.requesterName?.toLowerCase().includes(searchLower) ||
-      order.requester?.toLowerCase().includes(searchLower) ||
-      order.id.toLowerCase().includes(searchLower) ||
-      order.orderNo?.toString().includes(searchTerm)
-    );
-  });
 
   const getItemValue = (o:Order, idx:number)=>{
     const d = drafts[o.id]?.[idx] || {};
@@ -250,21 +201,9 @@ export default function OrdersListPage(){
       <Card>
         <CardHeader className="pb-2 px-6">
           <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-            <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="ค้นหาชื่อผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
-                  className="pl-10 w-full lg:w-74"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-muted px-1.5 py-0.5 text-xs rounded">Enter</kbd>
-                )}
-              </div>
-            </form>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold">รายการใบขอซื้อ</h2>
+            </div>
 
             <div className="flex gap-2">
               <Button
@@ -285,187 +224,19 @@ export default function OrdersListPage(){
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-6 pt-0">
-          {loading ? (
-            <div className="flex justify-center items-center p-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-              <span className="ml-4 text-lg">โหลดข้อมูลใบสั่งซื้อ...</span>
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="text-center p-12">
-              <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลใบสั่งซื้อ</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'ลองปรับเงื่อนไขการค้นหา' : 'ยังไม่มีใบสั่งซื้อในระบบ'}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>รายการที่</TableHead>
-                    <TableHead>วันที่</TableHead>
-                    <TableHead>ผู้ขอซื้อ</TableHead>
-                    <TableHead>ยอดรวม</TableHead>
-                    <TableHead>สถานะ</TableHead>
-                    <TableHead>การดำเนินการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map(o=>{
-                  const isOpen = !!expanded[o.id];
-                  const total = (o.totalAmount??o.total??0) as number;
-
-                  return (
-                    <React.Fragment key={o.id}>
-                      <TableRow>
-                        <TableCell className="font-medium">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="inline-flex items-center gap-1 h-auto p-0 font-medium"
-                            onClick={()=>toggle(o.id)}
-                          >
-                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                            #{o.orderNo ?? '-'}
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{o.date || fmtTS(o.createdAt)}</TableCell>
-                        <TableCell>{o.requesterName || o.requester || '-'}</TableCell>
-                        <TableCell className="tabular-nums">{total.toLocaleString('th-TH')} บาท</TableCell>
-                        <TableCell>
-                          <Badge className={STATUS_BADGE[o.status]}>
-                            {STATUS_TH[o.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {role === 'procurement' ? (
-                            <div className="flex items-center gap-2">
-                              <Select
-                                value={o.status}
-                                onValueChange={(value)=>saveOrderStatus(o, value as OrderStatus)}
-                                disabled={processingKeys.has(o.id)}
-                              >
-                                <SelectTrigger className="w-[180px]">
-                                 <SelectValue placeholder="เลือกสถานะ…" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {ORDER_STATUS_OPTIONS.map(x=>(
-                                    <SelectItem key={x.value} value={x.value}>{x.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              {processingKeys.has(o.id) && <Loader2 className="h-4 w-4 animate-spin" />}
-                            </div>
-                          ) : <span className="text-muted-foreground">—</span>}
-                        </TableCell>
-                      </TableRow>
-
-                      {isOpen && (
-                        <TableRow>
-                          <TableCell colSpan={6} className="p-0">
-                            <div className="bg-muted/50 p-4">
-                              <div className="rounded-md border bg-background overflow-hidden">
-                                <div className="px-4 py-3 text-sm font-semibold border-b">รายการสินค้า</div>
-                                <div className="overflow-x-auto">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead>รายละเอียด</TableHead>
-                                        <TableHead>จำนวน</TableHead>
-                                        <TableHead>ราคาต่อหน่วย(บาท)</TableHead>
-                                        <TableHead>รวมทั้งสิ้น(บาท)</TableHead>
-                                        <TableHead>ประเภทสินค้า</TableHead>
-                                        <TableHead>สถานะรายการ</TableHead>
-                                        {role === 'procurement' && (
-                                          <TableHead></TableHead>
-                                        )}
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                    {(o.items||[]).map((it, idx)=>{
-                                      const val = getItemValue(o, idx);
-                                      const options = getItemStatusOptions(val.category);
-
-                                      return (
-                                        <TableRow key={idx}>
-                                          <TableCell>{it.description || '-'}</TableCell>
-                                          <TableCell>{it.quantity ?? '-'}</TableCell>
-                                          <TableCell>{it.amount!=null ? Number(it.amount).toLocaleString('th-TH') : '-'}</TableCell>
-                                          <TableCell>{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</TableCell>
-
-                                          <TableCell>
-                                            {role === 'procurement' ? (
-                                              <Select
-                                                value={val.category}
-                                                onValueChange={(value)=>setDraft(o.id, idx, {category: value})}
-                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                              >
-                                                <SelectTrigger>
-                                                  <SelectValue placeholder="เลือกประเภท…" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                  {ITEM_CATEGORIES.map(c=> <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                                </SelectContent>
-                                              </Select>
-                                            ) : (
-                                              <Badge variant={val.category ? "secondary" : "outline"}>
-                                                {val.category || 'ยังไม่ระบุ'}
-                                              </Badge>
-                                            )}
-                                          </TableCell>
-
-                                          <TableCell>
-                                            {role === 'procurement' ? (
-                                              <Select
-                                                value={val.itemStatus}
-                                                onValueChange={(value)=>setDraft(o.id, idx, {itemStatus: value})}
-                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                              >
-                                                <SelectTrigger>
-                                                 <SelectValue placeholder="เลือกประเภท…" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                  {options.map(s=> <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                                </SelectContent>
-                                              </Select>
-                                            ) : (
-                                              <Badge variant={val.itemStatus ? "default" : "outline"}>
-                                                {val.itemStatus || 'รอดำเนินการ'}
-                                              </Badge>
-                                            )}
-                                          </TableCell>
-
-                                          {role === 'procurement' && (
-                                            <TableCell>
-                                              <Button
-                                                className="bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal"
-                                                size="sm"
-                                                onClick={()=>saveOneItem(o, idx)}
-                                                disabled={processingKeys.has(`${o.id}:${idx}`)}
-                                              >
-                                                {processingKeys.has(`${o.id}:${idx}`) && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-                                                บันทึก
-                                              </Button>
-                                            </TableCell>
-                                          )}
-                                        </TableRow>
-                                      );
-                                    })}
-                                    </TableBody>
-                                  </Table>
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <OrdersDataTable
+            data={orders}
+            loading={loading}
+            role={role}
+            expanded={expanded}
+            processingKeys={processingKeys}
+            drafts={drafts}
+            onToggleExpanded={toggle}
+            onSaveOrderStatus={saveOrderStatus}
+            onSaveItem={saveOneItem}
+            onSetDraft={setDraft}
+            onGetItemValue={getItemValue}
+          />
         </CardContent>
       </Card>
     </div>
