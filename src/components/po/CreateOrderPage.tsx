@@ -39,7 +39,20 @@ export default function CreateOrderPage() {
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
-    setRequester(u.displayName || (u.email ?? '').split('@')[0]);
+    
+    const defaultRequester = u.displayName || (u.email ?? '').split('@')[0];
+    setRequester(defaultRequester);
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        const defaultRequester = user.displayName || (user.email ?? '').split('@')[0];
+        setRequester(defaultRequester);
+      }
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
