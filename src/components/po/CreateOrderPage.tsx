@@ -185,7 +185,13 @@ export default function CreateOrderPage() {
       const itemsWithType = items.map(item => ({ ...item, itemType: 'วัตถุดิบ' as ItemType }));
       const dateString = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
       await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
-      window.location.href = '/orders/tracking';
+      
+      toast.success('สร้างใบขอซื้อสำเร็จแล้ว');
+      
+      setRequester('');
+      setItems([]);
+      setSelectedDate(new Date());
+      setSubmitted(false);
     } catch (e: any) {
       toast.error(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
     } finally {
