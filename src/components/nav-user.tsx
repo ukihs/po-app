@@ -1,9 +1,13 @@
 "use client"
 
+import * as React from "react"
 import {
   ChevronsUpDown,
   LogOut,
-  User,
+  Sun,
+  Moon,
+  Monitor,
+  Settings,
 } from "lucide-react"
 
 import {
@@ -14,11 +18,13 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   SidebarMenu,
@@ -38,11 +44,25 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const [theme, setThemeState] = React.useState<"light" | "dark" | "system">("light")
 
   const getAvatarFallback = () => {
     if (!user?.name) return 'U';
     return user.name.charAt(0).toUpperCase();
   };
+
+  React.useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    setThemeState(isDarkMode ? "dark" : "light");
+  }, []);
+
+  React.useEffect(() => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+  }, [theme]);
 
   return (
     <SidebarMenu>
@@ -65,7 +85,7 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-56"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -83,9 +103,33 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOutUser}>
-              <LogOut />
-              ออกจากระบบ
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Theme</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setThemeState("light")}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light Mode</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setThemeState("dark")}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark Mode</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setThemeState("system")}>
+                  <Monitor className="mr-2 h-4 w-4" />
+                  <span>System</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={signOutUser} variant="destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
