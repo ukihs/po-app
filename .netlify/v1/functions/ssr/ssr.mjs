@@ -5,7 +5,7 @@
 					includedFiles: ['**/*'],
 					name: 'Astro SSR',
 					nodeBundler: 'none',
-					generator: '@astrojs/netlify@6.5.10',
+					generator: '@astrojs/netlify@6.5.11',
 					path: '/*',
 					preferStatic: true,
 				};

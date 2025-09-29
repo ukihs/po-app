@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   UserPlus, 
-  RefreshCw, 
   Users,
   Edit,
   Trash2,
@@ -10,7 +9,6 @@ import {
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader } from '../ui/card';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -372,47 +370,13 @@ export default function UsersManagementPage() {
 
       <Toaster />
 
-      <Card>
-        <CardHeader className="pb-2 px-6">
-          <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">รายการผู้ใช้งาน</h2>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchUsers}
-                disabled={loading}
-              >
-                {loading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                รีเฟรช
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setShowCreateModal(true)}
-                className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                เพิ่มผู้ใช้
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
-          <UsersDataTable 
-            data={users}
-            loading={loading}
-            onEditUser={handleEditUser}
-            onDeleteUser={handleDeleteUser}
-          />
-        </CardContent>
-      </Card>
+      <UsersDataTable 
+        data={users}
+        loading={loading}
+        onEditUser={handleEditUser}
+        onDeleteUser={handleDeleteUser}
+        onAddUser={() => setShowCreateModal(true)}
+      />
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>

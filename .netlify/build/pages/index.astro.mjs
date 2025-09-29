@@ -1,4 +1,4 @@
-import { d as createComponent, e as createAstro } from '../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, e as createAstro } from '../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
 import 'clsx';
 /* empty css                                */
@@ -31,9 +31,9 @@ const $$Index = createComponent(($$result, $$props, $$slots) => {
     }
   }
   return Astro2.redirect(redirectUrl);
-}, "C:/Projects/Astro/test03/po-app/src/pages/index.astro", void 0);
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/index.astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/index.astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/index.astro";
 const $$url = "";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({

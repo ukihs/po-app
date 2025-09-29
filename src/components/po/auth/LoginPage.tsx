@@ -4,7 +4,6 @@ import { AlertCircle, CheckCircle, Info, AlertTriangle, X, Loader2 } from "lucid
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
 import { Alert, AlertDescription } from "../../ui/alert";
 
 interface LoginError extends Error {
@@ -138,7 +137,7 @@ export default function LoginPage() {
       {alert.show && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
           <Alert
-            variant={alert.type === "error" ? "destructive" : "default"}
+            variant={alert.type === "error" ? "destructive" : "primary"}
             className="shadow-lg border-0"
             role="alert"
             aria-live="polite"
@@ -162,72 +161,68 @@ export default function LoginPage() {
         </div>
       )}
 
-      <Card className="max-w-md w-full shadow-xl">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <img
-              src="/logo.png"
-              alt="Beverly Logo"
-              className="h-16 w-auto object-contain"
+      <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8">
+        <div className="text-center space-y-6 mb-8">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex justify-center">
+              <img
+                src="/logo.png"
+                alt="Bederly Logo"
+                className="h-16 w-auto object-contain"
+              />
+            </div>
+            <h1 className="text-2xl font-bold">เข้าสู่ระบบ</h1>
+          </div>
+        </div>
+
+        <form onSubmit={submit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="email">อีเมล</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="กรอกอีเมลของคุณ"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-11"
+              disabled={isLoading}
             />
           </div>
-          <CardTitle className="text-2xl font-bold">เข้าสู่ระบบ</CardTitle>
-        </CardHeader>
 
-        <CardContent>
-          <form onSubmit={submit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">อีเมล</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="กรอกอีเมลของคุณ"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11"
-                disabled={isLoading}
-                aria-describedby="email-error"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">รหัสผ่าน</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                placeholder="กรอกรหัสผ่านของคุณ"
-                value={pass}
-                onChange={(e) => setPass(e.target.value)}
-                className="h-11"
-                disabled={isLoading}
-                aria-describedby="password-error"
-              />
-            </div>
-
-            <Button
-              type="submit"
+          <div className="space-y-2">
+            <Label htmlFor="password">รหัสผ่าน</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              placeholder="กรอกรหัสผ่านของคุณ"
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              className="h-11"
               disabled={isLoading}
-              className="w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label={isLoading ? "กำลังเข้าสู่ระบบ" : "เข้าสู่ระบบ"}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  กำลังเข้าสู่ระบบ...
-                </>
-              ) : (
-                "เข้าสู่ระบบ"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 bg-[#6EC1E4] hover:bg-[#2b9ccc] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={isLoading ? "กำลังเข้าสู่ระบบ" : "เข้าสู่ระบบ"}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                กำลังเข้าสู่ระบบ...
+              </>
+            ) : (
+              "เข้าสู่ระบบ"
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

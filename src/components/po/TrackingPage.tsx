@@ -21,7 +21,9 @@ import {
   Filter,
   Eye,
   LayoutGrid,
-  Table2
+  Table2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '../ui/sonner';
@@ -34,6 +36,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationEllipsis } from '../ui/pagination';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -306,9 +309,6 @@ export default function TrackingPage() {
     setCurrentPage(page);
   };
 
-  const refreshData = () => {
-    window.location.reload();
-  };
 
 
   if (loading) {
@@ -316,7 +316,7 @@ export default function TrackingPage() {
       <div className="w-full">
         <div className="text-center py-12">
           <div className="flex justify-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-[#6EC1E4]" />
+            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
           </div>
           <p className="mt-4 text-muted-foreground">กำลังโหลดข้อมูล...</p>
         </div>
@@ -355,7 +355,7 @@ export default function TrackingPage() {
           {role === 'buyer' && (
             <Button 
               asChild
-              className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
+              variant="primary"
             >
               <a href="/orders/create">
                 สร้างใบขอซื้อ
@@ -373,7 +373,7 @@ export default function TrackingPage() {
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <FileText className="w-8 h-8 text-[#2b9ccc]" />
+          <FileText className="w-8 h-8 text-primary" />
           {role === 'buyer' ? 'ติดตามสถานะใบขอซื้อ' : 
            role === 'supervisor' ? 'ติดตามและอนุมัติใบขอซื้อ' :
            'ติดตามใบขอซื้อทั้งหมด'}
@@ -385,101 +385,65 @@ export default function TrackingPage() {
         </p>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-2 px-6">
-          <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-            <div className="flex gap-2 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="สถานะทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-                  <SelectItem value="pending">รออนุมัติ</SelectItem>
-                  <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
-                  <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
-                  <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
-                  <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Search and Filter Section */}
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
+                className="pl-10 h-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] h-10">
+                <SelectValue placeholder="สถานะทั้งหมด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">สถานะทั้งหมด</SelectItem>
+                <SelectItem value="pending">รออนุมัติ</SelectItem>
+                <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
+                <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
+                <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
+                <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    มุมมอง
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>เลือกมุมมอง</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setViewMode('card')}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    แบบการ์ด
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setViewMode('table')}>
-                    <Table2 className="h-4 w-4 mr-2" />
-                    แบบตาราง
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshData}
-                disabled={loading}
-              >
-                {loading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                รีเฟรช
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10 px-4">
+                <Filter className="h-4 w-4 mr-2" />
+                มุมมอง
               </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-4 pt-0">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>แสดง {filteredRows.length} รายการจาก {rows.length} รายการทั้งหมด</span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm">หน้า {currentPage} จาก {totalPages}</span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    ก่อนหน้า
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    ถัดไป
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>เลือกมุมมอง</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setViewMode('card')}>
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                แบบการ์ด
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setViewMode('table')}>
+                <Table2 className="h-4 w-4 mr-2" />
+                แบบตาราง
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Results Summary */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>แสดง {filteredRows.length} รายการจาก {rows.length} รายการทั้งหมด</span>
+          {totalPages > 1 && (
+            <span>หน้า {currentPage} จาก {totalPages}</span>
+          )}
+        </div>
+      </div>
 
       {filteredRows.length === 0 ? (
         <div className="text-center py-12">
@@ -537,7 +501,7 @@ export default function TrackingPage() {
                               onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                               disabled={processingOrders.has(order.id)}
                               size="sm"
-                              className="bg-green-500 text-white hover:bg-green-600"
+                              variant="primary"
                             >
                               {processingOrders.has(order.id) ? (
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -630,11 +594,11 @@ export default function TrackingPage() {
                               </div>
                               
                               <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="secondary" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm">
+                                <Badge variant="info" appearance="light" className="flex items-center gap-1">
                                   <Tag className="w-3 h-3" />
                                   ประเภท: {category}
                                 </Badge>
-                                <Badge variant="secondary" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 shadow-sm">
+                                <Badge variant="secondary" appearance="light" className="flex items-center gap-1">
                                   <Activity className="w-3 h-3" />
                                   สถานะ: {itemStatus}
                                 </Badge>
@@ -674,7 +638,7 @@ export default function TrackingPage() {
                        </div>
                        <div>
                          <span>ยอดรวมทั้งสิ้น : </span>
-                         <span className="text-lg font-bold text-[#6EC1E4]">{order.total.toLocaleString('th-TH')} บาท</span>
+                         <span className="text-lg font-bold text-primary">{order.total.toLocaleString('th-TH')} บาท</span>
                        </div>
                      </div>
                    </div>
@@ -695,7 +659,8 @@ export default function TrackingPage() {
                            onClick={() => showApprovalModal(order.id, false, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
-                           className="bg-white text-red-500 border border-red-500 hover:bg-red-600 hover:text-white font-normal"
+                           variant="destructive"
+                           className="font-normal"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -708,7 +673,8 @@ export default function TrackingPage() {
                            onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
-                           className="bg-green-500 text-white hover:bg-green-600 font-normal"
+                           variant="primary"
+                           className="font-normal"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -728,58 +694,102 @@ export default function TrackingPage() {
         </div>
       )}
       
+      {/* Pagination Section */}
       {totalPages > 1 && (
-        <Card className="mt-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} 
-                จาก {filteredRows.length} รายการ
-              </span>
-              <div className="flex items-center gap-2">
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} 
+            จาก {filteredRows.length} รายการ
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
+                  className="h-10 w-10 p-0"
                 >
-                  หน้าแรก
+                  <span className="sr-only">หน้าแรก</span>
+                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 -ml-1" />
                 </Button>
+              </PaginationItem>
+              
+              <PaginationItem>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="h-10 w-10 p-0"
                 >
-                  ก่อนหน้า
+                  <span className="sr-only">ก่อนหน้า</span>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm px-3">
-                  หน้า {currentPage} จาก {totalPages}
-                </span>
+              </PaginationItem>
+
+              {/* Show page numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={page}>
+                      <Button
+                        variant={currentPage === page ? "primary" : "outline"}
+                        onClick={() => handlePageChange(page)}
+                        className="h-10 w-10"
+                      >
+                        {page}
+                      </Button>
+                    </PaginationItem>
+                  );
+                } else if (
+                  page === currentPage - 2 ||
+                  page === currentPage + 2
+                ) {
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+                return null;
+              })}
+
+              <PaginationItem>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  className="h-10 w-10 p-0"
                 >
-                  ถัดไป
+                  <span className="sr-only">ถัดไป</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
+              </PaginationItem>
+
+              <PaginationItem>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
+                  className="h-10 w-10 p-0"
                 >
-                  หน้าสุดท้าย
+                  <span className="sr-only">หน้าสุดท้าย</span>
+                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 -ml-1" />
                 </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent>
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {confirmData?.approved ? (
@@ -813,10 +823,10 @@ export default function TrackingPage() {
               ยกเลิก
             </Button>
             <Button 
-              className={
+              variant={
                 confirmData?.approved 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-red-500 hover:bg-red-600'
+                  ? 'primary' 
+                  : 'destructive'
               }
               onClick={handleApproval}
               disabled={processingOrders.has(confirmData?.orderId || '')}
@@ -842,42 +852,42 @@ function getStatusBadge(status: Status) {
   switch (status) {
     case 'pending':
       return (
-        <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 shadow-sm">
+        <Badge variant="warning" appearance="light" className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
           รออนุมัติ
         </Badge>
       );
     case 'approved':
       return (
-        <Badge variant="secondary" className="flex items-center gap-1 bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 shadow-sm">
+        <Badge variant="success" appearance="light" className="flex items-center gap-1">
           <CheckCircle className="w-3 h-3" />
           อนุมัติแล้ว
         </Badge>
       );
     case 'rejected':
       return (
-        <Badge variant="destructive" className="flex items-center gap-1 bg-red-100 text-red-800 border-red-200 hover:bg-red-200 shadow-sm">
+        <Badge variant="destructive" appearance="light" className="flex items-center gap-1">
           <XCircle className="w-3 h-3" />
           ไม่อนุมัติ
         </Badge>
       );
     case 'in_progress':
       return (
-        <Badge variant="secondary" className="flex items-center gap-1 bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-200 shadow-sm">
+        <Badge variant="info" appearance="light" className="flex items-center gap-1">
           <Truck className="w-3 h-3" />
           กำลังดำเนินการ
         </Badge>
       );
     case 'delivered':
       return (
-        <Badge variant="secondary" className="flex items-center gap-1 bg-teal-100 text-teal-800 border-teal-200 hover:bg-teal-200 shadow-sm">
+        <Badge variant="success" appearance="light" className="flex items-center gap-1">
           <Package className="w-3 h-3" />
           ได้รับแล้ว
         </Badge>
       );
     default:
       return (
-        <Badge variant="outline" className="flex items-center gap-1 bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 shadow-sm">
+        <Badge variant="secondary" appearance="light" className="flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
           {status}
         </Badge>
@@ -947,7 +957,7 @@ function renderProgressFlow(status: Status) {
                 <StepperIndicator className={cn(
                   "size-8 border-2 flex items-center justify-center",
                   stepNumber < currentStep && "data-[state=completed]:text-white data-[state=completed]:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-[#6EC1E4] data-[state=active]:text-white data-[state=active]:border-[#6EC1E4]",
+                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary",
                   isRejected && "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:border-red-500",
                   stepNumber > currentStep && "data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground"
                 )}>
@@ -964,21 +974,22 @@ function renderProgressFlow(status: Status) {
                     {!isRejected && (
                       <>
                         <Badge
-                          variant="secondary"
-                          className="hidden group-data-[state=active]/step:inline-flex bg-[#6EC1E4] text-white hover:bg-[#6EC1E4]"
+                          variant="primary"
+                          className="hidden group-data-[state=active]/step:inline-flex"
                         >
                           รอดำเนินการ
                         </Badge>
 
                         <Badge
-                          variant="secondary"
-                          className="hidden group-data-[state=completed]/step:inline-flex bg-green-500 text-white hover:bg-green-500"
+                          variant="success"
+                          className="hidden group-data-[state=completed]/step:inline-flex"
                         >
                           เสร็จสิ้น
                         </Badge>
 
                         <Badge
-                          variant="outline"
+                          variant="secondary"
+                          appearance="outline"
                           className="hidden group-data-[state=inactive]/step:inline-flex text-muted-foreground"
                         >
                           รอคิว
@@ -1002,7 +1013,7 @@ function renderProgressFlow(status: Status) {
                 <StepperSeparator className={cn(
                   "absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none",
                   stepNumber < currentStep && "group-data-[state=completed]/step:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-[#6EC1E4]",
+                  stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-primary",
                   stepNumber > currentStep && "group-data-[state=inactive]/step:bg-muted"
                 )} />
               )}

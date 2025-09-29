@@ -1,13 +1,13 @@
-import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { $ as $$MainLayout } from '../../chunks/MainLayout_R7ZpnFBV.mjs';
+import { C as Card, a as CardContent, b as CardHeader, l as CardTitle, $ as $$MainLayout } from '../../chunks/card_CLRfQ6X5.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { s as subscribeAuthAndRole, i as db, C as Card, c as CardContent, a as CardHeader, b as CardTitle, B as Button, h as auth } from '../../chunks/card_DPKHX6pj.mjs';
+import { s as subscribeAuthAndRole, f as db, B as Button, e as auth } from '../../chunks/input_CuwRcyyb.mjs';
 import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { B as Badge } from '../../chunks/badge_CZCfTozJ.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Bdv0yE5d.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B7UI7IZ0.mjs';
+import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 export { renderers } from '../../renderers.mjs';
 
@@ -244,10 +244,10 @@ const $$id = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$id;
   const { id } = Astro2.params;
-  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, {}, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "OrderDetailPage", OrderDetailPage, { "client:load": true, "orderId": id || "", "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/OrderDetailPage", "client:component-export": "default" })} ` })}`;
-}, "C:/Projects/Astro/test03/po-app/src/pages/orders/[id].astro", void 0);
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, {}, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "OrderDetailPage", OrderDetailPage, { "client:load": true, "orderId": id || "", "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/Bederly/po-app/src/components/po/OrderDetailPage", "client:component-export": "default" })} ` })}`;
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/orders/[id].astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/orders/[id].astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/orders/[id].astro";
 const $$url = "/orders/[id]";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({

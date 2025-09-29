@@ -1,12 +1,11 @@
-import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect, useCallback } from 'react';
-import { s as subscribeAuthAndRole, B as Button, C as Card, a as CardHeader, b as CardTitle, c as CardContent, d as signIn, e as createAuthCookie } from '../chunks/card_DPKHX6pj.mjs';
+import { s as subscribeAuthAndRole, B as Button, I as Input, a as signIn, c as createAuthCookie } from '../chunks/input_CuwRcyyb.mjs';
 import { Info, AlertCircle, AlertTriangle, CheckCircle, X, Loader2 } from 'lucide-react';
-import { I as Input } from '../chunks/input_BW0kI7pb.mjs';
-import { L as Label } from '../chunks/label_Cbq84TUY.mjs';
-import { A as Alert, a as AlertDescription } from '../chunks/alert_B7UI7IZ0.mjs';
+import { L as Label } from '../chunks/label_B4e7hkFR.mjs';
+import { A as Alert, a as AlertDescription } from '../chunks/alert_DVins7mI.mjs';
 /* empty css                                */
 export { renderers } from '../renderers.mjs';
 
@@ -117,7 +116,7 @@ function LoginPage() {
     alert.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ jsxs(
       Alert,
       {
-        variant: alert.type === "error" ? "destructive" : "default",
+        variant: alert.type === "error" ? "destructive" : "primary",
         className: "shadow-lg border-0",
         role: "alert",
         "aria-live": "polite",
@@ -140,26 +139,25 @@ function LoginPage() {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxs(Card, { className: "max-w-md w-full shadow-xl", children: [
-      /* @__PURE__ */ jsxs(CardHeader, { className: "text-center space-y-4", children: [
+    /* @__PURE__ */ jsxs("div", { className: "max-w-md w-full bg-white rounded-xl shadow-xl p-8", children: [
+      /* @__PURE__ */ jsx("div", { className: "text-center space-y-6 mb-8", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col items-center space-y-4", children: [
         /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(
           "img",
           {
             src: "/logo.png",
-            alt: "Beverly Logo",
+            alt: "Bederly Logo",
             className: "h-16 w-auto object-contain"
           }
         ) }),
-        /* @__PURE__ */ jsx(CardTitle, { className: "text-2xl font-bold", children: "เข้าสู่ระบบ" })
-      ] }),
-      /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-6", children: [
+        /* @__PURE__ */ jsx("h1", { className: "text-2xl font-bold", children: "เข้าสู่ระบบ" })
+      ] }) }),
+      /* @__PURE__ */ jsxs("form", { onSubmit: submit, className: "space-y-6", children: [
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsx(Label, { htmlFor: "email", children: "อีเมล" }),
           /* @__PURE__ */ jsx(
             Input,
             {
               id: "email",
-              name: "email",
               type: "email",
               autoComplete: "email",
               required: true,
@@ -167,8 +165,7 @@ function LoginPage() {
               value: email,
               onChange: (e) => setEmail(e.target.value),
               className: "h-11",
-              disabled: isLoading,
-              "aria-describedby": "email-error"
+              disabled: isLoading
             }
           )
         ] }),
@@ -178,7 +175,6 @@ function LoginPage() {
             Input,
             {
               id: "password",
-              name: "password",
               type: "password",
               autoComplete: "current-password",
               required: true,
@@ -186,8 +182,7 @@ function LoginPage() {
               value: pass,
               onChange: (e) => setPass(e.target.value),
               className: "h-11",
-              disabled: isLoading,
-              "aria-describedby": "password-error"
+              disabled: isLoading
             }
           )
         ] }),
@@ -196,7 +191,7 @@ function LoginPage() {
           {
             type: "submit",
             disabled: isLoading,
-            className: "w-full h-11 bg-[#64D1E3] hover:bg-[#4FB3C7] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed",
+            className: "w-full h-11 bg-[#6EC1E4] hover:bg-[#2b9ccc] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed",
             "aria-label": isLoading ? "กำลังเข้าสู่ระบบ" : "เข้าสู่ระบบ",
             children: isLoading ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx(Loader2, { className: "mr-2 h-4 w-4 animate-spin" }),
@@ -204,16 +199,16 @@ function LoginPage() {
             ] }) : "เข้าสู่ระบบ"
           }
         )
-      ] }) })
+      ] })
     ] })
   ] });
 }
 
 const $$Login = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`<html lang="th" data-theme="light"> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100"> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/auth/LoginPage", "client:component-export": "default" })} </body></html>`;
-}, "C:/Projects/Astro/test03/po-app/src/pages/login.astro", void 0);
+  return renderTemplate`<html lang="th" data-theme="light"> <head><meta charset="utf-8"><title>เข้าสู่ระบบ</title><meta name="viewport" content="width=device-width, initial-scale=1">${renderHead()}</head> <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100"> ${renderComponent($$result, "LoginPage", LoginPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/Bederly/po-app/src/components/po/auth/LoginPage", "client:component-export": "default" })} </body></html>`;
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/login.astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/login.astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/login.astro";
 const $$url = "/login";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({

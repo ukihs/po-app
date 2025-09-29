@@ -1,21 +1,50 @@
-import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, a as DropdownMenuTrigger, b as DropdownMenuContent, d as DropdownMenuLabel, e as DropdownMenuSeparator, f as DropdownMenuItem, S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_R7ZpnFBV.mjs';
+import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CLRfQ6X5.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { f as cn, s as subscribeAuthAndRole, i as db, B as Button, C as Card, a as CardHeader, c as CardContent } from '../../chunks/card_DPKHX6pj.mjs';
+import { b as cn, s as subscribeAuthAndRole, f as db, B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
 import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_zFWy2gqy.mjs';
-import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
+import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BPoLA-4y.mjs';
+import { MoreHorizontal, RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BlMe7gX3.mjs';
-import { B as Badge } from '../../chunks/badge_CZCfTozJ.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B7UI7IZ0.mjs';
-import { I as Input } from '../../chunks/input_BW0kI7pb.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_IhgbFlzr.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Bdv0yE5d.mjs';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
+import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
 export { renderers } from '../../renderers.mjs';
+
+const Pagination = ({ className, ...props }) => /* @__PURE__ */ jsx(
+  "nav",
+  {
+    "data-slot": "pagination",
+    role: "navigation",
+    "aria-label": "pagination",
+    className: cn("mx-auto flex w-full justify-center", className),
+    ...props
+  }
+);
+function PaginationContent({ className, ...props }) {
+  return /* @__PURE__ */ jsx("ul", { "data-slot": "pagination-content", className: cn("flex flex-row items-center gap-1", className), ...props });
+}
+function PaginationItem({ className, ...props }) {
+  return /* @__PURE__ */ jsx("li", { "data-slot": "pagination-item", className: cn("", className), ...props });
+}
+const PaginationEllipsis = ({ className, ...props }) => /* @__PURE__ */ jsxs(
+  "span",
+  {
+    "data-slot": "pagination-ellipsis",
+    "aria-hidden": true,
+    className: cn("flex h-9 w-9 items-center justify-center", className),
+    ...props,
+    children: [
+      /* @__PURE__ */ jsx(MoreHorizontal, { className: "h-4 w-4" }),
+      /* @__PURE__ */ jsx("span", { className: "sr-only", children: "More pages" })
+    ]
+  }
+);
 
 const StepperContext = createContext(void 0);
 const StepItemContext = createContext(void 0);
@@ -426,12 +455,9 @@ function TrackingPage() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-  const refreshData = () => {
-    window.location.reload();
-  };
   if (loading) {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-8 w-8 animate-spin text-[#6EC1E4]" }) }),
+      /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-8 w-8 animate-spin text-primary" }) }),
       /* @__PURE__ */ jsx("p", { className: "mt-4 text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
     ] }) });
   }
@@ -455,7 +481,7 @@ function TrackingPage() {
           Button,
           {
             asChild: true,
-            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc]",
+            variant: "primary",
             children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
           }
         )
@@ -466,14 +492,14 @@ function TrackingPage() {
     /* @__PURE__ */ jsx(Toaster, {}),
     /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
       /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
-        /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-[#2b9ccc]" }),
+        /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-primary" }),
         role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมด"
       ] }),
       /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "supervisor" ? "หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ" : role === "buyer" ? "ติดตามสถานะและความคืบหน้าของใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมดในระบบ" })
     ] }),
-    /* @__PURE__ */ jsxs(Card, { className: "mb-6", children: [
-      /* @__PURE__ */ jsx(CardHeader, { className: "pb-2 px-6", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-3 items-center justify-between", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex gap-2 flex-1", children: [
+    /* @__PURE__ */ jsxs("div", { className: "mb-6 space-y-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 flex-1 w-full", children: [
           /* @__PURE__ */ jsxs("div", { className: "relative flex-1 max-w-md", children: [
             /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
             /* @__PURE__ */ jsx(
@@ -481,14 +507,14 @@ function TrackingPage() {
               {
                 type: "text",
                 placeholder: "ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ",
-                className: "pl-10",
+                className: "pl-10 h-10",
                 value: searchTerm,
                 onChange: (e) => setSearchTerm(e.target.value)
               }
             )
           ] }),
           /* @__PURE__ */ jsxs(Select, { value: statusFilter, onValueChange: setStatusFilter, children: [
-            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[180px]", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
+            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-[180px] h-10", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
             /* @__PURE__ */ jsxs(SelectContent, { children: [
               /* @__PURE__ */ jsx(SelectItem, { value: "all", children: "สถานะทั้งหมด" }),
               /* @__PURE__ */ jsx(SelectItem, { value: "pending", children: "รออนุมัติ" }),
@@ -499,41 +525,26 @@ function TrackingPage() {
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
-          /* @__PURE__ */ jsxs(DropdownMenu, { children: [
-            /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", size: "sm", children: [
-              /* @__PURE__ */ jsx(Filter, { className: "h-4 w-4 mr-2" }),
-              "มุมมอง"
-            ] }) }),
-            /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
-              /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "เลือกมุมมอง" }),
-              /* @__PURE__ */ jsx(DropdownMenuSeparator, {}),
-              /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), children: [
-                /* @__PURE__ */ jsx(LayoutGrid, { className: "h-4 w-4 mr-2" }),
-                "แบบการ์ด"
-              ] }),
-              /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), children: [
-                /* @__PURE__ */ jsx(Table2, { className: "h-4 w-4 mr-2" }),
-                "แบบตาราง"
-              ] })
+        /* @__PURE__ */ jsxs(DropdownMenu, { children: [
+          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "h-10 px-4", children: [
+            /* @__PURE__ */ jsx(Filter, { className: "h-4 w-4 mr-2" }),
+            "มุมมอง"
+          ] }) }),
+          /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
+            /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "เลือกมุมมอง" }),
+            /* @__PURE__ */ jsx(DropdownMenuSeparator, {}),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), children: [
+              /* @__PURE__ */ jsx(LayoutGrid, { className: "h-4 w-4 mr-2" }),
+              "แบบการ์ด"
+            ] }),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), children: [
+              /* @__PURE__ */ jsx(Table2, { className: "h-4 w-4 mr-2" }),
+              "แบบตาราง"
             ] })
-          ] }),
-          /* @__PURE__ */ jsxs(
-            Button,
-            {
-              variant: "outline",
-              size: "sm",
-              onClick: refreshData,
-              disabled: loading,
-              children: [
-                loading ? /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4" }),
-                "รีเฟรช"
-              ]
-            }
-          )
+          ] })
         ] })
-      ] }) }),
-      /* @__PURE__ */ jsx(CardContent, { className: "px-6 pb-4 pt-0", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-sm text-muted-foreground", children: [
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-sm text-muted-foreground", children: [
         /* @__PURE__ */ jsxs("span", { children: [
           "แสดง ",
           filteredRows.length,
@@ -541,37 +552,13 @@ function TrackingPage() {
           rows.length,
           " รายการทั้งหมด"
         ] }),
-        totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxs("span", { className: "text-sm", children: [
-            "หน้า ",
-            currentPage,
-            " จาก ",
-            totalPages
-          ] }),
-          /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
-            /* @__PURE__ */ jsx(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                onClick: () => handlePageChange(currentPage - 1),
-                disabled: currentPage === 1,
-                children: "ก่อนหน้า"
-              }
-            ),
-            /* @__PURE__ */ jsx(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                onClick: () => handlePageChange(currentPage + 1),
-                disabled: currentPage === totalPages,
-                children: "ถัดไป"
-              }
-            )
-          ] })
+        totalPages > 1 && /* @__PURE__ */ jsxs("span", { children: [
+          "หน้า ",
+          currentPage,
+          " จาก ",
+          totalPages
         ] })
-      ] }) })
+      ] })
     ] }),
     filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
       /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-muted-foreground" }) }),
@@ -615,7 +602,7 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                className: "bg-green-500 text-white hover:bg-green-600",
+                variant: "primary",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"
@@ -688,12 +675,12 @@ function TrackingPage() {
                 '"'
               ] }) }),
               /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 mb-2", children: [
-                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm", children: [
+                /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1", children: [
                   /* @__PURE__ */ jsx(Tag, { className: "w-3 h-3" }),
                   "ประเภท: ",
                   category
                 ] }),
-                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 shadow-sm", children: [
+                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1", children: [
                   /* @__PURE__ */ jsx(Activity, { className: "w-3 h-3" }),
                   "สถานะ: ",
                   itemStatus
@@ -734,7 +721,7 @@ function TrackingPage() {
           ] }),
           /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsx("span", { children: "ยอดรวมทั้งสิ้น : " }),
-            /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-[#6EC1E4]", children: [
+            /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
               order.total.toLocaleString("th-TH"),
               " บาท"
             ] })
@@ -760,7 +747,8 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, false, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                className: "bg-white text-red-500 border border-red-500 hover:bg-red-600 hover:text-white font-normal",
+                variant: "destructive",
+                className: "font-normal",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3 mr-1" }),
                   "ไม่อนุมัติ"
@@ -773,7 +761,8 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                className: "bg-green-500 text-white hover:bg-green-600 font-normal",
+                variant: "primary",
+                className: "font-normal",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"
@@ -784,8 +773,8 @@ function TrackingPage() {
         ] })
       ] })
     ] }) }, order.id)) }),
-    totalPages > 1 && /* @__PURE__ */ jsx(Card, { className: "mt-6", children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
-      /* @__PURE__ */ jsxs("span", { className: "text-sm text-muted-foreground", children: [
+    totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "mt-8 flex flex-col items-center gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
         "แสดง ",
         (currentPage - 1) * itemsPerPage + 1,
         " - ",
@@ -794,56 +783,80 @@ function TrackingPage() {
         filteredRows.length,
         " รายการ"
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-        /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx(Pagination, { children: /* @__PURE__ */ jsxs(PaginationContent, { children: [
+        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
-            size: "sm",
             onClick: () => handlePageChange(1),
             disabled: currentPage === 1,
-            children: "หน้าแรก"
+            className: "h-10 w-10 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "หน้าแรก" }),
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" }),
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4 -ml-1" })
+            ]
           }
-        ),
-        /* @__PURE__ */ jsx(
+        ) }),
+        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
-            size: "sm",
             onClick: () => handlePageChange(currentPage - 1),
             disabled: currentPage === 1,
-            children: "ก่อนหน้า"
+            className: "h-10 w-10 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ก่อนหน้า" }),
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" })
+            ]
           }
-        ),
-        /* @__PURE__ */ jsxs("span", { className: "text-sm px-3", children: [
-          "หน้า ",
-          currentPage,
-          " จาก ",
-          totalPages
-        ] }),
-        /* @__PURE__ */ jsx(
+        ) }),
+        Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+          if (page === 1 || page === totalPages || page >= currentPage - 1 && page <= currentPage + 1) {
+            return /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsx(
+              Button,
+              {
+                variant: currentPage === page ? "primary" : "outline",
+                onClick: () => handlePageChange(page),
+                className: "h-10 w-10",
+                children: page
+              }
+            ) }, page);
+          } else if (page === currentPage - 2 || page === currentPage + 2) {
+            return /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsx(PaginationEllipsis, {}) }, page);
+          }
+          return null;
+        }),
+        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
-            size: "sm",
             onClick: () => handlePageChange(currentPage + 1),
             disabled: currentPage === totalPages,
-            children: "ถัดไป"
+            className: "h-10 w-10 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ถัดไป" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+            ]
           }
-        ),
-        /* @__PURE__ */ jsx(
+        ) }),
+        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
-            size: "sm",
             onClick: () => handlePageChange(totalPages),
             disabled: currentPage === totalPages,
-            children: "หน้าสุดท้าย"
+            className: "h-10 w-10 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "หน้าสุดท้าย" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4 -ml-1" })
+            ]
           }
-        )
-      ] })
-    ] }) }) }),
-    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { children: [
+        ) })
+      ] }) })
+    ] }),
+    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsx(DialogTitle, { className: "flex items-center gap-2", children: confirmData?.approved ? /* @__PURE__ */ jsxs(Fragment, { children: [
           /* @__PURE__ */ jsx(CheckCircle, { className: "w-6 h-6 text-green-500" }),
@@ -872,7 +885,7 @@ function TrackingPage() {
         /* @__PURE__ */ jsx(
           Button,
           {
-            className: confirmData?.approved ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600",
+            variant: confirmData?.approved ? "primary" : "destructive",
             onClick: handleApproval,
             disabled: processingOrders.has(confirmData?.orderId || ""),
             children: processingOrders.has(confirmData?.orderId || "") ? /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -888,32 +901,32 @@ function TrackingPage() {
 function getStatusBadge(status) {
   switch (status) {
     case "pending":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "warning", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(Clock, { className: "w-3 h-3" }),
         "รออนุมัติ"
       ] });
     case "approved":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3" }),
         "อนุมัติแล้ว"
       ] });
     case "rejected":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "destructive", className: "flex items-center gap-1 bg-red-100 text-red-800 border-red-200 hover:bg-red-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "destructive", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3" }),
         "ไม่อนุมัติ"
       ] });
     case "in_progress":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(Truck, { className: "w-3 h-3" }),
         "กำลังดำเนินการ"
       ] });
     case "delivered":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", className: "flex items-center gap-1 bg-teal-100 text-teal-800 border-teal-200 hover:bg-teal-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(Package, { className: "w-3 h-3" }),
         "ได้รับแล้ว"
       ] });
     default:
-      return /* @__PURE__ */ jsxs(Badge, { variant: "outline", className: "flex items-center gap-1 bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200 shadow-sm", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1", children: [
         /* @__PURE__ */ jsx(AlertCircle, { className: "w-3 h-3" }),
         status
       ] });
@@ -966,7 +979,7 @@ function renderProgressFlow(status) {
                 /* @__PURE__ */ jsx(StepperIndicator, { className: cn(
                   "size-8 border-2 flex items-center justify-center",
                   stepNumber < currentStep && "data-[state=completed]:text-white data-[state=completed]:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-[#6EC1E4] data-[state=active]:text-white data-[state=active]:border-[#6EC1E4]",
+                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary",
                   isRejected && "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:border-red-500",
                   stepNumber > currentStep && "data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground"
                 ), children: /* @__PURE__ */ jsx(step.icon, { className: "size-4" }) }),
@@ -981,23 +994,24 @@ function renderProgressFlow(status) {
                       /* @__PURE__ */ jsx(
                         Badge,
                         {
-                          variant: "secondary",
-                          className: "hidden group-data-[state=active]/step:inline-flex bg-[#6EC1E4] text-white hover:bg-[#6EC1E4]",
+                          variant: "primary",
+                          className: "hidden group-data-[state=active]/step:inline-flex",
                           children: "รอดำเนินการ"
                         }
                       ),
                       /* @__PURE__ */ jsx(
                         Badge,
                         {
-                          variant: "secondary",
-                          className: "hidden group-data-[state=completed]/step:inline-flex bg-green-500 text-white hover:bg-green-500",
+                          variant: "success",
+                          className: "hidden group-data-[state=completed]/step:inline-flex",
                           children: "เสร็จสิ้น"
                         }
                       ),
                       /* @__PURE__ */ jsx(
                         Badge,
                         {
-                          variant: "outline",
+                          variant: "secondary",
+                          appearance: "outline",
                           className: "hidden group-data-[state=inactive]/step:inline-flex text-muted-foreground",
                           children: "รอคิว"
                         }
@@ -1017,7 +1031,7 @@ function renderProgressFlow(status) {
               steps.length > index + 1 && /* @__PURE__ */ jsx(StepperSeparator, { className: cn(
                 "absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none",
                 stepNumber < currentStep && "group-data-[state=completed]/step:bg-green-500",
-                stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-[#6EC1E4]",
+                stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-primary",
                 stepNumber > currentStep && "group-data-[state=inactive]/step:bg-muted"
               ) })
             ]
@@ -1030,10 +1044,10 @@ function renderProgressFlow(status) {
 }
 
 const $$Tracking = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E2A\u0E16\u0E32\u0E19\u0E30" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "TrackingPage", TrackingPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/TrackingPage", "client:component-export": "default" })} ` })}`;
-}, "C:/Projects/Astro/test03/po-app/src/pages/orders/tracking.astro", void 0);
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E2A\u0E16\u0E32\u0E19\u0E30" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "TrackingPage", TrackingPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/Bederly/po-app/src/components/po/TrackingPage", "client:component-export": "default" })} ` })}`;
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/orders/tracking.astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/orders/tracking.astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/orders/tracking.astro";
 const $$url = "/orders/tracking";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({

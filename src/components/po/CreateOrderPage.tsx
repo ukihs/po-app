@@ -219,7 +219,7 @@ export default function CreateOrderPage() {
       </div>
       
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px]" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
@@ -314,13 +314,18 @@ export default function CreateOrderPage() {
           </form>
 
           <DialogFooter>
-            <Button variant="outline" onClick={closeModal} className="font-normal">
+            <Button 
+              variant="outline" 
+              onClick={closeModal} 
+              className="font-normal"
+            >
               ยกเลิก
             </Button>
             <Button 
               onClick={addItemFromModal}
               disabled={!isModalFormValid()}
-              className="bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal"
+              variant="primary"
+              className="font-normal"
             >
               เพิ่มรายการ
             </Button>
@@ -382,9 +387,8 @@ export default function CreateOrderPage() {
               <h3 className="text-lg font-semibold">รายการสินค้า</h3>
               <Button 
                 type="button" 
-                variant="default"
+                variant="outline"
                 onClick={openAddModal}
-                size="sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 เพิ่มรายการ
@@ -392,16 +396,16 @@ export default function CreateOrderPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ลำดับที่</TableHead>
-                    <TableHead>รายการที่ขอซื้อ</TableHead>
-                    <TableHead>วันที่ต้องการรับ</TableHead>
-                    <TableHead>จำนวน</TableHead>
-                    <TableHead>จำนวนเงิน (บาท)</TableHead>
-                    <TableHead>รวม (บาท)</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead className="w-20 text-center">ลำดับที่</TableHead>
+                    <TableHead className="w-auto min-w-[250px]">รายการที่ขอซื้อ</TableHead>
+                    <TableHead className="w-40">วันที่ต้องการรับ</TableHead>
+                    <TableHead className="w-28 text-center">จำนวน</TableHead>
+                    <TableHead className="w-36 text-center">จำนวนเงิน (บาท)</TableHead>
+                    <TableHead className="w-32 text-center">รวม (บาท)</TableHead>
+                    <TableHead className="w-20 text-center">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -411,9 +415,9 @@ export default function CreateOrderPage() {
                     
                     return (
                       <TableRow key={idx} className={hasError ? 'bg-destructive/10' : ''}>
-                        <TableCell className="text-center">{item.no}</TableCell>
+                        <TableCell className="text-center w-20">{item.no}</TableCell>
                         
-                        <TableCell>
+                        <TableCell className="w-auto min-w-[250px]">
                           <Input
                             type="text"
                             placeholder="ระบุรายละเอียดสินค้า"
@@ -423,7 +427,7 @@ export default function CreateOrderPage() {
                           />
                         </TableCell>
                         
-                        <TableCell>
+                        <TableCell className="w-40">
                           <Input
                             type="date"
                             value={item.receivedDate}
@@ -432,35 +436,35 @@ export default function CreateOrderPage() {
                           />
                         </TableCell>
                         
-                        <TableCell>
+                        <TableCell className="w-28">
                           <Input
                             type="number"
                             placeholder="จำนวน"
                             value={item.quantity}
                             onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                            className={`h-8 text-right ${hasError && toNum(item.quantity) <= 0 ? 'border-destructive' : ''}`}
+                            className={`h-8 text-center ${hasError && toNum(item.quantity) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
                           />
                         </TableCell>
                         
-                        <TableCell>
+                        <TableCell className="w-36">
                           <Input
                             type="number"
                             placeholder="ราคา"
                             value={item.amount}
                             onChange={(e) => updateItem(idx, 'amount', e.target.value)}
-                            className={`h-8 text-right ${hasError && toNum(item.amount) <= 0 ? 'border-destructive' : ''}`}
+                            className={`h-8 text-center ${hasError && toNum(item.amount) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
                           />
                         </TableCell>
                         
-                        <TableCell className="text-right">
+                        <TableCell className="text-center w-32">
                           {total > 0 ? total.toLocaleString('th-TH') : '0'}
                         </TableCell>
                         
-                        <TableCell className="text-center">
+                        <TableCell className="text-center w-20">
                           <Button
                             type="button"
                             variant="ghost"
@@ -494,7 +498,7 @@ export default function CreateOrderPage() {
           <div className="flex items-center justify-between">
             <div className="text-lg">
               <span className="text-base">รวมเป็นเงินจำนวน : </span>
-              <span className="text-lg font-bold text-[#6EC1E4]">
+              <span className="text-lg font-bold text-primary">
                 {grandTotal(items).toLocaleString('th-TH')} บาท
               </span>
             </div>
@@ -502,7 +506,8 @@ export default function CreateOrderPage() {
               type="button"
               onClick={showConfirmation}
               disabled={saving || !isFormValid()}
-              className="bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal"
+              variant="primary"
+              className="font-normal"
             >
               {saving ? (
                 <>
@@ -519,7 +524,7 @@ export default function CreateOrderPage() {
       </Card>
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-6 h-6" />
@@ -548,30 +553,30 @@ export default function CreateOrderPage() {
             <div>
               <h4 className="font-semibold mb-3">รายการสินค้า ({items.length} รายการ)</h4>
               <div className="overflow-x-auto max-h-60 overflow-y-auto">
-                <Table>
-                  <TableHeader className="sticky top-0">
+                <Table className="min-w-full">
+                  <TableHeader className="sticky top-0 bg-background">
                     <TableRow>
-                      <TableHead>ลำดับ</TableHead>
-                      <TableHead>รายการ</TableHead>
-                      <TableHead>วันที่ต้องการรับ</TableHead>
-                      <TableHead>จำนวน</TableHead>
-                      <TableHead>ราคา</TableHead>
-                      <TableHead className="text-right">รวม</TableHead>
+                      <TableHead className="w-20 text-center">ลำดับ</TableHead>
+                      <TableHead className="w-auto min-w-[200px]">รายการ</TableHead>
+                      <TableHead className="w-40">วันที่ต้องการรับ</TableHead>
+                      <TableHead className="w-28 text-center">จำนวน</TableHead>
+                      <TableHead className="w-36 text-center">ราคา</TableHead>
+                      <TableHead className="w-32 text-center">รวม</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {items.map((item, idx) => (
                       <TableRow key={idx}>
-                        <TableCell>{item.no}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={item.description}>
+                        <TableCell className="w-20 text-center">{item.no}</TableCell>
+                        <TableCell className="w-auto min-w-[200px] max-w-xs truncate" title={item.description}>
                           {item.description}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-40">
                           {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString('th-TH') : '-'}
                         </TableCell>
-                        <TableCell>{toNum(item.quantity).toLocaleString('th-TH')}</TableCell>
-                        <TableCell>{toNum(item.amount).toLocaleString('th-TH')}</TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="w-28 text-center">{toNum(item.quantity).toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="w-36 text-center">{toNum(item.amount).toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="w-32 text-center font-medium">
                           {(toNum(item.quantity) * toNum(item.amount)).toLocaleString('th-TH')}
                         </TableCell>
                       </TableRow>
@@ -581,10 +586,10 @@ export default function CreateOrderPage() {
               </div>
             </div>
 
-            <div className="bg-[#c3e4f4] rounded-lg p-4">
+            <div className="bg-primary/10 rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <span className="text-base font-semibold">รวมเป็นเงินทั้งสิ้น:</span>
-                <span className="text-lg font-bold text-[#6EC1E4]">
+                <span className="text-lg font-bold text-primary">
                   {grandTotal(items).toLocaleString('th-TH')} บาท
                 </span>
               </div>
@@ -602,7 +607,7 @@ export default function CreateOrderPage() {
             <Button 
               onClick={confirmCreate}
               disabled={saving}
-              className="bg-[#6EC1E4] hover:bg-[#2b9ccc]"
+              variant="primary"
             >
               {saving ? (
                 <>

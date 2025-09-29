@@ -1,17 +1,18 @@
-import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, a as DropdownMenuTrigger, b as DropdownMenuContent, c as DropdownMenuCheckboxItem, $ as $$MainLayout } from '../../chunks/MainLayout_R7ZpnFBV.mjs';
+import { C as Card, b as CardHeader, c as CardHeading, d as CardToolbar, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, i as DropdownMenuCheckboxItem, j as CardTable, $ as $$MainLayout } from '../../chunks/card_CLRfQ6X5.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
-import React__default, { useState, useEffect } from 'react';
-import { B as Button, s as subscribeAuthAndRole, i as db, C as Card, a as CardHeader, c as CardContent } from '../../chunks/card_DPKHX6pj.mjs';
+import React__default, { useState, useMemo, useEffect } from 'react';
+import { I as Input, B as Button, s as subscribeAuthAndRole, f as db } from '../../chunks/input_CuwRcyyb.mjs';
 import { getDoc, doc, query, collection, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { ChevronDown, Loader2, ChevronRight, ArrowUpDown, RefreshCw } from 'lucide-react';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B7UI7IZ0.mjs';
-import { useReactTable, getFilteredRowModel, getSortedRowModel, getPaginationRowModel, getCoreRowModel, flexRender } from '@tanstack/react-table';
-import { I as Input } from '../../chunks/input_BW0kI7pb.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Bdv0yE5d.mjs';
-import { B as Badge } from '../../chunks/badge_CZCfTozJ.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_IhgbFlzr.mjs';
+import { Loader2, Search, Settings, ChevronDown, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
+import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/checkbox_D5uEAeNY.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
+import 'clsx';
+import '../../chunks/label_B4e7hkFR.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const ITEM_CATEGORIES = ["วัตถุดิบ", "Software/Hardware", "เครื่องมือ", "วัสดุสิ้นเปลือง"];
@@ -27,12 +28,21 @@ const STATUS_TH = {
   in_progress: "กำลังดำเนินการ",
   delivered: "ได้รับแล้ว"
 };
-const STATUS_BADGE = {
-  pending: "bg-yellow-100 text-yellow-800",
-  approved: "bg-emerald-100 text-emerald-800",
-  rejected: "bg-rose-100 text-rose-800",
-  in_progress: "bg-sky-100 text-sky-800",
-  delivered: "bg-emerald-100 text-emerald-800"
+const getStatusBadge = (status) => {
+  switch (status) {
+    case "pending":
+      return /* @__PURE__ */ jsx(Badge, { variant: "warning", appearance: "light", children: STATUS_TH[status] });
+    case "approved":
+      return /* @__PURE__ */ jsx(Badge, { variant: "success", appearance: "light", children: STATUS_TH[status] });
+    case "rejected":
+      return /* @__PURE__ */ jsx(Badge, { variant: "destructive", appearance: "light", children: STATUS_TH[status] });
+    case "in_progress":
+      return /* @__PURE__ */ jsx(Badge, { variant: "info", appearance: "light", children: STATUS_TH[status] });
+    case "delivered":
+      return /* @__PURE__ */ jsx(Badge, { variant: "success", appearance: "light", children: STATUS_TH[status] });
+    default:
+      return /* @__PURE__ */ jsx(Badge, { variant: "secondary", appearance: "light", children: STATUS_TH[status] });
+  }
 };
 const ITEM_STATUS_G1 = ["จัดซื้อ", "ของมาส่ง", "ส่งมอบของ", "สินค้าเข้าคลัง"];
 const ITEM_STATUS_G2 = ["จัดซื้อ", "ของมาส่ง", "ส่งมอบของ"];
@@ -41,20 +51,7 @@ const fmtTS = (ts) => ts?.toDate ? ts.toDate().toLocaleString("th-TH", { year: "
 const createColumns = (role, expanded, processingKeys, drafts, onToggleExpanded, onSaveOrderStatus, onSaveItem, onSetDraft, onGetItemValue) => [
   {
     accessorKey: "orderNo",
-    header: ({ column }) => {
-      return /* @__PURE__ */ jsxs(
-        Button,
-        {
-          variant: "ghost",
-          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-          className: "h-auto p-0 font-semibold",
-          children: [
-            "รายการที่",
-            /* @__PURE__ */ jsx(ArrowUpDown, { className: "ml-2 h-4 w-4" })
-          ]
-        }
-      );
-    },
+    header: "รายการที่",
     cell: ({ row }) => {
       const order = row.original;
       const isOpen = !!expanded[order.id];
@@ -72,67 +69,31 @@ const createColumns = (role, expanded, processingKeys, drafts, onToggleExpanded,
           ]
         }
       );
-    }
+    },
+    size: 120
   },
   {
     accessorKey: "date",
-    header: ({ column }) => {
-      return /* @__PURE__ */ jsxs(
-        Button,
-        {
-          variant: "ghost",
-          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-          className: "h-auto p-0 font-semibold",
-          children: [
-            "วันที่",
-            /* @__PURE__ */ jsx(ArrowUpDown, { className: "ml-2 h-4 w-4" })
-          ]
-        }
-      );
-    },
+    header: "วันที่",
     cell: ({ row }) => {
       const order = row.original;
       return /* @__PURE__ */ jsx("div", { className: "text-muted-foreground", children: order.date || fmtTS(order.createdAt) });
-    }
+    },
+    size: 140
   },
   {
     accessorKey: "requesterName",
-    header: ({ column }) => {
-      return /* @__PURE__ */ jsxs(
-        Button,
-        {
-          variant: "ghost",
-          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-          className: "h-auto p-0 font-semibold",
-          children: [
-            "ผู้ขอซื้อ",
-            /* @__PURE__ */ jsx(ArrowUpDown, { className: "ml-2 h-4 w-4" })
-          ]
-        }
-      );
-    },
+    header: "ผู้ขอซื้อ",
     cell: ({ row }) => {
       const requesterName = row.getValue("requesterName");
       const requester = row.original.requester;
       return /* @__PURE__ */ jsx("div", { className: "font-normal", children: requesterName || requester || "-" });
-    }
+    },
+    size: 180
   },
   {
     accessorKey: "totalAmount",
-    header: ({ column }) => {
-      return /* @__PURE__ */ jsxs(
-        Button,
-        {
-          variant: "ghost",
-          onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
-          className: "h-auto p-0 font-semibold",
-          children: [
-            "ยอดรวม",
-            /* @__PURE__ */ jsx(ArrowUpDown, { className: "ml-2 h-4 w-4" })
-          ]
-        }
-      );
-    },
+    header: "ยอดรวม",
     cell: ({ row }) => {
       const order = row.original;
       const total = order.totalAmount ?? order.total ?? 0;
@@ -140,20 +101,21 @@ const createColumns = (role, expanded, processingKeys, drafts, onToggleExpanded,
         total.toLocaleString("th-TH"),
         " บาท"
       ] });
-    }
+    },
+    size: 140
   },
   {
     accessorKey: "status",
     header: "สถานะ",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      return /* @__PURE__ */ jsx(Badge, { className: STATUS_BADGE[status], children: STATUS_TH[status] });
-    }
+      return getStatusBadge(status);
+    },
+    size: 140
   },
   {
     id: "actions",
     header: "การดำเนินการ",
-    enableHiding: false,
     cell: ({ row }) => {
       const order = row.original;
       if (role === "procurement") {
@@ -174,7 +136,8 @@ const createColumns = (role, expanded, processingKeys, drafts, onToggleExpanded,
         ] });
       }
       return /* @__PURE__ */ jsx("span", { className: "text-muted-foreground", children: "—" });
-    }
+    },
+    size: 200
   }
 ];
 function OrdersDataTable({
@@ -190,46 +153,43 @@ function OrdersDataTable({
   onSetDraft,
   onGetItemValue
 }) {
-  const [sorting, setSorting] = useState([]);
-  const [columnFilters, setColumnFilters] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState("");
-  const columns = createColumns(
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const columns = useMemo(() => createColumns(
     role,
     expanded,
     processingKeys,
     drafts,
     onToggleExpanded,
-    onSaveOrderStatus);
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    globalFilterFn: (row, columnId, value) => {
-      const search = value.toLowerCase();
-      const order = row.original;
-      return !!(order.requesterName?.toLowerCase().includes(search) || order.requester?.toLowerCase().includes(search) || order.id.toLowerCase().includes(search) || order.orderNo?.toString().includes(search));
-    },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter
-    }
-  });
+    onSaveOrderStatus), [role, expanded, processingKeys, drafts, onToggleExpanded, onSaveOrderStatus, onSaveItem, onSetDraft, onGetItemValue]);
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return data;
+    const search = searchTerm.toLowerCase();
+    return data.filter(
+      (order) => order.requesterName?.toLowerCase().includes(search) || order.requester?.toLowerCase().includes(search) || order.id.toLowerCase().includes(search) || order.orderNo?.toString().includes(search)
+    );
+  }, [data, searchTerm]);
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+  React__default.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
   if (loading) {
     return /* @__PURE__ */ jsxs("div", { className: "flex justify-center items-center p-12", children: [
-      /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-8 w-8 border-b-2 border-[#6EC1E4]" }),
+      /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin text-primary" }),
       /* @__PURE__ */ jsx("span", { className: "ml-4 text-lg", children: "โหลดข้อมูลใบสั่งซื้อ..." })
     ] });
   }
@@ -239,156 +199,295 @@ function OrdersDataTable({
       /* @__PURE__ */ jsx("p", { className: "text-muted-foreground mb-4", children: "ยังไม่มีใบสั่งซื้อในระบบ" })
     ] });
   }
-  return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center py-4", children: [
-      /* @__PURE__ */ jsx(
-        Input,
-        {
-          placeholder: "ค้นหาชื่อผู้ขอซื้อหรือหมายเลขใบขอซื้อ...",
-          value: globalFilter ?? "",
-          onChange: (event) => setGlobalFilter(event.target.value),
-          className: "max-w-sm"
-        }
-      ),
-      /* @__PURE__ */ jsxs(DropdownMenu, { children: [
-        /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "ml-auto", children: [
-          "คอลัมน์ ",
-          /* @__PURE__ */ jsx(ChevronDown, { className: "ml-2 h-4 w-4" })
-        ] }) }),
-        /* @__PURE__ */ jsx(DropdownMenuContent, { align: "end", children: table.getAllColumns().filter((column) => column.getCanHide()).map((column) => {
-          return /* @__PURE__ */ jsx(
-            DropdownMenuCheckboxItem,
-            {
-              className: "capitalize",
-              checked: column.getIsVisible(),
-              onCheckedChange: (value) => column.toggleVisibility(!!value),
-              children: column.id
-            },
-            column.id
-          );
-        }) })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "overflow-hidden rounded-md border", children: /* @__PURE__ */ jsxs(Table, { children: [
-      /* @__PURE__ */ jsx(TableHeader, { children: table.getHeaderGroups().map((headerGroup) => /* @__PURE__ */ jsx(TableRow, { children: headerGroup.headers.map((header) => {
-        return /* @__PURE__ */ jsx(TableHead, { children: header.isPlaceholder ? null : flexRender(
-          header.column.columnDef.header,
-          header.getContext()
-        ) }, header.id);
-      }) }, headerGroup.id)) }),
-      /* @__PURE__ */ jsx(TableBody, { children: table.getRowModel().rows?.length ? table.getRowModel().rows.map((row) => {
-        const order = row.original;
-        const isOpen = !!expanded[order.id];
-        return /* @__PURE__ */ jsxs(React__default.Fragment, { children: [
+  return /* @__PURE__ */ jsxs(Card, { children: [
+    /* @__PURE__ */ jsxs(CardHeader, { className: "border-b", children: [
+      /* @__PURE__ */ jsx(CardHeading, { children: "รายการใบขอซื้อ" }),
+      /* @__PURE__ */ jsx(CardToolbar, { children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+          /* @__PURE__ */ jsx(Search, { className: "absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
           /* @__PURE__ */ jsx(
-            TableRow,
+            Input,
             {
-              "data-state": row.getIsSelected() && "selected",
-              className: "hover",
-              children: row.getVisibleCells().map((cell) => /* @__PURE__ */ jsx(TableCell, { children: flexRender(
-                cell.column.columnDef.cell,
-                cell.getContext()
-              ) }, cell.id))
+              placeholder: "ค้นหาชื่อผู้ขอซื้อหรือหมายเลขใบขอซื้อ...",
+              value: searchTerm,
+              onChange: (e) => setSearchTerm(e.target.value),
+              className: "pl-8 w-64"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs(DropdownMenu, { children: [
+          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", size: "sm", children: [
+            /* @__PURE__ */ jsx(Settings, { className: "h-4 w-4 mr-2" }),
+            "คอลัมน์"
+          ] }) }),
+          /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
+            /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "แสดงคอลัมน์" }),
+            /* @__PURE__ */ jsx(DropdownMenuSeparator, {}),
+            columns.map((column) => /* @__PURE__ */ jsx(
+              DropdownMenuCheckboxItem,
+              {
+                checked: columnVisibility[column.accessorKey || column.id || ""] !== false,
+                onCheckedChange: (checked) => setColumnVisibility((prev) => ({
+                  ...prev,
+                  [column.accessorKey || column.id || ""]: checked
+                })),
+                children: column.header
+              },
+              column.accessorKey || column.id
+            ))
+          ] })
+        ] })
+      ] }) })
+    ] }),
+    /* @__PURE__ */ jsxs(CardTable, { children: [
+      /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[600px]", children: [
+        /* @__PURE__ */ jsxs(Table, { children: [
+          /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[120px]", children: "รายการที่" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "วันที่" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[180px]", children: "ผู้ขอซื้อ" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "ยอดรวม" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "สถานะ" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-[200px]", children: "การดำเนินการ" })
+          ] }) }),
+          /* @__PURE__ */ jsx(TableBody, { children: paginatedData.map((order) => {
+            const isOpen = !!expanded[order.id];
+            return /* @__PURE__ */ jsxs(React__default.Fragment, { children: [
+              /* @__PURE__ */ jsxs(TableRow, { className: "hover", children: [
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
+                  Button,
+                  {
+                    variant: "ghost",
+                    size: "sm",
+                    className: "inline-flex items-center gap-1 h-auto p-0 font-semibold text-base",
+                    onClick: () => onToggleExpanded(order.id),
+                    children: [
+                      isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-4 h-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "w-4 h-4" }),
+                      "#",
+                      order.orderNo ?? "-"
+                    ]
+                  }
+                ) }),
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "text-muted-foreground", children: order.date || fmtTS(order.createdAt) }) }),
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "font-normal", children: order.requesterName || order.requester || "-" }) }),
+                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs("div", { className: "tabular-nums", children: [
+                  (order.totalAmount ?? order.total ?? 0).toLocaleString("th-TH"),
+                  " บาท"
+                ] }) }),
+                /* @__PURE__ */ jsx(TableCell, { children: getStatusBadge(order.status) }),
+                /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsxs(
+                    Select,
+                    {
+                      value: order.status,
+                      onValueChange: (value) => onSaveOrderStatus(order, value),
+                      disabled: processingKeys.has(order.id),
+                      children: [
+                        /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[180px]", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
+                        /* @__PURE__ */ jsx(SelectContent, { children: ORDER_STATUS_OPTIONS.map((x) => /* @__PURE__ */ jsx(SelectItem, { value: x.value, children: x.label }, x.value)) })
+                      ]
+                    }
+                  ),
+                  processingKeys.has(order.id) && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin" })
+                ] }) : /* @__PURE__ */ jsx("span", { className: "text-muted-foreground", children: "—" }) })
+              ] }),
+              isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: 6, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/50 p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-background overflow-hidden", children: [
+                /* @__PURE__ */ jsx("div", { className: "px-4 py-3 text-sm font-semibold border-b", children: "รายการสินค้า" }),
+                /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
+                  /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+                    /* @__PURE__ */ jsx(TableHead, { children: "รายละเอียด" }),
+                    /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
+                    /* @__PURE__ */ jsx(TableHead, { children: "ราคาต่อหน่วย(บาท)" }),
+                    /* @__PURE__ */ jsx(TableHead, { children: "รวมทั้งสิ้น(บาท)" }),
+                    /* @__PURE__ */ jsx(TableHead, { children: "ประเภทสินค้า" }),
+                    /* @__PURE__ */ jsx(TableHead, { children: "สถานะรายการ" }),
+                    role === "procurement" && /* @__PURE__ */ jsx(TableHead, {})
+                  ] }) }),
+                  /* @__PURE__ */ jsx(TableBody, { children: (order.items || []).map((it, idx) => {
+                    const val = onGetItemValue(order, idx);
+                    const options = getItemStatusOptions(val.category);
+                    return /* @__PURE__ */ jsxs(TableRow, { children: [
+                      /* @__PURE__ */ jsx(TableCell, { children: it.description || "-" }),
+                      /* @__PURE__ */ jsx(TableCell, { children: it.quantity ?? "-" }),
+                      /* @__PURE__ */ jsx(TableCell, { children: it.amount != null ? Number(it.amount).toLocaleString("th-TH") : "-" }),
+                      /* @__PURE__ */ jsx(TableCell, { children: it.lineTotal != null ? Number(it.lineTotal).toLocaleString("th-TH") : "-" }),
+                      /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
+                        Select,
+                        {
+                          value: val.category,
+                          onValueChange: (value) => onSetDraft(order.id, idx, { category: value }),
+                          disabled: processingKeys.has(`${order.id}:${idx}`),
+                          children: [
+                            /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
+                            /* @__PURE__ */ jsx(SelectContent, { children: ITEM_CATEGORIES.map((c) => /* @__PURE__ */ jsx(SelectItem, { value: c, children: c }, c)) })
+                          ]
+                        }
+                      ) : /* @__PURE__ */ jsx(Badge, { variant: val.category ? "info" : "secondary", appearance: "light", children: val.category || "ยังไม่ระบุ" }) }),
+                      /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
+                        Select,
+                        {
+                          value: val.itemStatus,
+                          onValueChange: (value) => onSetDraft(order.id, idx, { itemStatus: value }),
+                          disabled: processingKeys.has(`${order.id}:${idx}`),
+                          children: [
+                            /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
+                            /* @__PURE__ */ jsx(SelectContent, { children: options.map((s) => /* @__PURE__ */ jsx(SelectItem, { value: s, children: s }, s)) })
+                          ]
+                        }
+                      ) : /* @__PURE__ */ jsx(Badge, { variant: val.itemStatus ? "secondary" : "secondary", appearance: "light", children: val.itemStatus || "รอดำเนินการ" }) }),
+                      role === "procurement" && /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
+                        Button,
+                        {
+                          variant: "primary",
+                          size: "sm",
+                          onClick: () => onSaveItem(order, idx),
+                          disabled: processingKeys.has(`${order.id}:${idx}`),
+                          className: "font-normal",
+                          children: [
+                            processingKeys.has(`${order.id}:${idx}`) && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin mr-1" }),
+                            "บันทึก"
+                          ]
+                        }
+                      ) })
+                    ] }, idx);
+                  }) })
+                ] }) })
+              ] }) }) }) })
+            ] }, order.id);
+          }) })
+        ] }),
+        /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between p-4 border-t", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "Rows per page" }),
+          /* @__PURE__ */ jsxs(Select, { value: itemsPerPage.toString(), onValueChange: handleItemsPerPageChange, children: [
+            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[80px] h-8", children: /* @__PURE__ */ jsx(SelectValue, {}) }),
+            /* @__PURE__ */ jsxs(SelectContent, { children: [
+              /* @__PURE__ */ jsx(SelectItem, { value: "5", children: "5" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "10", children: "10" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "20", children: "20" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "50", children: "50" })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
+          (currentPage - 1) * itemsPerPage + 1,
+          " - ",
+          Math.min(currentPage * itemsPerPage, filteredData.length),
+          " of ",
+          filteredData.length
+        ] }),
+        totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ jsxs(
+            Button,
+            {
+              variant: "outline",
+              size: "sm",
+              onClick: () => handlePageChange(currentPage - 1),
+              disabled: currentPage === 1,
+              className: "h-8 w-8 p-0",
+              children: [
+                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ก่อนหน้า" }),
+                /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" })
+              ]
             }
           ),
-          isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: columns.length, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/50 p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-background overflow-hidden", children: [
-            /* @__PURE__ */ jsx("div", { className: "px-4 py-3 text-sm font-semibold border-b", children: "รายการสินค้า" }),
-            /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
-              /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-                /* @__PURE__ */ jsx(TableHead, { children: "รายละเอียด" }),
-                /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
-                /* @__PURE__ */ jsx(TableHead, { children: "ราคาต่อหน่วย(บาท)" }),
-                /* @__PURE__ */ jsx(TableHead, { children: "รวมทั้งสิ้น(บาท)" }),
-                /* @__PURE__ */ jsx(TableHead, { children: "ประเภทสินค้า" }),
-                /* @__PURE__ */ jsx(TableHead, { children: "สถานะรายการ" }),
-                role === "procurement" && /* @__PURE__ */ jsx(TableHead, {})
-              ] }) }),
-              /* @__PURE__ */ jsx(TableBody, { children: (order.items || []).map((it, idx) => {
-                const val = onGetItemValue(order, idx);
-                const options = getItemStatusOptions(val.category);
-                return /* @__PURE__ */ jsxs(TableRow, { children: [
-                  /* @__PURE__ */ jsx(TableCell, { children: it.description || "-" }),
-                  /* @__PURE__ */ jsx(TableCell, { children: it.quantity ?? "-" }),
-                  /* @__PURE__ */ jsx(TableCell, { children: it.amount != null ? Number(it.amount).toLocaleString("th-TH") : "-" }),
-                  /* @__PURE__ */ jsx(TableCell, { children: it.lineTotal != null ? Number(it.lineTotal).toLocaleString("th-TH") : "-" }),
-                  /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
-                    Select,
-                    {
-                      value: val.category,
-                      onValueChange: (value) => onSetDraft(order.id, idx, { category: value }),
-                      disabled: processingKeys.has(`${order.id}:${idx}`),
-                      children: [
-                        /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
-                        /* @__PURE__ */ jsx(SelectContent, { children: ITEM_CATEGORIES.map((c) => /* @__PURE__ */ jsx(SelectItem, { value: c, children: c }, c)) })
-                      ]
-                    }
-                  ) : /* @__PURE__ */ jsx(Badge, { variant: val.category ? "secondary" : "outline", children: val.category || "ยังไม่ระบุ" }) }),
-                  /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
-                    Select,
-                    {
-                      value: val.itemStatus,
-                      onValueChange: (value) => onSetDraft(order.id, idx, { itemStatus: value }),
-                      disabled: processingKeys.has(`${order.id}:${idx}`),
-                      children: [
-                        /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
-                        /* @__PURE__ */ jsx(SelectContent, { children: options.map((s) => /* @__PURE__ */ jsx(SelectItem, { value: s, children: s }, s)) })
-                      ]
-                    }
-                  ) : /* @__PURE__ */ jsx(Badge, { variant: val.itemStatus ? "default" : "outline", children: val.itemStatus || "รอดำเนินการ" }) }),
-                  role === "procurement" && /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
+          (() => {
+            const pages = [];
+            const maxVisible = 5;
+            if (totalPages <= maxVisible) {
+              for (let i = 1; i <= totalPages; i++) {
+                pages.push(
+                  /* @__PURE__ */ jsx(
                     Button,
                     {
-                      className: "bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal",
+                      variant: currentPage === i ? "primary" : "outline",
                       size: "sm",
-                      onClick: () => onSaveItem(order, idx),
-                      disabled: processingKeys.has(`${order.id}:${idx}`),
-                      children: [
-                        processingKeys.has(`${order.id}:${idx}`) && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin mr-1" }),
-                        "บันทึก"
-                      ]
-                    }
-                  ) })
-                ] }, idx);
-              }) })
-            ] }) })
-          ] }) }) }) })
-        ] }, order.id);
-      }) : /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(
-        TableCell,
-        {
-          colSpan: columns.length,
-          className: "h-24 text-center",
-          children: "ไม่พบข้อมูล"
-        }
-      ) }) })
-    ] }) }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end space-x-2 py-4", children: [
-      /* @__PURE__ */ jsxs("div", { className: "text-muted-foreground flex-1 text-sm", children: [
-        "แสดง ",
-        table.getFilteredRowModel().rows.length,
-        " รายการ"
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "space-x-2", children: [
-        /* @__PURE__ */ jsx(
-          Button,
-          {
-            variant: "outline",
-            size: "sm",
-            onClick: () => table.previousPage(),
-            disabled: !table.getCanPreviousPage(),
-            children: "ก่อนหน้า"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          Button,
-          {
-            variant: "outline",
-            size: "sm",
-            onClick: () => table.nextPage(),
-            disabled: !table.getCanNextPage(),
-            children: "ถัดไป"
-          }
-        )
+                      onClick: () => handlePageChange(i),
+                      className: "h-8 w-8 p-0",
+                      children: i
+                    },
+                    i
+                  )
+                );
+              }
+            } else {
+              pages.push(
+                /* @__PURE__ */ jsx(
+                  Button,
+                  {
+                    variant: currentPage === 1 ? "primary" : "outline",
+                    size: "sm",
+                    onClick: () => handlePageChange(1),
+                    className: "h-8 w-8 p-0",
+                    children: "1"
+                  },
+                  1
+                )
+              );
+              if (currentPage > 3) {
+                pages.push(
+                  /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis1")
+                );
+              }
+              const start = Math.max(2, currentPage - 1);
+              const end = Math.min(totalPages - 1, currentPage + 1);
+              for (let i = start; i <= end; i++) {
+                if (i !== 1 && i !== totalPages) {
+                  pages.push(
+                    /* @__PURE__ */ jsx(
+                      Button,
+                      {
+                        variant: currentPage === i ? "primary" : "outline",
+                        size: "sm",
+                        onClick: () => handlePageChange(i),
+                        className: "h-8 w-8 p-0",
+                        children: i
+                      },
+                      i
+                    )
+                  );
+                }
+              }
+              if (currentPage < totalPages - 2) {
+                pages.push(
+                  /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis2")
+                );
+              }
+              if (totalPages > 1) {
+                pages.push(
+                  /* @__PURE__ */ jsx(
+                    Button,
+                    {
+                      variant: currentPage === totalPages ? "primary" : "outline",
+                      size: "sm",
+                      onClick: () => handlePageChange(totalPages),
+                      className: "h-8 w-8 p-0",
+                      children: totalPages
+                    },
+                    totalPages
+                  )
+                );
+              }
+            }
+            return pages;
+          })(),
+          /* @__PURE__ */ jsxs(
+            Button,
+            {
+              variant: "outline",
+              size: "sm",
+              onClick: () => handlePageChange(currentPage + 1),
+              disabled: currentPage === totalPages,
+              className: "h-8 w-8 p-0",
+              children: [
+                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ถัดไป" }),
+                /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+              ]
+            }
+          )
+        ] })
       ] })
     ] })
   ] });
@@ -526,59 +625,43 @@ function OrdersListPage() {
   };
   if (loading) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full py-10 text-center", children: [
-      /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin mx-auto" }),
+      /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin mx-auto text-primary" }),
       /* @__PURE__ */ jsx("div", { className: "mt-3 text-muted-foreground", children: "กำลังโหลดข้อมูล…" })
     ] });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     err && /* @__PURE__ */ jsx(Alert, { className: "mb-4", variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: err }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-      /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold mb-2", children: "รายการใบขอซื้อ" }),
+      /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
+        /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-primary" }),
+        "รายการใบขอซื้อ"
+      ] }),
       /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "procurement" ? "สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ" : role === "supervisor" ? "สำหรับหัวหน้างาน – ดูรายการใบขอซื้อทั้งหมด" : "รายการใบขอซื้อทั้งหมด" })
     ] }),
-    /* @__PURE__ */ jsxs(Card, { children: [
-      /* @__PURE__ */ jsx(CardHeader, { className: "pb-2 px-6", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-3 items-center justify-between", children: [
-        /* @__PURE__ */ jsx("div", { className: "flex-1", children: /* @__PURE__ */ jsx("h2", { className: "text-lg font-semibold", children: "รายการใบขอซื้อ" }) }),
-        /* @__PURE__ */ jsx("div", { className: "flex gap-2", children: /* @__PURE__ */ jsxs(
-          Button,
-          {
-            className: "font-normal",
-            variant: "outline",
-            size: "sm",
-            onClick: () => window.location.reload(),
-            disabled: loading,
-            children: [
-              loading ? /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx(RefreshCw, { className: "h-4 w-4" }),
-              "รีเฟรช"
-            ]
-          }
-        ) })
-      ] }) }),
-      /* @__PURE__ */ jsx(CardContent, { className: "px-6 pb-6 pt-0", children: /* @__PURE__ */ jsx(
-        OrdersDataTable,
-        {
-          data: orders,
-          loading,
-          role,
-          expanded,
-          processingKeys,
-          drafts,
-          onToggleExpanded: toggle,
-          onSaveOrderStatus: saveOrderStatus,
-          onSaveItem: saveOneItem,
-          onSetDraft: setDraft,
-          onGetItemValue: getItemValue
-        }
-      ) })
-    ] })
+    /* @__PURE__ */ jsx(
+      OrdersDataTable,
+      {
+        data: orders,
+        loading,
+        role,
+        expanded,
+        processingKeys,
+        drafts,
+        onToggleExpanded: toggle,
+        onSaveOrderStatus: saveOrderStatus,
+        onSaveItem: saveOneItem,
+        onSetDraft: setDraft,
+        onGetItemValue: getItemValue
+      }
+    )
   ] });
 }
 
 const $$List = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E0B\u0E37\u0E49\u0E2D" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "OrdersListPage", OrdersListPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/OrdersListPage", "client:component-export": "default" })} ` })}`;
-}, "C:/Projects/Astro/test03/po-app/src/pages/orders/list.astro", void 0);
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E0B\u0E37\u0E49\u0E2D" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "OrdersListPage", OrdersListPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/Bederly/po-app/src/components/po/OrdersListPage", "client:component-export": "default" })} ` })}`;
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/orders/list.astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/orders/list.astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/orders/list.astro";
 const $$url = "/orders/list";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({

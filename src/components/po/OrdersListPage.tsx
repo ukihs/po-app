@@ -10,9 +10,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { subscribeAuthAndRole } from '../../lib/auth';
-import { Loader2, RefreshCw } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Loader2, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import OrdersDataTable from './OrdersDataTable';
 
@@ -175,7 +173,7 @@ export default function OrdersListPage(){
   if(loading){
     return (
       <div className="w-full py-10 text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
         <div className="mt-3 text-muted-foreground">กำลังโหลดข้อมูล…</div>
       </div>
     );
@@ -190,7 +188,10 @@ export default function OrdersListPage(){
       )}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">รายการใบขอซื้อ</h1>
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <FileText className="w-8 h-8 text-primary" />
+          รายการใบขอซื้อ
+        </h1>
         <p className="text-muted-foreground">
           {role === 'procurement' ? 'สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ' : 
            role === 'supervisor' ? 'สำหรับหัวหน้างาน – ดูรายการใบขอซื้อทั้งหมด' :
@@ -198,47 +199,19 @@ export default function OrdersListPage(){
         </p>
       </div>  
 
-      <Card>
-        <CardHeader className="pb-2 px-6">
-          <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">รายการใบขอซื้อ</h2>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                className="font-normal"
-                variant="outline"
-                size="sm"
-                onClick={() => window.location.reload()}
-                disabled={loading}
-              >
-                {loading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                รีเฟรช
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
-          <OrdersDataTable
-            data={orders}
-            loading={loading}
-            role={role}
-            expanded={expanded}
-            processingKeys={processingKeys}
-            drafts={drafts}
-            onToggleExpanded={toggle}
-            onSaveOrderStatus={saveOrderStatus}
-            onSaveItem={saveOneItem}
-            onSetDraft={setDraft}
-            onGetItemValue={getItemValue}
-          />
-        </CardContent>
-      </Card>
+      <OrdersDataTable
+        data={orders}
+        loading={loading}
+        role={role}
+        expanded={expanded}
+        processingKeys={processingKeys}
+        drafts={drafts}
+        onToggleExpanded={toggle}
+        onSaveOrderStatus={saveOrderStatus}
+        onSaveItem={saveOneItem}
+        onSetDraft={setDraft}
+        onGetItemValue={getItemValue}
+      />
     </div>
   );
 }

@@ -1,35 +1,45 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type PaginationState,
+  type SortingState,
+  type Row,
 } from "@tanstack/react-table";
 import type {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Edit, Trash2, Shield, ShoppingCart, UserCheck, Package, Crown } from 'lucide-react';
+import { Edit, Trash2, Shield, ShoppingCart, UserCheck, Package, Crown, Ellipsis, Search, X, Filter, UserRoundPlus } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { 
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { Card, CardFooter, CardHeader, CardHeading, CardTable, CardToolbar } from '../ui/card';
+import { DataGrid } from '../ui/data-grid';
+import { DataGridColumnHeader } from '../ui/data-grid-column-header';
+import { DataGridPagination } from '../ui/data-grid-pagination';
+import {
+  DataGridTable,
+  DataGridTableRowSelect,
+  DataGridTableRowSelectAll,
+} from '../ui/data-grid-table';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
+import { toast } from 'sonner';
 
 interface User {
   uid: string;
@@ -47,166 +57,161 @@ interface UsersDataTableProps {
   loading: boolean;
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onAddUser: () => void;
 }
 
 const getRoleBadge = (role?: string) => {
   const userRole = role || 'buyer';
   const roleConfig: Record<string, { 
-    className: string; 
-    icon: React.ReactNode; 
+    variant: "primary" | "secondary" | "destructive" | "success" | "warning" | "info";
+    appearance: "default" | "light" | "outline" | "ghost";
     name: string 
   }> = {
     superadmin: { 
-      className: 'bg-red-500 hover:bg-red-600 text-white border-red-500', 
-      icon: <Crown className="h-3 w-3" />, 
+      variant: "destructive",
+      appearance: "light",
       name: 'ผู้ดูแลระบบ' 
     },
     supervisor: { 
-      className: 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500', 
-      icon: <UserCheck className="h-3 w-3" />, 
+      variant: "warning",
+      appearance: "light",
       name: 'หัวหน้างาน' 
     },
     procurement: { 
-      className: 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500', 
-      icon: <Package className="h-3 w-3" />, 
+      variant: "info",
+      appearance: "light",
       name: 'ฝ่ายจัดซื้อ' 
     },
     buyer: { 
-      className: 'bg-green-500 hover:bg-green-600 text-white border-green-500', 
-      icon: <ShoppingCart className="h-3 w-3" />, 
+      variant: "success",
+      appearance: "light",
       name: 'ผู้ขอซื้อ' 
     }
   };
   
   const config = roleConfig[userRole] || {
-    className: 'bg-gray-500 hover:bg-gray-600 text-white border-gray-500',
-    icon: <Shield className="h-3 w-3" />,
+    variant: "secondary",
+    appearance: "light",
     name: userRole.charAt(0).toUpperCase() + userRole.slice(1)
   };
   
   return (
-    <Badge className={`gap-1 ${config.className}`}>
-      {config.icon}
+    <Badge variant={config.variant} appearance={config.appearance} size="sm">
       {config.name}
     </Badge>
   );
 };
 
+function ActionsCell({ row, onEditUser, onDeleteUser }: { 
+  row: Row<User>; 
+  onEditUser: (user: User) => void;
+  onDeleteUser: (user: User) => void;
+}) {
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(row.original.uid);
+    toast.success(`User ID คัดลอกแล้ว: ${row.original.uid}`);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className="size-7" mode="icon" variant="ghost">
+          <Ellipsis />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="bottom" align="end">
+        <DropdownMenuItem onClick={() => onEditUser(row.original)}>
+          <Edit className="mr-2 h-4 w-4" />
+          แก้ไขข้อมูล
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleCopyId}>
+          คัดลอก User ID
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={() => onDeleteUser(row.original)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          ลบผู้ใช้
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 
 const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void): ColumnDef<User>[] => [
   {
+    accessorKey: "uid",
+    id: "uid",
+    header: () => <DataGridTableRowSelectAll />,
+    cell: ({ row }) => <DataGridTableRowSelect row={row} />,
+    enableSorting: false,
+    size: 35,
+    enableResizing: false,
+  },
+  {
     accessorKey: "displayName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-semibold"
-        >
-          ชื่อผู้ใช้
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    id: "displayName",
+    header: ({ column }) => <DataGridColumnHeader title="ชื่อผู้ใช้" visibility={true} column={column} />,
     cell: ({ row }) => {
       const firstName = row.original.firstName || '';
       const lastName = row.original.lastName || '';
       const displayName = row.original.displayName || '';
+      const email = row.original.email || '';
       
       const fullName = firstName && lastName 
         ? `${firstName} ${lastName}`.trim()
         : displayName || 'ยังไม่กำหนดชื่อ';
       
       return (
-        <div className="font-normal">
-          {fullName}
+        <div className="space-y-px">
+          <div className="font-medium text-foreground">{fullName}</div>
+          {email && <div className="text-muted-foreground">{email}</div>}
         </div>
       );
     },
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-semibold"
-        >
-          อีเมล
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const email = row.getValue("email") as string;
-      return (
-        <div className="text-sm">
-          {email && (
-            <div className="flex items-center gap-1">
-              {email}
-            </div>
-          )}
-        </div>
-      );
-    },
+    size: 250,
+    enableSorting: true,
+    enableHiding: false,
+    enableResizing: true,
   },
   {
     accessorKey: "role",
-    header: "บทบาท",
+    id: "role",
+    header: ({ column }) => <DataGridColumnHeader title="บทบาท" visibility={true} column={column} />,
     cell: ({ row }) => {
       const role = row.getValue("role") as string;
       return getRoleBadge(role);
     },
+    size: 120,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: "supervisorName",
-    header: "หัวหน้างาน",
+    id: "supervisorName",
+    header: ({ column }) => <DataGridColumnHeader title="หัวหน้างาน" visibility={true} column={column} />,
     cell: ({ row }) => {
       const supervisorName = row.getValue("supervisorName") as string;
       return (
-        <div className="text-sm">
+        <div className="font-medium text-foreground">
           {supervisorName || 'ยังไม่กำหนด'}
         </div>
       );
     },
+    size: 150,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     id: "actions",
+    header: '',
+    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} />,
+    size: 60,
+    enableSorting: false,
     enableHiding: false,
-    cell: ({ row }) => {
-      const user = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">เปิดเมนู</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>การดำเนินการ</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.uid)}>
-              คัดลอก User ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onEditUser(user)}>
-              <Edit className="mr-2 h-4 w-4" />
-              แก้ไขข้อมูล
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => onDeleteUser(user)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              ลบผู้ใช้
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    enableResizing: false,
   },
 ];
 
@@ -214,49 +219,72 @@ export default function UsersDataTable({
   data, 
   loading, 
   onEditUser, 
-  onDeleteUser
+  onDeleteUser,
+  onAddUser
 }: UsersDataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'displayName', desc: false }]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const columns = createColumns(onEditUser, onDeleteUser);
+  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser), [onEditUser, onDeleteUser]);
+
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const matchesRole = !selectedRoles?.length || selectedRoles.includes(item.role || 'buyer');
+
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        !searchQuery ||
+        Object.values(item)
+          .join(' ')
+          .toLowerCase()
+          .includes(searchLower);
+
+      return matchesRole && matchesSearch;
+    });
+  }, [searchQuery, selectedRoles, data]);
+
+  const roleCounts = useMemo(() => {
+    return data.reduce(
+      (acc, item) => {
+        const role = item.role || 'buyer';
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  }, [data]);
+
+  const handleRoleChange = (checked: boolean, value: string) => {
+    setSelectedRoles(
+      (prev = []) => (checked ? [...prev, value] : prev.filter((v) => v !== value)),
+    );
+  };
+
+  const [columnOrder, setColumnOrder] = useState<string[]>(columns.map((column) => column.id as string));
 
   const table = useReactTable({
-    data,
     columns,
+    data: filteredData,
+    pageCount: Math.ceil((filteredData?.length || 0) / pagination.pageSize),
+    getRowId: (row: User) => row.uid,
+    state: {
+      pagination,
+      sorting,
+      columnOrder,
+    },
+    columnResizeMode: 'onChange',
+    onColumnOrderChange: setColumnOrder,
+    onPaginationChange: setPagination,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    globalFilterFn: (row, columnId, value) => {
-      const search = value.toLowerCase();
-      const firstName = row.original.firstName?.toLowerCase() || '';
-      const lastName = row.original.lastName?.toLowerCase() || '';
-      const displayName = row.original.displayName?.toLowerCase() || '';
-      const email = row.original.email?.toLowerCase() || '';
-      
-      return (
-        firstName.includes(search) ||
-        lastName.includes(search) ||
-        displayName.includes(search) ||
-        email.includes(search)
-      );
-    },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-    },
   });
 
   if (loading) {
@@ -275,122 +303,110 @@ export default function UsersDataTable({
         <p className="text-muted-foreground mb-4">
           สร้างผู้ใช้คนแรกเพื่อเริ่มต้น
         </p>
+        <Button onClick={onAddUser} className="bg-[#6EC1E4] hover:bg-[#2b9ccc]">
+          <UserRoundPlus className="h-4 w-4 mr-2" />
+          เพิ่มผู้ใช้
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="ค้นหาด้วยชื่อผู้ใช้หรืออีเมล..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              คอลัมน์ <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
+    <DataGrid
+      table={table}
+      recordCount={filteredData?.length || 0}
+      tableLayout={{
+        columnsPinnable: true,
+        columnsResizable: true,
+        columnsMovable: true,
+        columnsVisibility: true,
+      }}
+    >
+      <Card>
+        <CardHeader className="py-4">
+          <CardHeading>
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  placeholder="ค้นหาผู้ใช้..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="ps-9 w-64"
+                />
+                {searchQuery.length > 0 && (
+                  <Button
+                    mode="icon"
+                    variant="ghost"
+                    className="absolute end-1.5 top-1/2 -translate-y-1/2 h-6 w-6"
+                    onClick={() => setSearchQuery('')}
                   >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  ไม่พบข้อมูล
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          แสดง {table.getFilteredRowModel().rows.length} รายการ
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            ก่อนหน้า
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            ถัดไป
-          </Button>
-        </div>
-      </div>
-    </div>
+                    <X />
+                  </Button>
+                )}
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <Filter />
+                    บทบาท
+                    {selectedRoles.length > 0 && (
+                      <Badge size="sm" appearance="outline">
+                        {selectedRoles.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-3" align="start">
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium text-muted-foreground">กรองตามบทบาท</div>
+                    <div className="space-y-3">
+                      {Object.keys(roleCounts).map((role) => (
+                        <div key={role} className="flex items-center gap-2.5">
+                          <Checkbox
+                            id={role}
+                            checked={selectedRoles.includes(role)}
+                            onCheckedChange={(checked) => handleRoleChange(checked === true, role)}
+                          />
+                          <Label
+                            htmlFor={role}
+                            className="grow flex items-center justify-between font-normal gap-1.5"
+                          >
+                            {role === 'superadmin' ? 'ผู้ดูแลระบบ' :
+                             role === 'supervisor' ? 'หัวหน้างาน' :
+                             role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
+                             role === 'buyer' ? 'ผู้ขอซื้อ' : role}
+                            <span className="text-muted-foreground">{roleCounts[role]}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </CardHeading>
+          <CardToolbar>
+            <Button onClick={onAddUser} className="bg-[#6EC1E4] hover:bg-[#2b9ccc]">
+              <UserRoundPlus />
+              เพิ่มผู้ใช้
+            </Button>
+          </CardToolbar>
+        </CardHeader>
+        <CardTable>
+          <ScrollArea>
+            <DataGridTable />
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardTable>
+        <CardFooter>
+          <DataGridPagination 
+            sizes={[5, 10, 20, 50]}
+            rowsPerPageLabel="Rows per page"
+            info="{from} - {to} of {count}"
+          />
+        </CardFooter>
+      </Card>
+    </DataGrid>
   );
 }

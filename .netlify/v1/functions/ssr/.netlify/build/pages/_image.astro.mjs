@@ -1,5 +1,5 @@
 import { isRemotePath } from '@astrojs/internal-helpers/path';
-import { t as toStyleString, A as AstroError, N as NoImageMetadata, a as FailedToFetchRemoteImageDimensions, E as ExpectedImageOptions, b as ExpectedImage, c as ExpectedNotESMImage, I as InvalidImageService, d as createComponent, e as createAstro, f as ImageMissingAlt, m as maybeRenderHead, g as addAttribute, s as spreadAttributes, r as renderTemplate, h as ExperimentalFontsNotEnabled, i as FontFamilyNotFound, u as unescapeHTML } from '../chunks/astro/server_BkuRanWd.mjs';
+import { t as toStyleString, A as AstroError, N as NoImageMetadata, a as FailedToFetchRemoteImageDimensions, E as ExpectedImageOptions, b as ExpectedImage, c as ExpectedNotESMImage, I as InvalidImageService, d as createComponent, e as createAstro, f as ImageMissingAlt, m as maybeRenderHead, g as addAttribute, s as spreadAttributes, r as renderTemplate, h as ExperimentalFontsNotEnabled, i as FontFamilyNotFound, u as unescapeHTML } from '../chunks/astro/server_7uJhlR4f.mjs';
 import { isRemoteAllowed } from '@astrojs/internal-helpers/remote';
 import 'clsx';
 import * as mime from 'mrmime';
@@ -1150,7 +1150,7 @@ const $$Image = createComponent(async ($$result, $$props, $$slots) => {
   }
   const { class: className, ...attributes } = { ...additionalAttributes, ...image.attributes };
   return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(attributes)}${addAttribute(className, "class")}>`;
-}, "C:/Projects/Astro/test03/po-app/node_modules/astro/components/Image.astro", void 0);
+}, "C:/Projects/Astro/Bederly/po-app/node_modules/astro/components/Image.astro", void 0);
 
 const $$Astro$1 = createAstro();
 const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
@@ -1221,9 +1221,9 @@ const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
     const srcsetAttribute = props.densities || !props.densities && !props.widths && !useResponsive ? `${image.src}${image.srcSet.values.length > 0 ? ", " + image.srcSet.attribute : ""}` : image.srcSet.attribute;
     return renderTemplate`<source${addAttribute(srcsetAttribute, "srcset")}${addAttribute(mime.lookup(image.options.format ?? image.src) ?? `image/${image.options.format}`, "type")}${spreadAttributes(sourceAdditionalAttributes)}>`;
   })}  <img${addAttribute(fallbackImage.src, "src")}${spreadAttributes(attributes)}${addAttribute(className, "class")}> </picture>`;
-}, "C:/Projects/Astro/test03/po-app/node_modules/astro/components/Picture.astro", void 0);
+}, "C:/Projects/Astro/Bederly/po-app/node_modules/astro/components/Picture.astro", void 0);
 
-const mod = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+const fontsMod = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null
 }, Symbol.toStringTag, { value: 'Module' }));
 
@@ -1231,12 +1231,12 @@ const $$Astro = createAstro();
 const $$Font = createComponent(($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Font;
-  const { fontsData } = mod;
-  if (!fontsData) {
+  const { internalConsumableMap } = fontsMod;
+  if (!internalConsumableMap) {
     throw new AstroError(ExperimentalFontsNotEnabled);
   }
   const { cssVariable, preload = false } = Astro2.props;
-  const data = fontsData.get(cssVariable);
+  const data = internalConsumableMap.get(cssVariable);
   if (!data) {
     throw new AstroError({
       ...FontFamilyNotFound,
@@ -1244,7 +1244,7 @@ const $$Font = createComponent(($$result, $$props, $$slots) => {
     });
   }
   return renderTemplate`${preload && data.preloadData.map(({ url, type }) => renderTemplate`<link rel="preload"${addAttribute(url, "href")} as="font"${addAttribute(`font/${type}`, "type")} crossorigin>`)}<style>${unescapeHTML(data.css)}</style>`;
-}, "C:/Projects/Astro/test03/po-app/node_modules/astro/components/Font.astro", void 0);
+}, "C:/Projects/Astro/Bederly/po-app/node_modules/astro/components/Font.astro", void 0);
 
 const imageConfig = {"endpoint":{"route":"/_image"},"service":{"entrypoint":"@astrojs/netlify/image-service.js","config":{}},"domains":[],"remotePatterns":[],"responsiveStyles":false};
 							const getImage = async (options) => await getImage$1(options, imageConfig);
@@ -1314,7 +1314,7 @@ const GET = async ({ request }) => {
       transform,
       imageConfig
     );
-    return new Response(Buffer.from(data), {
+    return new Response(data, {
       status: 200,
       headers: {
         "Content-Type": mime.lookup(format) ?? `image/${format}`,

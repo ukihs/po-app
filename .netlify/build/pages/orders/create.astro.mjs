@@ -1,19 +1,18 @@
-import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BkuRanWd.mjs';
+import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_R7ZpnFBV.mjs';
+import { C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CLRfQ6X5.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { f as cn, g as buttonVariants, B as Button, h as auth, C as Card, c as CardContent } from '../../chunks/card_DPKHX6pj.mjs';
-import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_zFWy2gqy.mjs';
+import { b as cn, d as buttonVariants, B as Button, e as auth, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
+import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_BPoLA-4y.mjs';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BlMe7gX3.mjs';
-import { I as Input } from '../../chunks/input_BW0kI7pb.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Bdv0yE5d.mjs';
-import { L as Label } from '../../chunks/label_Cbq84TUY.mjs';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
+import { L as Label } from '../../chunks/label_B4e7hkFR.mjs';
 import { getDefaultClassNames, DayPicker } from 'react-day-picker';
-import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_Bgy5ZHZb.mjs';
+import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_DsyM45qf.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function Calendar({
@@ -354,7 +353,7 @@ function CreateOrderPage() {
       ] }),
       /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า" })
     ] }),
-    /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-[500px]", children: [
+    /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-[500px]", showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-5 h-5" }),
@@ -454,13 +453,22 @@ function CreateOrderPage() {
         ] })
       ] }),
       /* @__PURE__ */ jsxs(DialogFooter, { children: [
-        /* @__PURE__ */ jsx(Button, { variant: "outline", onClick: closeModal, className: "font-normal", children: "ยกเลิก" }),
+        /* @__PURE__ */ jsx(
+          Button,
+          {
+            variant: "outline",
+            onClick: closeModal,
+            className: "font-normal",
+            children: "ยกเลิก"
+          }
+        ),
         /* @__PURE__ */ jsx(
           Button,
           {
             onClick: addItemFromModal,
             disabled: !isModalFormValid(),
-            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal",
+            variant: "primary",
+            className: "font-normal",
             children: "เพิ่มรายการ"
           }
         )
@@ -521,9 +529,8 @@ function CreateOrderPage() {
             Button,
             {
               type: "button",
-              variant: "default",
+              variant: "outline",
               onClick: openAddModal,
-              size: "sm",
               children: [
                 /* @__PURE__ */ jsx(Plus, { className: "w-4 h-4 mr-2" }),
                 "เพิ่มรายการ"
@@ -532,22 +539,22 @@ function CreateOrderPage() {
           )
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "overflow-x-auto", children: [
-          /* @__PURE__ */ jsxs(Table, { children: [
+          /* @__PURE__ */ jsxs(Table, { className: "min-w-full", children: [
             /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableHead, { children: "ลำดับที่" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "รายการที่ขอซื้อ" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "วันที่ต้องการรับ" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "จำนวนเงิน (บาท)" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "รวม (บาท)" }),
-              /* @__PURE__ */ jsx(TableHead, {})
+              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "ลำดับที่" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[250px]", children: "รายการที่ขอซื้อ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-40", children: "วันที่ต้องการรับ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-28 text-center", children: "จำนวน" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-36 text-center", children: "จำนวนเงิน (บาท)" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-32 text-center", children: "รวม (บาท)" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "จัดการ" })
             ] }) }),
             /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => {
               const total = toNum(item.quantity) * toNum(item.amount);
               const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
               return /* @__PURE__ */ jsxs(TableRow, { className: hasError ? "bg-destructive/10" : "", children: [
-                /* @__PURE__ */ jsx(TableCell, { className: "text-center", children: item.no }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-20", children: item.no }),
+                /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[250px]", children: /* @__PURE__ */ jsx(
                   Input,
                   {
                     type: "text",
@@ -557,7 +564,7 @@ function CreateOrderPage() {
                     className: `h-8 ${hasError && !item.description.trim() ? "border-destructive" : ""}`
                   }
                 ) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx(TableCell, { className: "w-40", children: /* @__PURE__ */ jsx(
                   Input,
                   {
                     type: "date",
@@ -566,32 +573,32 @@ function CreateOrderPage() {
                     className: "h-8"
                   }
                 ) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx(TableCell, { className: "w-28", children: /* @__PURE__ */ jsx(
                   Input,
                   {
                     type: "number",
                     placeholder: "จำนวน",
                     value: item.quantity,
                     onChange: (e) => updateItem(idx, "quantity", e.target.value),
-                    className: `h-8 text-right ${hasError && toNum(item.quantity) <= 0 ? "border-destructive" : ""}`,
+                    className: `h-8 text-center ${hasError && toNum(item.quantity) <= 0 ? "border-destructive" : ""}`,
                     min: "0.01",
                     step: "0.01"
                   }
                 ) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx(TableCell, { className: "w-36", children: /* @__PURE__ */ jsx(
                   Input,
                   {
                     type: "number",
                     placeholder: "ราคา",
                     value: item.amount,
                     onChange: (e) => updateItem(idx, "amount", e.target.value),
-                    className: `h-8 text-right ${hasError && toNum(item.amount) <= 0 ? "border-destructive" : ""}`,
+                    className: `h-8 text-center ${hasError && toNum(item.amount) <= 0 ? "border-destructive" : ""}`,
                     min: "0.01",
                     step: "0.01"
                   }
                 ) }),
-                /* @__PURE__ */ jsx(TableCell, { className: "text-right", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
-                /* @__PURE__ */ jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsx(
+                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-32", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
+                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-20", children: /* @__PURE__ */ jsx(
                   Button,
                   {
                     type: "button",
@@ -616,7 +623,7 @@ function CreateOrderPage() {
       /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
         /* @__PURE__ */ jsxs("div", { className: "text-lg", children: [
           /* @__PURE__ */ jsx("span", { className: "text-base", children: "รวมเป็นเงินจำนวน : " }),
-          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-[#6EC1E4]", children: [
+          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
             grandTotal(items).toLocaleString("th-TH"),
             " บาท"
           ] })
@@ -627,7 +634,8 @@ function CreateOrderPage() {
             type: "button",
             onClick: showConfirmation,
             disabled: saving || !isFormValid(),
-            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc] font-normal",
+            variant: "primary",
+            className: "font-normal",
             children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
               "กำลังบันทึก..."
@@ -636,7 +644,7 @@ function CreateOrderPage() {
         )
       ] })
     ] }) }) }),
-    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-2xl", children: [
+    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-2xl", showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-6 h-6" }),
@@ -664,28 +672,28 @@ function CreateOrderPage() {
             items.length,
             " รายการ)"
           ] }),
-          /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60 overflow-y-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
-            /* @__PURE__ */ jsx(TableHeader, { className: "sticky top-0", children: /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableHead, { children: "ลำดับ" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "รายการ" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "วันที่ต้องการรับ" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
-              /* @__PURE__ */ jsx(TableHead, { children: "ราคา" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "text-right", children: "รวม" })
+          /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60 overflow-y-auto", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-full", children: [
+            /* @__PURE__ */ jsx(TableHeader, { className: "sticky top-0 bg-background", children: /* @__PURE__ */ jsxs(TableRow, { children: [
+              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "ลำดับ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[200px]", children: "รายการ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-40", children: "วันที่ต้องการรับ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-28 text-center", children: "จำนวน" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-36 text-center", children: "ราคา" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-32 text-center", children: "รวม" })
             ] }) }),
             /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableCell, { children: item.no }),
-              /* @__PURE__ */ jsx(TableCell, { className: "max-w-xs truncate", title: item.description, children: item.description }),
-              /* @__PURE__ */ jsx(TableCell, { children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
-              /* @__PURE__ */ jsx(TableCell, { children: toNum(item.quantity).toLocaleString("th-TH") }),
-              /* @__PURE__ */ jsx(TableCell, { children: toNum(item.amount).toLocaleString("th-TH") }),
-              /* @__PURE__ */ jsx(TableCell, { className: "text-right font-medium", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
+              /* @__PURE__ */ jsx(TableCell, { className: "w-20 text-center", children: item.no }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[200px] max-w-xs truncate", title: item.description, children: item.description }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-40", children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-28 text-center", children: toNum(item.quantity).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-36 text-center", children: toNum(item.amount).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-32 text-center font-medium", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
             ] }, idx)) })
           ] }) })
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "bg-[#c3e4f4] rounded-lg p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center", children: [
+        /* @__PURE__ */ jsx("div", { className: "bg-primary/10 rounded-lg p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center", children: [
           /* @__PURE__ */ jsx("span", { className: "text-base font-semibold", children: "รวมเป็นเงินทั้งสิ้น:" }),
-          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-[#6EC1E4]", children: [
+          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
             grandTotal(items).toLocaleString("th-TH"),
             " บาท"
           ] })
@@ -706,7 +714,7 @@ function CreateOrderPage() {
           {
             onClick: confirmCreate,
             disabled: saving,
-            className: "bg-[#6EC1E4] hover:bg-[#2b9ccc]",
+            variant: "primary",
             children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
               "กำลังสร้างใบขอซื้อ..."
@@ -719,10 +727,10 @@ function CreateOrderPage() {
 }
 
 const $$Create = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E0B\u0E37\u0E49\u0E2D" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "CreateOrderPage", CreateOrderPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/test03/po-app/src/components/po/CreateOrderPage", "client:component-export": "default" })} ` })}`;
-}, "C:/Projects/Astro/test03/po-app/src/pages/orders/create.astro", void 0);
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "title": "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E0B\u0E37\u0E49\u0E2D" }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "CreateOrderPage", CreateOrderPage, { "client:load": true, "client:component-hydration": "load", "client:component-path": "C:/Projects/Astro/Bederly/po-app/src/components/po/CreateOrderPage", "client:component-export": "default" })} ` })}`;
+}, "C:/Projects/Astro/Bederly/po-app/src/pages/orders/create.astro", void 0);
 
-const $$file = "C:/Projects/Astro/test03/po-app/src/pages/orders/create.astro";
+const $$file = "C:/Projects/Astro/Bederly/po-app/src/pages/orders/create.astro";
 const $$url = "/orders/create";
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
