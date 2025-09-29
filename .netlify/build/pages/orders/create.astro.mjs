@@ -1,11 +1,11 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BkuRanWd.mjs';
 import 'kleur/colors';
-import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_h4H-Ivtp.mjs';
+import { S as Separator, $ as $$MainLayout } from '../../chunks/MainLayout_R7ZpnFBV.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { f as cn, g as buttonVariants, B as Button, h as auth, C as Card, c as CardContent } from '../../chunks/card_DPKHX6pj.mjs';
-import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_C6m_Hkn0.mjs';
+import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_zFWy2gqy.mjs';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BlMe7gX3.mjs';
@@ -330,7 +330,11 @@ function CreateOrderPage() {
       const itemsWithType = items.map((item) => ({ ...item, itemType: "วัตถุดิบ" }));
       const dateString = selectedDate?.toISOString().split("T")[0] || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
-      window.location.href = "/orders/tracking";
+      toast.success("สร้างใบขอซื้อสำเร็จแล้ว");
+      setRequester("");
+      setItems([]);
+      setSelectedDate(/* @__PURE__ */ new Date());
+      setSubmitted(false);
     } catch (e) {
       toast.error(e?.message ?? "บันทึกใบสั่งซื้อไม่สำเร็จ");
     } finally {

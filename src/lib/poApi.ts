@@ -12,6 +12,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
+import { sendOrderCreatedNotification, sendOrderApprovedNotification, sendOrderRejectedNotification } from './email-notifications';
 
 export type ItemType = 'วัตถุดิบ' | 'เครื่องมือ' | 'วัสดุสิ้นเปลือง' | 'Software/Hardware';
 export type ProcurementStatus = 'จัดซื้อ' | 'ของมาส่ง' | 'ส่งมอบของ' | 'คลังสินค้า' | 'จัดซื้อ_2' | 'ของมาส่ง_2' | 'ส่งมอบของ_2';
@@ -218,6 +219,22 @@ export async function createOrder(payload: {
       console.error('createOrder: Notification failed', notifError);
     }
 
+    // ส่งอีเมลแจ้งเตือน (กรณี 1)
+    console.log('createOrder: Sending email notification...');
+    try {
+      await sendOrderCreatedNotification(u.uid, ref.id, {
+        orderNo,
+        requesterName: payload.requesterName,
+        date: payload.date,
+        items: cleanItems,
+        total: docData.total
+      });
+      console.log('createOrder: Email notification sent successfully');
+    } catch (emailError) {
+      console.error('createOrder: Email notification failed', emailError);
+      // ไม่ throw error เพื่อไม่ให้การสร้าง order ล้มเหลว
+    }
+
     console.log('createOrder: Complete!', { orderId: ref.id, orderNo });
     return ref.id;
 
@@ -351,6 +368,29 @@ export async function approveOrder(orderId: string, approved: boolean) {
     });
   } catch (notifError) {
     console.error('approveOrder: Notification failed', notifError);
+  }
+
+  // ส่งอีเมลแจ้งเตือน (กรณี 2)
+  console.log('approveOrder: Sending email notification...');
+  try {
+    if (approved) {
+      await sendOrderApprovedNotification(
+        orderData.requesterUid,
+        currentUser.uid,
+        orderId
+      );
+      console.log('approveOrder: Approval email notification sent successfully');
+    } else {
+      await sendOrderRejectedNotification(
+        orderData.requesterUid,
+        currentUser.uid,
+        orderId
+      );
+      console.log('approveOrder: Rejection email notification sent successfully');
+    }
+  } catch (emailError) {
+    console.error('approveOrder: Email notification failed', emailError);
+    // ไม่ throw error เพื่อไม่ให้การอนุมัติล้มเหลว
   }
 
   if (approved) {
