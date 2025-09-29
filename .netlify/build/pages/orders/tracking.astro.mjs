@@ -1,13 +1,13 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CLRfQ6X5.mjs';
+import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_HxY4Emac.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { b as cn, s as subscribeAuthAndRole, f as db, B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
 import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BPoLA-4y.mjs';
-import { MoreHorizontal, RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
+import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
 import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
@@ -15,36 +15,6 @@ import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.m
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
 export { renderers } from '../../renderers.mjs';
-
-const Pagination = ({ className, ...props }) => /* @__PURE__ */ jsx(
-  "nav",
-  {
-    "data-slot": "pagination",
-    role: "navigation",
-    "aria-label": "pagination",
-    className: cn("mx-auto flex w-full justify-center", className),
-    ...props
-  }
-);
-function PaginationContent({ className, ...props }) {
-  return /* @__PURE__ */ jsx("ul", { "data-slot": "pagination-content", className: cn("flex flex-row items-center gap-1", className), ...props });
-}
-function PaginationItem({ className, ...props }) {
-  return /* @__PURE__ */ jsx("li", { "data-slot": "pagination-item", className: cn("", className), ...props });
-}
-const PaginationEllipsis = ({ className, ...props }) => /* @__PURE__ */ jsxs(
-  "span",
-  {
-    "data-slot": "pagination-ellipsis",
-    "aria-hidden": true,
-    className: cn("flex h-9 w-9 items-center justify-center", className),
-    ...props,
-    children: [
-      /* @__PURE__ */ jsx(MoreHorizontal, { className: "h-4 w-4" }),
-      /* @__PURE__ */ jsx("span", { className: "sr-only", children: "More pages" })
-    ]
-  }
-);
 
 const StepperContext = createContext(void 0);
 const StepItemContext = createContext(void 0);
@@ -293,7 +263,7 @@ function TrackingPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState("card");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   useEffect(() => {
     let offOrders;
     let offAuth;
@@ -455,6 +425,13 @@ function TrackingPage() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(Number(newItemsPerPage));
+    setCurrentPage(1);
+  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
   if (loading) {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
       /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-8 w-8 animate-spin text-primary" }) }),
@@ -602,7 +579,7 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                variant: "primary",
+                className: "bg-green-600 hover:bg-green-700 text-white",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"
@@ -761,8 +738,7 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                variant: "primary",
-                className: "font-normal",
+                className: "bg-green-600 hover:bg-green-700 text-white font-normal",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"
@@ -773,88 +749,127 @@ function TrackingPage() {
         ] })
       ] })
     ] }) }, order.id)) }),
-    totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "mt-8 flex flex-col items-center gap-4", children: [
+    filteredRows.length > 0 && /* @__PURE__ */ jsxs("div", { className: "mt-6 flex flex-col sm:flex-row items-center justify-between gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "แสดง" }),
+        /* @__PURE__ */ jsxs(
+          "select",
+          {
+            value: itemsPerPage,
+            onChange: (e) => handleItemsPerPageChange(e.target.value),
+            className: "border border-input bg-background rounded-md px-2 py-1 text-sm",
+            children: [
+              /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
+              /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
+              /* @__PURE__ */ jsx("option", { value: 20, children: "20" }),
+              /* @__PURE__ */ jsx("option", { value: 50, children: "50" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "รายการต่อหน้า" })
+      ] }),
       /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
         "แสดง ",
         (currentPage - 1) * itemsPerPage + 1,
         " - ",
         Math.min(currentPage * itemsPerPage, filteredRows.length),
-        "จาก ",
+        " จาก ",
         filteredRows.length,
         " รายการ"
       ] }),
-      /* @__PURE__ */ jsx(Pagination, { children: /* @__PURE__ */ jsxs(PaginationContent, { children: [
-        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
-            onClick: () => handlePageChange(1),
-            disabled: currentPage === 1,
-            className: "h-10 w-10 p-0",
-            children: [
-              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "หน้าแรก" }),
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" }),
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4 -ml-1" })
-            ]
-          }
-        ) }),
-        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
-          Button,
-          {
-            variant: "outline",
+            size: "sm",
             onClick: () => handlePageChange(currentPage - 1),
             disabled: currentPage === 1,
-            className: "h-10 w-10 p-0",
             children: [
-              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ก่อนหน้า" }),
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" })
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-4 h-4" }),
+              "ก่อนหน้า"
             ]
           }
-        ) }),
-        Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-          if (page === 1 || page === totalPages || page >= currentPage - 1 && page <= currentPage + 1) {
-            return /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsx(
-              Button,
-              {
-                variant: currentPage === page ? "primary" : "outline",
-                onClick: () => handlePageChange(page),
-                className: "h-10 w-10",
-                children: page
-              }
-            ) }, page);
-          } else if (page === currentPage - 2 || page === currentPage + 2) {
-            return /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsx(PaginationEllipsis, {}) }, page);
+        ),
+        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1", children: (() => {
+          const pages = [];
+          const maxVisiblePages = 5;
+          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+          if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
           }
-          return null;
-        }),
-        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
+          if (startPage > 1) {
+            pages.push(
+              /* @__PURE__ */ jsx(
+                Button,
+                {
+                  variant: currentPage === 1 ? "primary" : "outline",
+                  size: "sm",
+                  onClick: () => handlePageChange(1),
+                  className: "w-8 h-8 p-0",
+                  children: "1"
+                },
+                1
+              )
+            );
+            if (startPage > 2) {
+              pages.push(
+                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis1")
+              );
+            }
+          }
+          for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+              /* @__PURE__ */ jsx(
+                Button,
+                {
+                  variant: currentPage === i ? "primary" : "outline",
+                  size: "sm",
+                  onClick: () => handlePageChange(i),
+                  className: "w-8 h-8 p-0",
+                  children: i
+                },
+                i
+              )
+            );
+          }
+          if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+              pages.push(
+                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis2")
+              );
+            }
+            pages.push(
+              /* @__PURE__ */ jsx(
+                Button,
+                {
+                  variant: currentPage === totalPages ? "primary" : "outline",
+                  size: "sm",
+                  onClick: () => handlePageChange(totalPages),
+                  className: "w-8 h-8 p-0",
+                  children: totalPages
+                },
+                totalPages
+              )
+            );
+          }
+          return pages;
+        })() }),
+        /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
+            size: "sm",
             onClick: () => handlePageChange(currentPage + 1),
             disabled: currentPage === totalPages,
-            className: "h-10 w-10 p-0",
             children: [
-              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ถัดไป" }),
-              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
+              "ถัดไป",
+              /* @__PURE__ */ jsx(ChevronRight, { className: "w-4 h-4" })
             ]
           }
-        ) }),
-        /* @__PURE__ */ jsx(PaginationItem, { children: /* @__PURE__ */ jsxs(
-          Button,
-          {
-            variant: "outline",
-            onClick: () => handlePageChange(totalPages),
-            disabled: currentPage === totalPages,
-            className: "h-10 w-10 p-0",
-            children: [
-              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "หน้าสุดท้าย" }),
-              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" }),
-              /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4 -ml-1" })
-            ]
-          }
-        ) })
-      ] }) })
+        )
+      ] })
     ] }),
     /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
@@ -901,32 +916,32 @@ function TrackingPage() {
 function getStatusBadge(status) {
   switch (status) {
     case "pending":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "warning", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "warning", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(Clock, { className: "w-3 h-3" }),
         "รออนุมัติ"
       ] });
     case "approved":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3" }),
         "อนุมัติแล้ว"
       ] });
     case "rejected":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "destructive", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "destructive", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3" }),
         "ไม่อนุมัติ"
       ] });
     case "in_progress":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(Truck, { className: "w-3 h-3" }),
         "กำลังดำเนินการ"
       ] });
     case "delivered":
-      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "success", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(Package, { className: "w-3 h-3" }),
         "ได้รับแล้ว"
       ] });
     default:
-      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1", children: [
+      return /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "inline-flex items-center gap-1 w-fit", children: [
         /* @__PURE__ */ jsx(AlertCircle, { className: "w-3 h-3" }),
         status
       ] });
