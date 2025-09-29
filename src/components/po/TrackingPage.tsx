@@ -36,7 +36,6 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Pagination, PaginationContent, PaginationItem, PaginationEllipsis } from '../ui/pagination';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -103,7 +102,7 @@ export default function TrackingPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     let offOrders: any;
@@ -309,6 +308,15 @@ export default function TrackingPage() {
     setCurrentPage(page);
   };
 
+  const handleItemsPerPageChange = (newItemsPerPage: string) => {
+    setItemsPerPage(Number(newItemsPerPage));
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
 
 
   if (loading) {
@@ -501,7 +509,7 @@ export default function TrackingPage() {
                               onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                               disabled={processingOrders.has(order.id)}
                               size="sm"
-                              variant="primary"
+                              className="bg-green-600 hover:bg-green-700 text-white"
                             >
                               {processingOrders.has(order.id) ? (
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -673,8 +681,7 @@ export default function TrackingPage() {
                            onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
-                           variant="primary"
-                           className="font-normal"
+                           className="bg-green-600 hover:bg-green-700 text-white font-normal"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -695,96 +702,119 @@ export default function TrackingPage() {
       )}
       
       {/* Pagination Section */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} 
-            จาก {filteredRows.length} รายการ
+      {filteredRows.length > 0 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">แสดง</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => handleItemsPerPageChange(e.target.value)}
+              className="border border-input bg-background rounded-md px-2 py-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
           </div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                  className="h-10 w-10 p-0"
-                >
-                  <span className="sr-only">หน้าแรก</span>
-                  <ChevronLeft className="h-4 w-4" />
-                  <ChevronLeft className="h-4 w-4 -ml-1" />
-                </Button>
-              </PaginationItem>
-              
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="h-10 w-10 p-0"
-                >
-                  <span className="sr-only">ก่อนหน้า</span>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </PaginationItem>
 
-              {/* Show page numbers */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                if (
-                  page === 1 ||
-                  page === totalPages ||
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                ) {
-                  return (
-                    <PaginationItem key={page}>
-                      <Button
-                        variant={currentPage === page ? "primary" : "outline"}
-                        onClick={() => handlePageChange(page)}
-                        className="h-10 w-10"
-                      >
-                        {page}
-                      </Button>
-                    </PaginationItem>
+          <div className="text-sm text-muted-foreground">
+            แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} จาก {filteredRows.length} รายการ
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              ก่อนหน้า
+            </Button>
+
+            <div className="flex items-center gap-1">
+              {(() => {
+                const pages = [];
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                if (startPage > 1) {
+                  pages.push(
+                    <Button
+                      key={1}
+                      variant={currentPage === 1 ? "primary" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(1)}
+                      className="w-8 h-8 p-0"
+                    >
+                      1
+                    </Button>
                   );
-                } else if (
-                  page === currentPage - 2 ||
-                  page === currentPage + 2
-                ) {
-                  return (
-                    <PaginationItem key={page}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
+                  if (startPage > 2) {
+                    pages.push(
+                      <span key="ellipsis1" className="px-2 text-muted-foreground">
+                        ...
+                      </span>
+                    );
+                  }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <Button
+                      key={i}
+                      variant={currentPage === i ? "primary" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(i)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {i}
+                    </Button>
                   );
                 }
-                return null;
-              })}
 
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="h-10 w-10 p-0"
-                >
-                  <span className="sr-only">ถัดไป</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </PaginationItem>
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) {
+                    pages.push(
+                      <span key="ellipsis2" className="px-2 text-muted-foreground">
+                        ...
+                      </span>
+                    );
+                  }
+                  pages.push(
+                    <Button
+                      key={totalPages}
+                      variant={currentPage === totalPages ? "primary" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(totalPages)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {totalPages}
+                    </Button>
+                  );
+                }
 
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="h-10 w-10 p-0"
-                >
-                  <span className="sr-only">หน้าสุดท้าย</span>
-                  <ChevronRight className="h-4 w-4" />
-                  <ChevronRight className="h-4 w-4 -ml-1" />
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                return pages;
+              })()}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              ถัดไป
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       )}
 
@@ -852,42 +882,42 @@ function getStatusBadge(status: Status) {
   switch (status) {
     case 'pending':
       return (
-        <Badge variant="warning" appearance="light" className="flex items-center gap-1">
+        <Badge variant="warning" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <Clock className="w-3 h-3" />
           รออนุมัติ
         </Badge>
       );
     case 'approved':
       return (
-        <Badge variant="success" appearance="light" className="flex items-center gap-1">
+        <Badge variant="success" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <CheckCircle className="w-3 h-3" />
           อนุมัติแล้ว
         </Badge>
       );
     case 'rejected':
       return (
-        <Badge variant="destructive" appearance="light" className="flex items-center gap-1">
+        <Badge variant="destructive" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <XCircle className="w-3 h-3" />
           ไม่อนุมัติ
         </Badge>
       );
     case 'in_progress':
       return (
-        <Badge variant="info" appearance="light" className="flex items-center gap-1">
+        <Badge variant="info" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <Truck className="w-3 h-3" />
           กำลังดำเนินการ
         </Badge>
       );
     case 'delivered':
       return (
-        <Badge variant="success" appearance="light" className="flex items-center gap-1">
+        <Badge variant="success" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <Package className="w-3 h-3" />
           ได้รับแล้ว
         </Badge>
       );
     default:
       return (
-        <Badge variant="secondary" appearance="light" className="flex items-center gap-1">
+        <Badge variant="secondary" appearance="light" className="inline-flex items-center gap-1 w-fit">
           <AlertCircle className="w-3 h-3" />
           {status}
         </Badge>
