@@ -36,6 +36,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -322,11 +323,11 @@ export default function TrackingPage() {
   if (loading) {
     return (
       <div className="w-full">
-        <div className="text-center py-12">
+        <div className="text-center py-8 sm:py-12">
           <div className="flex justify-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+            <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
           </div>
-          <p className="mt-4 text-muted-foreground">กำลังโหลดข้อมูล...</p>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
     );
@@ -350,20 +351,21 @@ export default function TrackingPage() {
     return (
       <div className="w-full">
         <Toaster />
-        <div className="text-center py-12">
-          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-            <FileText className="w-12 h-12 text-muted-foreground" />
+        <div className="text-center py-8 sm:py-12">
+          <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-bold mb-2">
+          <h3 className="text-base sm:text-lg font-bold mb-2">
             {role === 'buyer' ? 'คุณยังไม่มีใบขอซื้อ' : 'ยังไม่มีใบขอซื้อในระบบ'}
           </h3>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
             {role === 'buyer' ? 'เริ่มสร้างใบขอซื้อแรกได้เลย!' : 'รอใบขอซื้อจากผู้ใช้งาน'}
           </p>
           {role === 'buyer' && (
             <Button 
               asChild
               variant="primary"
+              className="w-full sm:w-auto"
             >
               <a href="/orders/create">
                 สร้างใบขอซื้อ
@@ -379,14 +381,21 @@ export default function TrackingPage() {
     <div className="w-full">
       <Toaster />
       
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <FileText className="w-8 h-8 text-primary" />
-          {role === 'buyer' ? 'ติดตามสถานะใบขอซื้อ' : 
-           role === 'supervisor' ? 'ติดตามและอนุมัติใบขอซื้อ' :
-           'ติดตามใบขอซื้อทั้งหมด'}
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+          <span className="hidden sm:inline">
+            {role === 'buyer' ? 'ติดตามสถานะใบขอซื้อ' : 
+             role === 'supervisor' ? 'ติดตามและอนุมัติใบขอซื้อ' :
+             'ติดตามใบขอซื้อทั้งหมด'}
+          </span>
+          <span className="sm:hidden">
+            {role === 'buyer' ? 'ติดตามสถานะ' : 
+             role === 'supervisor' ? 'ติดตาม/อนุมัติ' :
+             'ติดตาม'}
+          </span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           {role === 'supervisor' ? 'หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ' :
            role === 'buyer' ? 'ติดตามสถานะและความคืบหน้าของใบขอซื้อ' :
            'ติดตามใบขอซื้อทั้งหมดในระบบ'}
@@ -394,50 +403,51 @@ export default function TrackingPage() {
       </div>
 
       {/* Search and Filter Section */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+      <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
-                className="pl-10 h-10"
+                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-10">
+              <SelectTrigger className="w-full sm:w-[180px] h-9 sm:h-10 text-sm">
                 <SelectValue placeholder="สถานะทั้งหมด" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-                <SelectItem value="pending">รออนุมัติ</SelectItem>
-                <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
-                <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
-                <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
-                <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
+                <SelectItem value="all" className="text-sm">สถานะทั้งหมด</SelectItem>
+                <SelectItem value="pending" className="text-sm">รออนุมัติ</SelectItem>
+                <SelectItem value="approved" className="text-sm">อนุมัติแล้ว</SelectItem>
+                <SelectItem value="rejected" className="text-sm">ไม่อนุมัติ</SelectItem>
+                <SelectItem value="in_progress" className="text-sm">กำลังดำเนินการ</SelectItem>
+                <SelectItem value="delivered" className="text-sm">ได้รับแล้ว</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 px-4">
-                <Filter className="h-4 w-4 mr-2" />
-                มุมมอง
+              <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-4 text-sm">
+                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+                <span className="hidden sm:inline">มุมมอง</span>
+                <span className="sm:hidden">แสดง</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>เลือกมุมมอง</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs sm:text-sm">เลือกมุมมอง</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setViewMode('card')}>
-                <LayoutGrid className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={() => setViewMode('card')} className="text-xs sm:text-sm">
+                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                 แบบการ์ด
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewMode('table')}>
-                <Table2 className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={() => setViewMode('table')} className="text-xs sm:text-sm">
+                <Table2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                 แบบตาราง
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -445,7 +455,7 @@ export default function TrackingPage() {
         </div>
 
         {/* Results Summary */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs sm:text-sm text-muted-foreground gap-1 sm:gap-0">
           <span>แสดง {filteredRows.length} รายการจาก {rows.length} รายการทั้งหมด</span>
           {totalPages > 1 && (
             <span>หน้า {currentPage} จาก {totalPages}</span>
@@ -454,12 +464,12 @@ export default function TrackingPage() {
       </div>
 
       {filteredRows.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-            <FileText className="w-12 h-12 text-muted-foreground" />
+        <div className="text-center py-8 sm:py-12">
+          <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-bold mb-2">ไม่พบข้อมูล</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-base sm:text-lg font-bold mb-2">ไม่พบข้อมูล</h3>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {searchTerm || statusFilter !== 'all' 
               ? 'ลองปรับเงื่อนไขการค้นหาหรือกรอง' 
               : 'ยังไม่มีใบขอซื้อในระบบ'}
@@ -467,41 +477,43 @@ export default function TrackingPage() {
         </div>
       ) : viewMode === 'table' ? (
         <Card>
-          <div className="overflow-x-auto">
-            <Table>
+          <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">
+            <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>หมายเลขใบขอซื้อ</TableHead>
-                  <TableHead>ผู้ขอซื้อ</TableHead>
-                  <TableHead>วันที่</TableHead>
-                  <TableHead>ยอดรวม</TableHead>
-                  <TableHead>สถานะ</TableHead>
-                  <TableHead>การดำเนินการ</TableHead>
+                  <TableHead className="text-xs sm:text-sm">หมายเลขใบขอซื้อ</TableHead>
+                  <TableHead className="text-xs sm:text-sm">ผู้ขอซื้อ</TableHead>
+                  <TableHead className="text-xs sm:text-sm">วันที่</TableHead>
+                  <TableHead className="text-xs sm:text-sm">ยอดรวม</TableHead>
+                  <TableHead className="text-xs sm:text-sm">สถานะ</TableHead>
+                  <TableHead className="text-xs sm:text-sm">การดำเนินการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedRows.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-xs sm:text-sm">
                       {generateOrderNumber(order.orderNo, order.date)}
                     </TableCell>
-                    <TableCell>{order.requesterName}</TableCell>
-                    <TableCell>{order.date}</TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell className="text-xs sm:text-sm">{order.requesterName}</TableCell>
+                    <TableCell className="text-xs sm:text-sm">{order.date}</TableCell>
+                    <TableCell className="tabular-nums text-xs sm:text-sm">
                       {order.total.toLocaleString('th-TH')} บาท
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(order.status)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2">
                         <Button
                           variant="outline"
                           size="sm"
+                          className="text-xs w-full sm:w-auto"
                           onClick={() => window.open(`/orders/${order.id}`, '_blank')}
                         >
-                          <Eye className="h-4 w-4 mr-1" />
-                          ดูรายละเอียด
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">ดูรายละเอียด</span>
+                          <span className="sm:hidden">ดู</span>
                         </Button>
                         {role === 'supervisor' && order.status === 'pending' && (
                           <>
@@ -509,7 +521,7 @@ export default function TrackingPage() {
                               onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                               disabled={processingOrders.has(order.id)}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="bg-green-600 hover:bg-green-700 text-white text-xs w-full sm:w-auto"
                             >
                               {processingOrders.has(order.id) ? (
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -523,6 +535,7 @@ export default function TrackingPage() {
                               disabled={processingOrders.has(order.id)}
                               size="sm"
                               variant="destructive"
+                              className="text-xs w-full sm:w-auto"
                             >
                               {processingOrders.has(order.id) ? (
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -539,19 +552,20 @@ export default function TrackingPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {paginatedRows.map((order) => (
           <Card key={order.id} className="shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-bold">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3">
+                <div className="flex-1 w-full">
+                  <h3 className="text-base sm:text-lg font-bold">
                     {generateOrderNumber(order.orderNo, order.date)}
                   </h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
                       ชื่อผู้ขอ: {order.requesterName}
                     </span>
@@ -568,46 +582,46 @@ export default function TrackingPage() {
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  <div className="mb-3">
+                <div className="text-left sm:text-right w-full sm:w-auto">
+                  <div className="mb-2 sm:mb-3">
                     {getStatusBadge(order.status)}
                   </div>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <h4 className="text-sm font-bold mb-3">ขั้นตอนการดำเนินงาน</h4>
+              <div className="mb-3 sm:mb-4">
+                <h4 className="text-xs sm:text-sm font-bold mb-2 sm:mb-3">ขั้นตอนการดำเนินงาน</h4>
                 {renderProgressFlow(order.status)}
               </div>
 
               {order.items && order.items.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-bold mb-2 flex items-center gap-2">
+                  <h4 className="text-xs sm:text-sm font-bold mb-2 flex items-center gap-2">
                     รายการสินค้า ({order.items.length} รายการ)
                   </h4>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {order.items.map((item: OrderItem, idx: number) => {
                       const category = getItemCategory(order, idx);
                       const itemStatus = getItemStatus(order, idx);
                       
                       return (
-                        <div key={idx} className="bg-muted rounded-lg p-4 mb-4 border">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
+                        <div key={idx} className="bg-muted rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border">
+                          <div className="flex flex-col sm:flex-row justify-between items-start mb-2 sm:mb-3 gap-3">
+                            <div className="flex-1 w-full">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm font-medium">
+                                <span className="text-xs sm:text-sm font-medium">
                                   รายการที่ {idx + 1} : "{item.description}"
                                 </span>
                               </div>
                               
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="info" appearance="light" className="flex items-center gap-1">
-                                  <Tag className="w-3 h-3" />
+                              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+                                <Badge variant="info" appearance="light" className="flex items-center gap-1 text-xs">
+                                  <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                   ประเภท: {category}
                                 </Badge>
-                                <Badge variant="secondary" appearance="light" className="flex items-center gap-1">
-                                  <Activity className="w-3 h-3" />
+                                <Badge variant="secondary" appearance="light" className="flex items-center gap-1 text-xs">
+                                  <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                   สถานะ: {itemStatus}
                                 </Badge>
                               </div>
@@ -619,8 +633,8 @@ export default function TrackingPage() {
                               )}
                             </div>
                             
-                            <div className="text-right min-w-[120px]">
-                              <div className="text-sm text-muted-foreground">
+                            <div className="text-left sm:text-right w-full sm:min-w-[120px]">
+                              <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5">
                                 <div>จำนวน {item.quantity?.toLocaleString('th-TH')}</div>
                                 <div>ราคาต่อหน่วย {item.amount?.toLocaleString('th-TH')} บาท</div>
                                 <div>รวม {item.lineTotal?.toLocaleString('th-TH')} บาท
@@ -634,41 +648,42 @@ export default function TrackingPage() {
                     })}
                   </div>
 
-                  <Separator className="my-3"/>
-                   <h4 className="text-sm font-bold mb-2 flex items-center gap-2">
+                  <Separator className="my-2 sm:my-3"/>
+                   <h4 className="text-xs sm:text-sm font-bold mb-2 flex items-center gap-2">
                      สรุปรายการ
                    </h4>
-                   <div className="mt-3 flex justify-end">
-                     <div className="text-sm text-muted-foreground text-right">
+                   <div className="mt-2 sm:mt-3 flex justify-start sm:justify-end">
+                     <div className="text-xs sm:text-sm text-muted-foreground text-left sm:text-right w-full">
                        <div className="mb-1">
                          <span>จำนวนรายการทั้งหมด : </span>
                          <span className="font-medium">{order.items.length} รายการ</span>
                        </div>
                        <div>
                          <span>ยอดรวมทั้งสิ้น : </span>
-                         <span className="text-lg font-bold text-primary">{order.total.toLocaleString('th-TH')} บาท</span>
+                         <span className="text-base sm:text-lg font-bold text-primary">{order.total.toLocaleString('th-TH')} บาท</span>
                        </div>
                      </div>
                    </div>
                    
-                   <div className="mt-4 flex justify-between items-center">
+                   <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
                      <Button
                        variant="outline"
                        size="sm"
+                       className="w-full sm:w-auto text-xs"
                        onClick={() => window.open(`/orders/${order.id}`, '_blank')}
                      >
-                       <Eye className="h-4 w-4 mr-1" />
+                       <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                        ดูรายละเอียด
                      </Button>
                      
                      {role === 'supervisor' && order.status === 'pending' && (
-                       <div className="flex gap-2">
+                       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                          <Button
                            onClick={() => showApprovalModal(order.id, false, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
                            variant="destructive"
-                           className="font-normal"
+                           className="font-normal text-xs w-full sm:w-auto"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -681,7 +696,7 @@ export default function TrackingPage() {
                            onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
-                           className="bg-green-600 hover:bg-green-700 text-white font-normal"
+                           className="bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -703,38 +718,40 @@ export default function TrackingPage() {
       
       {/* Pagination Section */}
       {filteredRows.length > 0 && (
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">แสดง</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleItemsPerPageChange(e.target.value)}
-              className="border border-input bg-background rounded-md px-2 py-1 text-sm"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
-          </div>
+        <div className="mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+              <span className="text-xs sm:text-sm text-muted-foreground">แสดง</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(e.target.value)}
+                className="border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-xs sm:text-sm text-muted-foreground">รายการต่อหน้า</span>
+            </div>
 
-          <div className="text-sm text-muted-foreground">
-            แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} จาก {filteredRows.length} รายการ
-          </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredRows.length)} จาก {filteredRows.length} รายการ
+            </div>
 
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-center">
             <Button
               variant="outline"
               size="sm"
+              className="text-xs h-7 sm:h-8"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              <ChevronLeft className="w-4 h-4" />
-              ก่อนหน้า
+              <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">ก่อนหน้า</span>
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {(() => {
                 const pages = [];
                 const maxVisiblePages = 5;
@@ -752,14 +769,14 @@ export default function TrackingPage() {
                       variant={currentPage === 1 ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(1)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       1
                     </Button>
                   );
                   if (startPage > 2) {
                     pages.push(
-                      <span key="ellipsis1" className="px-2 text-muted-foreground">
+                      <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -773,7 +790,7 @@ export default function TrackingPage() {
                       variant={currentPage === i ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(i)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       {i}
                     </Button>
@@ -783,7 +800,7 @@ export default function TrackingPage() {
                 if (endPage < totalPages) {
                   if (endPage < totalPages - 1) {
                     pages.push(
-                      <span key="ellipsis2" className="px-2 text-muted-foreground">
+                      <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -794,7 +811,7 @@ export default function TrackingPage() {
                       variant={currentPage === totalPages ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(totalPages)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       {totalPages}
                     </Button>
@@ -808,47 +825,49 @@ export default function TrackingPage() {
             <Button
               variant="outline"
               size="sm"
+              className="text-xs h-7 sm:h-8"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
-              ถัดไป
-              <ChevronRight className="w-4 h-4" />
+              <span className="hidden sm:inline">ถัดไป</span>
+              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
+          </div>
           </div>
         </div>
       )}
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent showCloseButton={false}>
+        <DialogContent showCloseButton={false} className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               {confirmData?.approved ? (
                 <>
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                   ยืนยันการอนุมัติ
                 </>
               ) : (
                 <>
-                  <XCircle className="w-6 h-6 text-red-500" />
+                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
                   ยืนยันการไม่อนุมัติ
                 </>
               )}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm sm:text-base">
               {confirmData && (
-                <span className="text-base">
+                <span>
                   คุณต้องการ{confirmData.approved ? 'อนุมัติ' : 'ไม่อนุมัติ'}ใบขอซื้อนี้หรือไม่?
                 </span>
               )}
             </DialogDescription>
           </DialogHeader>
           
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline"
               onClick={cancelApproval}
               disabled={processingOrders.has(confirmData?.orderId || '')}
-              className="font-normal"
+              className="font-normal w-full sm:w-auto text-sm"
             >
               ยกเลิก
             </Button>
@@ -860,11 +879,13 @@ export default function TrackingPage() {
               }
               onClick={handleApproval}
               disabled={processingOrders.has(confirmData?.orderId || '')}
+              className="w-full sm:w-auto text-sm"
             >
               {processingOrders.has(confirmData?.orderId || '') ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  กำลังดำเนินการ...
+                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" />
+                  <span className="hidden sm:inline">กำลังดำเนินการ...</span>
+                  <span className="sm:hidden">กำลังทำงาน...</span>
                 </>
               ) : (
                 'ยืนยัน'

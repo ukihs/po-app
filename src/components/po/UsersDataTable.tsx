@@ -289,21 +289,21 @@ export default function UsersDataTable({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6EC1E4]"></div>
-        <span className="ml-4 text-lg">โหลดข้อมูลผู้ใช้งาน...</span>
+      <div className="flex justify-center items-center p-8 sm:p-12">
+        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#6EC1E4]"></div>
+        <span className="ml-3 sm:ml-4 text-sm sm:text-lg">โหลดข้อมูลผู้ใช้งาน...</span>
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-12">
-        <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลผู้ใช้งาน</h3>
-        <p className="text-muted-foreground mb-4">
+      <div className="text-center p-8 sm:p-12">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2">ไม่พบข้อมูลผู้ใช้งาน</h3>
+        <p className="text-sm sm:text-base text-muted-foreground mb-4">
           สร้างผู้ใช้คนแรกเพื่อเริ่มต้น
         </p>
-        <Button onClick={onAddUser} className="bg-[#6EC1E4] hover:bg-[#2b9ccc]">
+        <Button onClick={onAddUser} className="w-full sm:w-auto bg-[#6EC1E4] hover:bg-[#2b9ccc]">
           <UserRoundPlus className="h-4 w-4 mr-2" />
           เพิ่มผู้ใช้
         </Button>
@@ -323,16 +323,16 @@ export default function UsersDataTable({
       }}
     >
       <Card>
-        <CardHeader className="py-4">
+        <CardHeader className="py-3 sm:py-4">
           <CardHeading>
-            <div className="flex items-center gap-2.5">
-              <div className="relative">
-                <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="size-3.5 sm:size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
                 <Input
                   placeholder="ค้นหาผู้ใช้..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ps-9 w-64"
+                  className="ps-9 w-full sm:w-64 text-sm"
                 />
                 {searchQuery.length > 0 && (
                   <Button
@@ -347,9 +347,10 @@ export default function UsersDataTable({
               </div>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="w-full sm:w-auto text-sm">
                     <Filter />
-                    บทบาท
+                    <span className="hidden sm:inline">บทบาท</span>
+                    <span className="sm:hidden">กรอง</span>
                     {selectedRoles.length > 0 && (
                       <Badge size="sm" appearance="outline">
                         {selectedRoles.length}
@@ -387,15 +388,18 @@ export default function UsersDataTable({
             </div>
           </CardHeading>
           <CardToolbar>
-            <Button onClick={onAddUser} className="bg-[#6EC1E4] hover:bg-[#2b9ccc]">
+            <Button onClick={onAddUser} className="w-full sm:w-auto bg-[#6EC1E4] hover:bg-[#2b9ccc] text-sm">
               <UserRoundPlus />
-              เพิ่มผู้ใช้
+              <span className="hidden sm:inline">เพิ่มผู้ใช้</span>
+              <span className="sm:hidden">เพิ่ม</span>
             </Button>
           </CardToolbar>
         </CardHeader>
         <CardTable>
-          <ScrollArea>
-            <DataGridTable />
+          <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">
+            <div className="min-w-[800px]">
+              <DataGridTable />
+            </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardTable>

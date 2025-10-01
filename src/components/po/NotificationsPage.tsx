@@ -301,14 +301,14 @@ export default function NotificationsPage() {
   if (!items.length) {
     return (
       <div className="w-full">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <Bell className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
             </div>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
           </p>
         </div>
@@ -330,13 +330,13 @@ export default function NotificationsPage() {
     return (
       <div className="w-full">
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <Bell className="w-8 h-8 text-primary" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               <div>
-                <h1 className="text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
                 {unreadCount > 0 && (
-                  <Badge variant="primary" appearance="light" className="mt-1">
+                  <Badge variant="primary" appearance="light" className="mt-1 text-xs sm:text-sm">
                     {unreadCount} รายการใหม่
                   </Badge>
                 )}
@@ -346,13 +346,16 @@ export default function NotificationsPage() {
               <Button 
                 variant="outline" 
                 onClick={markAllAsRead}
+                className="w-full sm:w-auto"
+                size="sm"
               >
                 <CheckCheck className="w-4 h-4 mr-2" />
-                อ่านทั้งหมด
+                <span className="hidden sm:inline">อ่านทั้งหมด</span>
+                <span className="sm:hidden">อ่านแล้วทั้งหมด</span>
               </Button>
             )}
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
           </p>
         </div>
@@ -421,14 +424,14 @@ export default function NotificationsPage() {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <Bell className="w-8 h-8 text-primary" />
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
               {unreadCount > 0 && (
-                <Badge variant="primary" appearance="light" className="mt-1">
+                <Badge variant="primary" appearance="light" className="mt-1 text-xs sm:text-sm">
                   {unreadCount} รายการใหม่
                 </Badge>
               )}
@@ -438,13 +441,16 @@ export default function NotificationsPage() {
             <Button 
               variant="outline" 
               onClick={markAllAsRead}
+              className="w-full sm:w-auto"
+              size="sm"
             >
               <CheckCheck className="w-4 h-4 mr-2" />
-              อ่านทั้งหมด
+              <span className="hidden sm:inline">อ่านทั้งหมด</span>
+              <span className="sm:hidden">อ่านแล้วทั้งหมด</span>
             </Button>
           )}
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
         </p>
       </div>
@@ -493,7 +499,7 @@ export default function NotificationsPage() {
         
         {/* Results Summary */}
         {filteredAndSortedItems.length !== items.length && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             แสดง {filteredAndSortedItems.length} จาก {items.length} รายการ
           </div>
         )}
@@ -508,13 +514,13 @@ export default function NotificationsPage() {
             }`}
             onClick={() => markReadAndGo(n)}
           >
-            <CardContent className="px-4 py-3">
-              <div className="flex items-center gap-3">
+            <CardContent className="px-3 sm:px-4 py-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       {!n.read && (
-                        <Badge variant="primary" appearance="light" className="text-xs px-2 py-0.5">
+                        <Badge variant="primary" appearance="light" className="text-xs px-1.5 sm:px-2 py-0.5">
                           ใหม่
                         </Badge>
                       )}
@@ -526,7 +532,7 @@ export default function NotificationsPage() {
                           'warning'
                         } 
                         appearance="light" 
-                        className="text-xs px-2 py-0.5"
+                        className="text-xs px-1.5 sm:px-2 py-0.5"
                       >
                         {n.kind === 'approved' ? 'อนุมัติแล้ว' :
                          n.kind === 'rejected' ? 'ไม่อนุมัติ' :
@@ -534,16 +540,16 @@ export default function NotificationsPage() {
                          'ขออนุมัติ'}
                       </Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground font-medium">
+                    <div className="text-xs sm:text-sm text-muted-foreground font-medium">
                       {fmt(n.createdAt)}
                     </div>
                   </div>
                   
-                  <h3 className={`text-base font-semibold mb-3 ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <h3 className={`text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title}
                   </h3>
 
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap">
                     <span className="font-medium">จาก: {n.fromUserName || 'ระบบ'}</span>
                     <ArrowRight className="w-3 h-3" />
                     <span className="font-medium">{getRoleDisplayName(role || '')}</span>
@@ -556,38 +562,41 @@ export default function NotificationsPage() {
       </div>
 
       {filteredAndSortedItems.length > 0 && (
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">แสดง</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleItemsPerPageChange(e.target.value)}
-              className="border border-input bg-background rounded-md px-2 py-1 text-sm"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-sm text-muted-foreground">รายการต่อหน้า</span>
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-muted-foreground">แสดง</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(e.target.value)}
+                className="border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-xs sm:text-sm text-muted-foreground">รายการ</span>
+            </div>
+
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              {startIndex + 1} - {Math.min(endIndex, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length}
+            </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            แสดง {startIndex + 1} - {Math.min(endIndex, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length} รายการ
-          </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-1 sm:gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              className="px-2 sm:px-3"
             >
-              <ChevronLeft className="w-4 h-4" />
-              ก่อนหน้า
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline ml-1">ก่อนหน้า</span>
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {(() => {
                 const pages = [];
                 const maxVisiblePages = 5;
@@ -605,14 +614,14 @@ export default function NotificationsPage() {
                       variant={currentPage === 1 ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(1)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       1
                     </Button>
                   );
                   if (startPage > 2) {
                     pages.push(
-                      <span key="ellipsis1" className="px-2 text-muted-foreground">
+                      <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -626,7 +635,7 @@ export default function NotificationsPage() {
                       variant={currentPage === i ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(i)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       {i}
                     </Button>
@@ -636,7 +645,7 @@ export default function NotificationsPage() {
                 if (endPage < totalPages) {
                   if (endPage < totalPages - 1) {
                     pages.push(
-                      <span key="ellipsis2" className="px-2 text-muted-foreground">
+                      <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -647,7 +656,7 @@ export default function NotificationsPage() {
                       variant={currentPage === totalPages ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(totalPages)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                     >
                       {totalPages}
                     </Button>
@@ -663,9 +672,10 @@ export default function NotificationsPage() {
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              className="px-2 sm:px-3"
             >
-              ถัดไป
-              <ChevronRight className="w-4 h-4" />
+              <span className="hidden sm:inline mr-1">ถัดไป</span>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>

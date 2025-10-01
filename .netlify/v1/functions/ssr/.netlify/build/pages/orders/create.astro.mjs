@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_B8UevVxv.mjs';
+import { C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
@@ -346,14 +346,14 @@ function CreateOrderPage() {
   };
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     /* @__PURE__ */ jsx(Toaster, {}),
-    /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
-        /* @__PURE__ */ jsx(Package, { className: "w-8 h-8 text-[#2b9ccc]" }),
+    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
+      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+        /* @__PURE__ */ jsx(Package, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
         "สร้างใบขอซื้อ"
       ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: "สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า" })
+      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: "สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า" })
     ] }),
-    /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-[500px]", showCloseButton: false, children: [
+    /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "max-w-[95vw] sm:max-w-[500px]", showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-5 h-5" }),
@@ -411,7 +411,7 @@ function CreateOrderPage() {
             ) })
           ] })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+        /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
           /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
             /* @__PURE__ */ jsxs(Label, { htmlFor: "quantity", className: "text-sm font-medium", children: [
               "จำนวน ",
@@ -452,13 +452,13 @@ function CreateOrderPage() {
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ jsxs(DialogFooter, { children: [
+      /* @__PURE__ */ jsxs(DialogFooter, { className: "flex-col sm:flex-row gap-2", children: [
         /* @__PURE__ */ jsx(
           Button,
           {
             variant: "outline",
             onClick: closeModal,
-            className: "font-normal",
+            className: "font-normal w-full sm:w-auto",
             children: "ยกเลิก"
           }
         ),
@@ -468,7 +468,7 @@ function CreateOrderPage() {
             onClick: addItemFromModal,
             disabled: !isModalFormValid(),
             variant: "primary",
-            className: "font-normal",
+            className: "font-normal w-full sm:w-auto",
             children: "เพิ่มรายการ"
           }
         )
@@ -523,7 +523,7 @@ function CreateOrderPage() {
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-4", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4", children: [
           /* @__PURE__ */ jsx("h3", { className: "text-lg font-semibold", children: "รายการสินค้า" }),
           /* @__PURE__ */ jsxs(
             Button,
@@ -531,6 +531,7 @@ function CreateOrderPage() {
               type: "button",
               variant: "outline",
               onClick: openAddModal,
+              className: "w-full sm:w-auto",
               children: [
                 /* @__PURE__ */ jsx(Plus, { className: "w-4 h-4 mr-2" }),
                 "เพิ่มรายการ"
@@ -538,92 +539,90 @@ function CreateOrderPage() {
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "overflow-x-auto", children: [
-          /* @__PURE__ */ jsxs(Table, { className: "min-w-full", children: [
-            /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "ลำดับที่" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[250px]", children: "รายการที่ขอซื้อ" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-40", children: "วันที่ต้องการรับ" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-28 text-center", children: "จำนวน" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-36 text-center", children: "จำนวนเงิน (บาท)" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-32 text-center", children: "รวม (บาท)" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "จัดการ" })
-            ] }) }),
-            /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => {
-              const total = toNum(item.quantity) * toNum(item.amount);
-              const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
-              return /* @__PURE__ */ jsxs(TableRow, { className: hasError ? "bg-destructive/10" : "", children: [
-                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-20", children: item.no }),
-                /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[250px]", children: /* @__PURE__ */ jsx(
-                  Input,
-                  {
-                    type: "text",
-                    placeholder: "ระบุรายละเอียดสินค้า",
-                    value: item.description,
-                    onChange: (e) => updateItem(idx, "description", e.target.value),
-                    className: `h-8 ${hasError && !item.description.trim() ? "border-destructive" : ""}`
-                  }
-                ) }),
-                /* @__PURE__ */ jsx(TableCell, { className: "w-40", children: /* @__PURE__ */ jsx(
-                  Input,
-                  {
-                    type: "date",
-                    value: item.receivedDate,
-                    onChange: (e) => updateItem(idx, "receivedDate", e.target.value),
-                    className: "h-8"
-                  }
-                ) }),
-                /* @__PURE__ */ jsx(TableCell, { className: "w-28", children: /* @__PURE__ */ jsx(
-                  Input,
-                  {
-                    type: "number",
-                    placeholder: "จำนวน",
-                    value: item.quantity,
-                    onChange: (e) => updateItem(idx, "quantity", e.target.value),
-                    className: `h-8 text-center ${hasError && toNum(item.quantity) <= 0 ? "border-destructive" : ""}`,
-                    min: "0.01",
-                    step: "0.01"
-                  }
-                ) }),
-                /* @__PURE__ */ jsx(TableCell, { className: "w-36", children: /* @__PURE__ */ jsx(
-                  Input,
-                  {
-                    type: "number",
-                    placeholder: "ราคา",
-                    value: item.amount,
-                    onChange: (e) => updateItem(idx, "amount", e.target.value),
-                    className: `h-8 text-center ${hasError && toNum(item.amount) <= 0 ? "border-destructive" : ""}`,
-                    min: "0.01",
-                    step: "0.01"
-                  }
-                ) }),
-                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-32", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
-                /* @__PURE__ */ jsx(TableCell, { className: "text-center w-20", children: /* @__PURE__ */ jsx(
-                  Button,
-                  {
-                    type: "button",
-                    variant: "ghost",
-                    size: "sm",
-                    onClick: () => removeItem(idx),
-                    className: "text-destructive hover:bg-destructive/10",
-                    children: /* @__PURE__ */ jsx(Trash2, { className: "w-4 h-4" })
-                  }
-                ) })
-              ] }, idx);
-            }) })
-          ] }),
-          items.length === 0 && /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-            /* @__PURE__ */ jsx("div", { className: "text-muted-foreground mb-4", children: /* @__PURE__ */ jsx(Package, { className: "mx-auto h-12 w-12" }) }),
-            /* @__PURE__ */ jsx("h3", { className: "text-lg font-medium mb-2", children: "ยังไม่มีรายการสินค้า" }),
-            /* @__PURE__ */ jsx("p", { className: "font-normal text-muted-foreground mb-4", children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
-          ] })
+        /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px] sm:min-w-full", children: [
+          /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+            /* @__PURE__ */ jsx(TableHead, { className: "w-16 sm:w-20 text-center text-xs sm:text-sm", children: "ลำดับ" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[180px] sm:min-w-[250px] text-xs sm:text-sm", children: "รายการที่ขอซื้อ" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-32 sm:w-40 text-xs sm:text-sm", children: "วันที่ต้องการรับ" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-24 sm:w-28 text-center text-xs sm:text-sm", children: "จำนวน" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-28 sm:w-36 text-center text-xs sm:text-sm", children: "ราคา (บาท)" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-28 sm:w-32 text-center text-xs sm:text-sm", children: "รวม (บาท)" }),
+            /* @__PURE__ */ jsx(TableHead, { className: "w-16 sm:w-20 text-center text-xs sm:text-sm", children: "ลบ" })
+          ] }) }),
+          /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => {
+            const total = toNum(item.quantity) * toNum(item.amount);
+            const hasError = submitted && (!item.description.trim() || toNum(item.quantity) <= 0 || toNum(item.amount) <= 0);
+            return /* @__PURE__ */ jsxs(TableRow, { className: hasError ? "bg-destructive/10" : "", children: [
+              /* @__PURE__ */ jsx(TableCell, { className: "text-center w-16 sm:w-20 text-xs sm:text-sm", children: item.no }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[180px] sm:min-w-[250px]", children: /* @__PURE__ */ jsx(
+                Input,
+                {
+                  type: "text",
+                  placeholder: "ระบุรายละเอียดสินค้า",
+                  value: item.description,
+                  onChange: (e) => updateItem(idx, "description", e.target.value),
+                  className: `h-8 text-xs sm:text-sm ${hasError && !item.description.trim() ? "border-destructive" : ""}`
+                }
+              ) }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-32 sm:w-40", children: /* @__PURE__ */ jsx(
+                Input,
+                {
+                  type: "date",
+                  value: item.receivedDate,
+                  onChange: (e) => updateItem(idx, "receivedDate", e.target.value),
+                  className: "h-8 text-xs sm:text-sm"
+                }
+              ) }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-24 sm:w-28", children: /* @__PURE__ */ jsx(
+                Input,
+                {
+                  type: "number",
+                  placeholder: "จำนวน",
+                  value: item.quantity,
+                  onChange: (e) => updateItem(idx, "quantity", e.target.value),
+                  className: `h-8 text-center text-xs sm:text-sm ${hasError && toNum(item.quantity) <= 0 ? "border-destructive" : ""}`,
+                  min: "0.01",
+                  step: "0.01"
+                }
+              ) }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-28 sm:w-36", children: /* @__PURE__ */ jsx(
+                Input,
+                {
+                  type: "number",
+                  placeholder: "ราคา",
+                  value: item.amount,
+                  onChange: (e) => updateItem(idx, "amount", e.target.value),
+                  className: `h-8 text-center text-xs sm:text-sm ${hasError && toNum(item.amount) <= 0 ? "border-destructive" : ""}`,
+                  min: "0.01",
+                  step: "0.01"
+                }
+              ) }),
+              /* @__PURE__ */ jsx(TableCell, { className: "text-center w-28 sm:w-32 text-xs sm:text-sm font-medium", children: total > 0 ? total.toLocaleString("th-TH") : "0" }),
+              /* @__PURE__ */ jsx(TableCell, { className: "text-center w-16 sm:w-20", children: /* @__PURE__ */ jsx(
+                Button,
+                {
+                  type: "button",
+                  variant: "ghost",
+                  size: "sm",
+                  onClick: () => removeItem(idx),
+                  className: "text-destructive hover:bg-destructive/10 h-8 w-8 p-0",
+                  children: /* @__PURE__ */ jsx(Trash2, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" })
+                }
+              ) })
+            ] }, idx);
+          }) })
+        ] }) }),
+        items.length === 0 && /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
+          /* @__PURE__ */ jsx("div", { className: "text-muted-foreground mb-4", children: /* @__PURE__ */ jsx(Package, { className: "mx-auto h-12 w-12" }) }),
+          /* @__PURE__ */ jsx("h3", { className: "text-lg font-medium mb-2", children: "ยังไม่มีรายการสินค้า" }),
+          /* @__PURE__ */ jsx("p", { className: "font-normal text-sm sm:text-base text-muted-foreground mb-4", children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
         ] })
       ] }),
       /* @__PURE__ */ jsx(Separator, {}),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ jsxs("div", { className: "text-lg", children: [
-          /* @__PURE__ */ jsx("span", { className: "text-base", children: "รวมเป็นเงินจำนวน : " }),
-          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4", children: [
+        /* @__PURE__ */ jsxs("div", { className: "text-center sm:text-left", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-sm sm:text-base block sm:inline", children: "รวมเป็นเงินจำนวน : " }),
+          /* @__PURE__ */ jsxs("span", { className: "text-xl sm:text-lg font-bold text-primary block sm:inline mt-1 sm:mt-0", children: [
             grandTotal(items).toLocaleString("th-TH"),
             " บาท"
           ] })
@@ -635,16 +634,17 @@ function CreateOrderPage() {
             onClick: showConfirmation,
             disabled: saving || !isFormValid(),
             variant: "primary",
-            className: "font-normal",
+            className: "font-normal w-full sm:w-auto",
             children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
-              "กำลังบันทึก..."
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "กำลังบันทึก..." }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "บันทึก..." })
             ] }) : "สร้างใบขอซื้อ"
           }
         )
       ] })
     ] }) }) }),
-    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "sm:max-w-2xl", showCloseButton: false, children: [
+    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto", showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [
           /* @__PURE__ */ jsx(Package, { className: "w-6 h-6" }),
@@ -652,60 +652,61 @@ function CreateOrderPage() {
         ] }),
         /* @__PURE__ */ jsx(DialogDescription, { children: "กรุณาตรวจสอบข้อมูลก่อนยืนยันการสร้างใบขอซื้อ" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
-        /* @__PURE__ */ jsxs("div", { className: "bg-muted rounded-lg p-4", children: [
-          /* @__PURE__ */ jsx("h4", { className: "font-semibold mb-3", children: "ข้อมูลผู้ขอซื้อ" }),
-          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-2 gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4 sm:space-y-6", children: [
+        /* @__PURE__ */ jsxs("div", { className: "bg-muted rounded-lg p-3 sm:p-4", children: [
+          /* @__PURE__ */ jsx("h4", { className: "font-semibold mb-3 text-sm sm:text-base", children: "ข้อมูลผู้ขอซื้อ" }),
+          /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4", children: [
             /* @__PURE__ */ jsxs("div", { children: [
-              /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "วันที่ขอซื้อ:" }),
-              /* @__PURE__ */ jsx("p", { className: "font-medium", children: selectedDate ? selectedDate.toLocaleDateString("th-TH") : "ยังไม่เลือกวันที่" })
+              /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "วันที่ขอซื้อ:" }),
+              /* @__PURE__ */ jsx("p", { className: "font-medium text-sm sm:text-base", children: selectedDate ? selectedDate.toLocaleDateString("th-TH") : "ยังไม่เลือกวันที่" })
             ] }),
             /* @__PURE__ */ jsxs("div", { children: [
-              /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "ชื่อผู้ขอซื้อ:" }),
-              /* @__PURE__ */ jsx("p", { className: "font-medium", children: requester })
+              /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "ชื่อผู้ขอซื้อ:" }),
+              /* @__PURE__ */ jsx("p", { className: "font-medium text-sm sm:text-base", children: requester })
             ] })
           ] })
         ] }),
         /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsxs("h4", { className: "font-semibold mb-3", children: [
+          /* @__PURE__ */ jsxs("h4", { className: "font-semibold mb-3 text-sm sm:text-base", children: [
             "รายการสินค้า (",
             items.length,
             " รายการ)"
           ] }),
-          /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60 overflow-y-auto", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-full", children: [
+          /* @__PURE__ */ jsx("div", { className: "overflow-x-auto max-h-60", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-[600px] sm:min-w-full", children: [
             /* @__PURE__ */ jsx(TableHeader, { className: "sticky top-0 bg-background", children: /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableHead, { className: "w-20 text-center", children: "ลำดับ" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[200px]", children: "รายการ" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-40", children: "วันที่ต้องการรับ" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-28 text-center", children: "จำนวน" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-36 text-center", children: "ราคา" }),
-              /* @__PURE__ */ jsx(TableHead, { className: "w-32 text-center", children: "รวม" })
+              /* @__PURE__ */ jsx(TableHead, { className: "w-16 text-center text-xs sm:text-sm", children: "ลำดับ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-auto min-w-[150px] sm:min-w-[200px] text-xs sm:text-sm", children: "รายการ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-32 sm:w-40 text-xs sm:text-sm", children: "วันที่ต้องการรับ" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-20 sm:w-28 text-center text-xs sm:text-sm", children: "จำนวน" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-24 sm:w-36 text-center text-xs sm:text-sm", children: "ราคา" }),
+              /* @__PURE__ */ jsx(TableHead, { className: "w-24 sm:w-32 text-center text-xs sm:text-sm", children: "รวม" })
             ] }) }),
             /* @__PURE__ */ jsx(TableBody, { children: items.map((item, idx) => /* @__PURE__ */ jsxs(TableRow, { children: [
-              /* @__PURE__ */ jsx(TableCell, { className: "w-20 text-center", children: item.no }),
-              /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[200px] max-w-xs truncate", title: item.description, children: item.description }),
-              /* @__PURE__ */ jsx(TableCell, { className: "w-40", children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
-              /* @__PURE__ */ jsx(TableCell, { className: "w-28 text-center", children: toNum(item.quantity).toLocaleString("th-TH") }),
-              /* @__PURE__ */ jsx(TableCell, { className: "w-36 text-center", children: toNum(item.amount).toLocaleString("th-TH") }),
-              /* @__PURE__ */ jsx(TableCell, { className: "w-32 text-center font-medium", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
+              /* @__PURE__ */ jsx(TableCell, { className: "w-16 text-center text-xs sm:text-sm", children: item.no }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-auto min-w-[150px] sm:min-w-[200px] max-w-xs truncate text-xs sm:text-sm", title: item.description, children: item.description }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-32 sm:w-40 text-xs sm:text-sm", children: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString("th-TH") : "-" }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-20 sm:w-28 text-center text-xs sm:text-sm", children: toNum(item.quantity).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-24 sm:w-36 text-center text-xs sm:text-sm", children: toNum(item.amount).toLocaleString("th-TH") }),
+              /* @__PURE__ */ jsx(TableCell, { className: "w-24 sm:w-32 text-center font-medium text-xs sm:text-sm", children: (toNum(item.quantity) * toNum(item.amount)).toLocaleString("th-TH") })
             ] }, idx)) })
           ] }) })
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "bg-primary/10 rounded-lg p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center", children: [
-          /* @__PURE__ */ jsx("span", { className: "text-base font-semibold", children: "รวมเป็นเงินทั้งสิ้น:" }),
-          /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
+        /* @__PURE__ */ jsx("div", { className: "bg-primary/10 rounded-lg p-3 sm:p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-sm sm:text-base font-semibold", children: "รวมเป็นเงินทั้งสิ้น:" }),
+          /* @__PURE__ */ jsxs("span", { className: "text-xl sm:text-lg font-bold text-primary", children: [
             grandTotal(items).toLocaleString("th-TH"),
             " บาท"
           ] })
         ] }) })
       ] }),
-      /* @__PURE__ */ jsxs(DialogFooter, { children: [
+      /* @__PURE__ */ jsxs(DialogFooter, { className: "flex-col sm:flex-row gap-2", children: [
         /* @__PURE__ */ jsx(
           Button,
           {
             variant: "outline",
             onClick: cancelCreate,
             disabled: saving,
+            className: "w-full sm:w-auto",
             children: "ยกเลิก"
           }
         ),
@@ -715,10 +716,15 @@ function CreateOrderPage() {
             onClick: confirmCreate,
             disabled: saving,
             variant: "primary",
+            className: "w-full sm:w-auto",
             children: saving ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx("div", { className: "animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" }),
-              "กำลังสร้างใบขอซื้อ..."
-            ] }) : "ยืนยันและส่งขออนุมัติ"
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "กำลังสร้างใบขอซื้อ..." }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "กำลังสร้าง..." })
+            ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ยืนยันและส่งขออนุมัติ" }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "ยืนยันและส่ง" })
+            ] })
           }
         )
       ] })

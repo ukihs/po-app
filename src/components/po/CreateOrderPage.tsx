@@ -208,18 +208,18 @@ export default function CreateOrderPage() {
     <div className="w-full">
       <Toaster />
       
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <Package className="w-8 h-8 text-[#2b9ccc]" />
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <Package className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
           สร้างใบขอซื้อ
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า
         </p>
       </div>
       
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[500px]" showCloseButton={false}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px]" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
@@ -278,7 +278,7 @@ export default function CreateOrderPage() {
               </Popover>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="quantity" className="text-sm font-medium">
                   จำนวน <span className="text-destructive">*</span>
@@ -313,11 +313,11 @@ export default function CreateOrderPage() {
             </div>
           </form>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button 
               variant="outline" 
               onClick={closeModal} 
-              className="font-normal"
+              className="font-normal w-full sm:w-auto"
             >
               ยกเลิก
             </Button>
@@ -325,7 +325,7 @@ export default function CreateOrderPage() {
               onClick={addItemFromModal}
               disabled={!isModalFormValid()}
               variant="primary"
-              className="font-normal"
+              className="font-normal w-full sm:w-auto"
             >
               เพิ่มรายการ
             </Button>
@@ -383,12 +383,13 @@ export default function CreateOrderPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold">รายการสินค้า</h3>
               <Button 
                 type="button" 
                 variant="outline"
                 onClick={openAddModal}
+                className="w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 เพิ่มรายการ
@@ -396,18 +397,18 @@ export default function CreateOrderPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <Table className="min-w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20 text-center">ลำดับที่</TableHead>
-                    <TableHead className="w-auto min-w-[250px]">รายการที่ขอซื้อ</TableHead>
-                    <TableHead className="w-40">วันที่ต้องการรับ</TableHead>
-                    <TableHead className="w-28 text-center">จำนวน</TableHead>
-                    <TableHead className="w-36 text-center">จำนวนเงิน (บาท)</TableHead>
-                    <TableHead className="w-32 text-center">รวม (บาท)</TableHead>
-                    <TableHead className="w-20 text-center">จัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
+              <Table className="min-w-[800px] sm:min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16 sm:w-20 text-center text-xs sm:text-sm">ลำดับ</TableHead>
+                      <TableHead className="w-auto min-w-[180px] sm:min-w-[250px] text-xs sm:text-sm">รายการที่ขอซื้อ</TableHead>
+                      <TableHead className="w-32 sm:w-40 text-xs sm:text-sm">วันที่ต้องการรับ</TableHead>
+                      <TableHead className="w-24 sm:w-28 text-center text-xs sm:text-sm">จำนวน</TableHead>
+                      <TableHead className="w-28 sm:w-36 text-center text-xs sm:text-sm">ราคา (บาท)</TableHead>
+                      <TableHead className="w-28 sm:w-32 text-center text-xs sm:text-sm">รวม (บาท)</TableHead>
+                      <TableHead className="w-16 sm:w-20 text-center text-xs sm:text-sm">ลบ</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {items.map((item, idx) => {
                     const total = toNum(item.quantity) * toNum(item.amount);
@@ -415,64 +416,64 @@ export default function CreateOrderPage() {
                     
                     return (
                       <TableRow key={idx} className={hasError ? 'bg-destructive/10' : ''}>
-                        <TableCell className="text-center w-20">{item.no}</TableCell>
+                        <TableCell className="text-center w-16 sm:w-20 text-xs sm:text-sm">{item.no}</TableCell>
                         
-                        <TableCell className="w-auto min-w-[250px]">
+                        <TableCell className="w-auto min-w-[180px] sm:min-w-[250px]">
                           <Input
                             type="text"
                             placeholder="ระบุรายละเอียดสินค้า"
                             value={item.description}
                             onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                            className={`h-8 ${hasError && !item.description.trim() ? 'border-destructive' : ''}`}
+                            className={`h-8 text-xs sm:text-sm ${hasError && !item.description.trim() ? 'border-destructive' : ''}`}
                           />
                         </TableCell>
                         
-                        <TableCell className="w-40">
+                        <TableCell className="w-32 sm:w-40">
                           <Input
                             type="date"
                             value={item.receivedDate}
                             onChange={(e) => updateItem(idx, 'receivedDate', e.target.value)}
-                            className="h-8"
+                            className="h-8 text-xs sm:text-sm"
                           />
                         </TableCell>
                         
-                        <TableCell className="w-28">
+                        <TableCell className="w-24 sm:w-28">
                           <Input
                             type="number"
                             placeholder="จำนวน"
                             value={item.quantity}
                             onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                            className={`h-8 text-center ${hasError && toNum(item.quantity) <= 0 ? 'border-destructive' : ''}`}
+                            className={`h-8 text-center text-xs sm:text-sm ${hasError && toNum(item.quantity) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
                           />
                         </TableCell>
                         
-                        <TableCell className="w-36">
+                        <TableCell className="w-28 sm:w-36">
                           <Input
                             type="number"
                             placeholder="ราคา"
                             value={item.amount}
                             onChange={(e) => updateItem(idx, 'amount', e.target.value)}
-                            className={`h-8 text-center ${hasError && toNum(item.amount) <= 0 ? 'border-destructive' : ''}`}
+                            className={`h-8 text-center text-xs sm:text-sm ${hasError && toNum(item.amount) <= 0 ? 'border-destructive' : ''}`}
                             min="0.01"
                             step="0.01"
                           />
                         </TableCell>
                         
-                        <TableCell className="text-center w-32">
+                        <TableCell className="text-center w-28 sm:w-32 text-xs sm:text-sm font-medium">
                           {total > 0 ? total.toLocaleString('th-TH') : '0'}
                         </TableCell>
                         
-                        <TableCell className="text-center w-20">
+                        <TableCell className="text-center w-16 sm:w-20">
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => removeItem(idx)}
-                            className="text-destructive hover:bg-destructive/10"
+                            className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -480,6 +481,7 @@ export default function CreateOrderPage() {
                   })}
                 </TableBody>
               </Table>
+            </div>
               
               {items.length === 0 && (
                 <div className="text-center py-12">
@@ -487,18 +489,17 @@ export default function CreateOrderPage() {
                     <Package className="mx-auto h-12 w-12" />
                   </div>
                   <h3 className="text-lg font-medium mb-2">ยังไม่มีรายการสินค้า</h3>
-                  <p className="font-normal text-muted-foreground mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
+                  <p className="font-normal text-sm sm:text-base text-muted-foreground mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
                 </div>
               )}
-            </div>
           </div>
 
           <Separator />
           
-          <div className="flex items-center justify-between">
-            <div className="text-lg">
-              <span className="text-base">รวมเป็นเงินจำนวน : </span>
-              <span className="text-lg font-bold text-primary">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="text-center sm:text-left">
+              <span className="text-sm sm:text-base block sm:inline">รวมเป็นเงินจำนวน : </span>
+              <span className="text-xl sm:text-lg font-bold text-primary block sm:inline mt-1 sm:mt-0">
                 {grandTotal(items).toLocaleString('th-TH')} บาท
               </span>
             </div>
@@ -507,12 +508,13 @@ export default function CreateOrderPage() {
               onClick={showConfirmation}
               disabled={saving || !isFormValid()}
               variant="primary"
-              className="font-normal"
+              className="font-normal w-full sm:w-auto"
             >
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  กำลังบันทึก...
+                  <span className="hidden sm:inline">กำลังบันทึก...</span>
+                  <span className="sm:hidden">บันทึก...</span>
                 </>
               ) : (
                 'สร้างใบขอซื้อ'
@@ -524,7 +526,7 @@ export default function CreateOrderPage() {
       </Card>
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent className="sm:max-w-2xl" showCloseButton={false}>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-6 h-6" />
@@ -535,48 +537,48 @@ export default function CreateOrderPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
-            <div className="bg-muted rounded-lg p-4">
-              <h4 className="font-semibold mb-3">ข้อมูลผู้ขอซื้อ</h4>
-              <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-muted rounded-lg p-3 sm:p-4">
+              <h4 className="font-semibold mb-3 text-sm sm:text-base">ข้อมูลผู้ขอซื้อ</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <span className="text-sm text-muted-foreground">วันที่ขอซื้อ:</span>
-                  <p className="font-medium">{selectedDate ? selectedDate.toLocaleDateString('th-TH') : 'ยังไม่เลือกวันที่'}</p>
+                  <span className="text-xs sm:text-sm text-muted-foreground">วันที่ขอซื้อ:</span>
+                  <p className="font-medium text-sm sm:text-base">{selectedDate ? selectedDate.toLocaleDateString('th-TH') : 'ยังไม่เลือกวันที่'}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">ชื่อผู้ขอซื้อ:</span>
-                  <p className="font-medium">{requester}</p>
+                  <span className="text-xs sm:text-sm text-muted-foreground">ชื่อผู้ขอซื้อ:</span>
+                  <p className="font-medium text-sm sm:text-base">{requester}</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-3">รายการสินค้า ({items.length} รายการ)</h4>
-              <div className="overflow-x-auto max-h-60 overflow-y-auto">
-                <Table className="min-w-full">
+              <h4 className="font-semibold mb-3 text-sm sm:text-base">รายการสินค้า ({items.length} รายการ)</h4>
+              <div className="overflow-x-auto max-h-60">
+                <Table className="min-w-[600px] sm:min-w-full">
                   <TableHeader className="sticky top-0 bg-background">
                     <TableRow>
-                      <TableHead className="w-20 text-center">ลำดับ</TableHead>
-                      <TableHead className="w-auto min-w-[200px]">รายการ</TableHead>
-                      <TableHead className="w-40">วันที่ต้องการรับ</TableHead>
-                      <TableHead className="w-28 text-center">จำนวน</TableHead>
-                      <TableHead className="w-36 text-center">ราคา</TableHead>
-                      <TableHead className="w-32 text-center">รวม</TableHead>
+                      <TableHead className="w-16 text-center text-xs sm:text-sm">ลำดับ</TableHead>
+                      <TableHead className="w-auto min-w-[150px] sm:min-w-[200px] text-xs sm:text-sm">รายการ</TableHead>
+                      <TableHead className="w-32 sm:w-40 text-xs sm:text-sm">วันที่ต้องการรับ</TableHead>
+                      <TableHead className="w-20 sm:w-28 text-center text-xs sm:text-sm">จำนวน</TableHead>
+                      <TableHead className="w-24 sm:w-36 text-center text-xs sm:text-sm">ราคา</TableHead>
+                      <TableHead className="w-24 sm:w-32 text-center text-xs sm:text-sm">รวม</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {items.map((item, idx) => (
                       <TableRow key={idx}>
-                        <TableCell className="w-20 text-center">{item.no}</TableCell>
-                        <TableCell className="w-auto min-w-[200px] max-w-xs truncate" title={item.description}>
+                        <TableCell className="w-16 text-center text-xs sm:text-sm">{item.no}</TableCell>
+                        <TableCell className="w-auto min-w-[150px] sm:min-w-[200px] max-w-xs truncate text-xs sm:text-sm" title={item.description}>
                           {item.description}
                         </TableCell>
-                        <TableCell className="w-40">
+                        <TableCell className="w-32 sm:w-40 text-xs sm:text-sm">
                           {item.receivedDate ? new Date(item.receivedDate).toLocaleDateString('th-TH') : '-'}
                         </TableCell>
-                        <TableCell className="w-28 text-center">{toNum(item.quantity).toLocaleString('th-TH')}</TableCell>
-                        <TableCell className="w-36 text-center">{toNum(item.amount).toLocaleString('th-TH')}</TableCell>
-                        <TableCell className="w-32 text-center font-medium">
+                        <TableCell className="w-20 sm:w-28 text-center text-xs sm:text-sm">{toNum(item.quantity).toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="w-24 sm:w-36 text-center text-xs sm:text-sm">{toNum(item.amount).toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="w-24 sm:w-32 text-center font-medium text-xs sm:text-sm">
                           {(toNum(item.quantity) * toNum(item.amount)).toLocaleString('th-TH')}
                         </TableCell>
                       </TableRow>
@@ -586,21 +588,22 @@ export default function CreateOrderPage() {
               </div>
             </div>
 
-            <div className="bg-primary/10 rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold">รวมเป็นเงินทั้งสิ้น:</span>
-                <span className="text-lg font-bold text-primary">
+            <div className="bg-primary/10 rounded-lg p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+                <span className="text-sm sm:text-base font-semibold">รวมเป็นเงินทั้งสิ้น:</span>
+                <span className="text-xl sm:text-lg font-bold text-primary">
                   {grandTotal(items).toLocaleString('th-TH')} บาท
                 </span>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button 
               variant="outline"
               onClick={cancelCreate}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               ยกเลิก
             </Button>
@@ -608,14 +611,19 @@ export default function CreateOrderPage() {
               onClick={confirmCreate}
               disabled={saving}
               variant="primary"
+              className="w-full sm:w-auto"
             >
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  กำลังสร้างใบขอซื้อ...
+                  <span className="hidden sm:inline">กำลังสร้างใบขอซื้อ...</span>
+                  <span className="sm:hidden">กำลังสร้าง...</span>
                 </>
               ) : (
-                'ยืนยันและส่งขออนุมัติ'
+                <>
+                  <span className="hidden sm:inline">ยืนยันและส่งขออนุมัติ</span>
+                  <span className="sm:hidden">ยืนยันและส่ง</span>
+                </>
               )}
             </Button>
           </DialogFooter>

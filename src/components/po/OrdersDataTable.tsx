@@ -18,7 +18,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Card, CardHeader, CardHeading, CardToolbar, CardTable } from '../ui/card';
+import { Card, CardHeader, CardHeading, CardToolbar, CardTable, CardFooter } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { 
@@ -317,23 +317,24 @@ export default function OrdersDataTable({
   return (
     <Card>
       <CardHeader className="border-b">
-        <CardHeading>รายการใบขอซื้อ</CardHeading>
+        <CardHeading className="text-lg sm:text-xl">รายการใบขอซื้อ</CardHeading>
         <CardToolbar>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="ค้นหาชื่อผู้ขอซื้อหรือหมายเลขใบขอซื้อ..."
+                placeholder="ค้นหา..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-64"
+                className="pl-8 w-full sm:w-48 md:w-64 text-sm"
               />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Settings className="h-4 w-4 mr-2" />
-                  คอลัมน์
+                  <span className="hidden sm:inline">คอลัมน์</span>
+                  <span className="sm:hidden">คอลัมน์</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -359,18 +360,18 @@ export default function OrdersDataTable({
         </CardToolbar>
       </CardHeader>
       <CardTable>
-        <ScrollArea className="h-[600px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">รายการที่</TableHead>
-                <TableHead className="w-[140px]">วันที่</TableHead>
-                <TableHead className="w-[180px]">ผู้ขอซื้อ</TableHead>
-                <TableHead className="w-[140px]">ยอดรวม</TableHead>
-                <TableHead className="w-[140px]">สถานะ</TableHead>
-                <TableHead className="w-[200px]">การดำเนินการ</TableHead>
-              </TableRow>
-            </TableHeader>
+        <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">
+          <Table className="min-w-[800px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px] sm:w-[120px] text-xs sm:text-sm">รายการที่</TableHead>
+                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">วันที่</TableHead>
+                  <TableHead className="w-[140px] sm:w-[180px] text-xs sm:text-sm">ผู้ขอซื้อ</TableHead>
+                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">ยอดรวม</TableHead>
+                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">สถานะ</TableHead>
+                  <TableHead className="w-[160px] sm:w-[200px] text-xs sm:text-sm">การดำเนินการ</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {paginatedData.map((order) => {
                 const isOpen = !!expanded[order.id];
@@ -382,30 +383,32 @@ export default function OrdersDataTable({
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="inline-flex items-center gap-1 h-auto p-0 font-semibold text-base"
+                          className="inline-flex items-center gap-1 h-auto p-0 font-semibold text-sm sm:text-base"
                           onClick={() => onToggleExpanded(order.id)}
                         >
-                          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                          {isOpen ? <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                           #{order.orderNo ?? '-'}
                         </Button>
                       </TableCell>
                       <TableCell>
-                        <div className="text-muted-foreground">
+                        <div className="text-muted-foreground text-xs sm:text-sm">
                           {order.date || fmtTS(order.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-normal">
+                        <div className="font-normal text-xs sm:text-sm">
                           {order.requesterName || order.requester || '-'}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="tabular-nums">
+                        <div className="tabular-nums text-xs sm:text-sm">
                           {((order.totalAmount ?? order.total ?? 0) as number).toLocaleString('th-TH')} บาท
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(order.status)}
+                        <div className="text-xs sm:text-sm">
+                          {getStatusBadge(order.status)}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {role === 'procurement' ? (
@@ -415,7 +418,7 @@ export default function OrdersDataTable({
                               onValueChange={(value) => onSaveOrderStatus(order, value as OrderStatus)}
                               disabled={processingKeys.has(order.id)}
                             >
-                              <SelectTrigger className="w-[180px]">
+                              <SelectTrigger className="w-[140px] sm:w-[180px] text-xs sm:text-sm">
                                <SelectValue placeholder="เลือกสถานะ…" />
                               </SelectTrigger>
                               <SelectContent>
@@ -424,10 +427,10 @@ export default function OrdersDataTable({
                                 ))}
                               </SelectContent>
                             </Select>
-                            {processingKeys.has(order.id) && <Loader2 className="h-4 w-4 animate-spin" />}
+                            {processingKeys.has(order.id) && <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground text-xs sm:text-sm">—</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -435,21 +438,21 @@ export default function OrdersDataTable({
                     {isOpen && (
                       <TableRow>
                         <TableCell colSpan={6} className="p-0">
-                          <div className="bg-muted/50 p-4">
+                          <div className="bg-muted/50 p-2 sm:p-4">
                             <div className="rounded-md border bg-background overflow-hidden">
-                              <div className="px-4 py-3 text-sm font-semibold border-b">รายการสินค้า</div>
+                              <div className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b">รายการสินค้า</div>
                               <div className="overflow-x-auto">
-                                <Table>
+                                <Table className="min-w-[600px]">
                                   <TableHeader>
                                     <TableRow>
-                                      <TableHead>รายละเอียด</TableHead>
-                                      <TableHead>จำนวน</TableHead>
-                                      <TableHead>ราคาต่อหน่วย(บาท)</TableHead>
-                                      <TableHead>รวมทั้งสิ้น(บาท)</TableHead>
-                                      <TableHead>ประเภทสินค้า</TableHead>
-                                      <TableHead>สถานะรายการ</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">รายละเอียด</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">จำนวน</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">ราคาต่อหน่วย</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">รวมทั้งสิ้น</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">ประเภทสินค้า</TableHead>
+                                      <TableHead className="text-xs sm:text-sm">สถานะรายการ</TableHead>
                                       {role === 'procurement' && (
-                                        <TableHead></TableHead>
+                                        <TableHead className="text-xs sm:text-sm"></TableHead>
                                       )}
                                     </TableRow>
                                   </TableHeader>
@@ -460,10 +463,10 @@ export default function OrdersDataTable({
 
                                     return (
                                       <TableRow key={idx}>
-                                        <TableCell>{it.description || '-'}</TableCell>
-                                        <TableCell>{it.quantity ?? '-'}</TableCell>
-                                        <TableCell>{it.amount!=null ? Number(it.amount).toLocaleString('th-TH') : '-'}</TableCell>
-                                        <TableCell>{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm">{it.description || '-'}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm">{it.quantity ?? '-'}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm">{it.amount!=null ? Number(it.amount).toLocaleString('th-TH') : '-'}</TableCell>
+                                        <TableCell className="text-xs sm:text-sm">{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</TableCell>
 
                                         <TableCell>
                                           {role === 'procurement' ? (
@@ -472,7 +475,7 @@ export default function OrdersDataTable({
                                               onValueChange={(value)=>onSetDraft(order.id, idx, {category: value})}
                                               disabled={processingKeys.has(`${order.id}:${idx}`)}
                                             >
-                                              <SelectTrigger>
+                                              <SelectTrigger className="text-xs sm:text-sm">
                                                 <SelectValue placeholder="เลือกประเภท…" />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -480,7 +483,7 @@ export default function OrdersDataTable({
                                               </SelectContent>
                                             </Select>
                                           ) : (
-                                            <Badge variant={val.category ? "info" : "secondary"} appearance="light">
+                                            <Badge variant={val.category ? "info" : "secondary"} appearance="light" className="text-xs">
                                               {val.category || 'ยังไม่ระบุ'}
                                             </Badge>
                                           )}
@@ -493,7 +496,7 @@ export default function OrdersDataTable({
                                               onValueChange={(value)=>onSetDraft(order.id, idx, {itemStatus: value})}
                                               disabled={processingKeys.has(`${order.id}:${idx}`)}
                                             >
-                                              <SelectTrigger>
+                                              <SelectTrigger className="text-xs sm:text-sm">
                                                <SelectValue placeholder="เลือกสถานะ…" />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -501,7 +504,7 @@ export default function OrdersDataTable({
                                               </SelectContent>
                                             </Select>
                                           ) : (
-                                            <Badge variant={val.itemStatus ? "secondary" : "secondary"} appearance="light">
+                                            <Badge variant={val.itemStatus ? "secondary" : "secondary"} appearance="light" className="text-xs">
                                               {val.itemStatus || 'รอดำเนินการ'}
                                             </Badge>
                                           )}
@@ -514,9 +517,9 @@ export default function OrdersDataTable({
                                               size="sm"
                                               onClick={()=>onSaveItem(order, idx)}
                                               disabled={processingKeys.has(`${order.id}:${idx}`)}
-                                              className="font-normal"
+                                              className="font-normal text-xs sm:text-sm"
                                             >
-                                              {processingKeys.has(`${order.id}:${idx}`) && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                                              {processingKeys.has(`${order.id}:${idx}`) && <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-1" />}
                                               บันทึก
                                             </Button>
                                           </TableCell>
@@ -539,12 +542,14 @@ export default function OrdersDataTable({
           </Table>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
-        <div className="flex items-center justify-between p-4 border-t">
+      </CardTable>
+      <CardFooter>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           {/* Left - Rows per page */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rows per page</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">แสดง</span>
             <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-[80px] h-8">
+              <SelectTrigger className="w-[70px] sm:w-[80px] h-7 sm:h-8 text-xs sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -554,25 +559,26 @@ export default function OrdersDataTable({
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
+            <span className="text-xs sm:text-sm text-muted-foreground">รายการ</span>
           </div>
 
           {/* Center - Item count */}
-          <div className="text-sm text-muted-foreground">
-            {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}
+          <div className="text-xs sm:text-sm text-muted-foreground">
+            {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredData.length)} จาก {filteredData.length}
           </div>
 
           {/* Right - Page navigation */}
           {totalPages > 1 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
               >
                 <span className="sr-only">ก่อนหน้า</span>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               
               {/* Page numbers with ellipsis */}
@@ -589,7 +595,7 @@ export default function OrdersDataTable({
                         variant={currentPage === i ? "primary" : "outline"}
                         size="sm"
                         onClick={() => handlePageChange(i)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
                       >
                         {i}
                       </Button>
@@ -603,7 +609,7 @@ export default function OrdersDataTable({
                       variant={currentPage === 1 ? "primary" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(1)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
                     >
                       1
                     </Button>
@@ -612,7 +618,7 @@ export default function OrdersDataTable({
                   // Add ellipsis after first page if needed
                   if (currentPage > 3) {
                     pages.push(
-                      <span key="ellipsis1" className="px-2 text-muted-foreground">
+                      <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -630,7 +636,7 @@ export default function OrdersDataTable({
                           variant={currentPage === i ? "primary" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(i)}
-                          className="h-8 w-8 p-0"
+                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
                         >
                           {i}
                         </Button>
@@ -641,7 +647,7 @@ export default function OrdersDataTable({
                   // Add ellipsis before last page if needed
                   if (currentPage < totalPages - 2) {
                     pages.push(
-                      <span key="ellipsis2" className="px-2 text-muted-foreground">
+                      <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                         ...
                       </span>
                     );
@@ -655,7 +661,7 @@ export default function OrdersDataTable({
                         variant={currentPage === totalPages ? "primary" : "outline"}
                         size="sm"
                         onClick={() => handlePageChange(totalPages)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
                       >
                         {totalPages}
                       </Button>
@@ -671,15 +677,15 @@ export default function OrdersDataTable({
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
               >
                 <span className="sr-only">ถัดไป</span>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}
         </div>
-      </CardTable>
+      </CardFooter>
     </Card>
   );
 }

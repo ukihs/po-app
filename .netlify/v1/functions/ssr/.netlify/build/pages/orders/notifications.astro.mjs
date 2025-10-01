@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_B8UevVxv.mjs';
+import { C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { s as subscribeAuthAndRole, f as db, B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
@@ -225,12 +225,12 @@ function NotificationsPage() {
   }
   if (!items.length) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-      /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-        /* @__PURE__ */ jsx("div", { className: "flex items-center justify-between mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsx(Bell, { className: "w-8 h-8 text-primary" }),
-          /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold", children: "ข้อความแจ้งเตือน" })
+      /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
+        /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+          /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
+          /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" })
         ] }) }),
-        /* @__PURE__ */ jsxs("p", { className: "text-muted-foreground", children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
           "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
           getRoleDisplayName(role || "")
         ] })
@@ -245,12 +245,12 @@ function NotificationsPage() {
   if (!filteredAndSortedItems.length && items.length > 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
       /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-2", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ jsx(Bell, { className: "w-8 h-8 text-primary" }),
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+            /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
             /* @__PURE__ */ jsxs("div", { children: [
-              /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
-              unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1", children: [
+              /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
+              unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
                 unreadCount,
                 " รายการใหม่"
               ] })
@@ -261,14 +261,17 @@ function NotificationsPage() {
             {
               variant: "outline",
               onClick: markAllAsRead,
+              className: "w-full sm:w-auto",
+              size: "sm",
               children: [
                 /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
-                "อ่านทั้งหมด"
+                /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
+                /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs("p", { className: "text-muted-foreground", children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
           "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
           getRoleDisplayName(role || "")
         ] })
@@ -328,13 +331,13 @@ function NotificationsPage() {
     ] });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-2", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsx(Bell, { className: "w-8 h-8 text-primary" }),
+    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+          /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
           /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
-            unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1", children: [
+            /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
+            unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
               unreadCount,
               " รายการใหม่"
             ] })
@@ -345,14 +348,17 @@ function NotificationsPage() {
           {
             variant: "outline",
             onClick: markAllAsRead,
+            className: "w-full sm:w-auto",
+            size: "sm",
             children: [
               /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
-              "อ่านทั้งหมด"
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
             ]
           }
         )
       ] }),
-      /* @__PURE__ */ jsxs("p", { className: "text-muted-foreground", children: [
+      /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
         "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
         getRoleDisplayName(role || "")
       ] })
@@ -393,7 +399,7 @@ function NotificationsPage() {
           ] })
         ] })
       ] }),
-      filteredAndSortedItems.length !== items.length && /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
+      filteredAndSortedItems.length !== items.length && /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
         "แสดง ",
         filteredAndSortedItems.length,
         " จาก ",
@@ -406,24 +412,24 @@ function NotificationsPage() {
       {
         className: `cursor-pointer hover:shadow-lg transition-all duration-200 ${!n.read ? "bg-primary/5" : "bg-background"}`,
         onClick: () => markReadAndGo(n),
-        children: /* @__PURE__ */ jsx(CardContent, { className: "px-4 py-3", children: /* @__PURE__ */ jsx("div", { className: "flex items-center gap-3", children: /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-3", children: [
-            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-              !n.read && /* @__PURE__ */ jsx(Badge, { variant: "primary", appearance: "light", className: "text-xs px-2 py-0.5", children: "ใหม่" }),
+        children: /* @__PURE__ */ jsx(CardContent, { className: "px-3 sm:px-4 py-3", children: /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 sm:gap-3", children: /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 flex-wrap", children: [
+              !n.read && /* @__PURE__ */ jsx(Badge, { variant: "primary", appearance: "light", className: "text-xs px-1.5 sm:px-2 py-0.5", children: "ใหม่" }),
               /* @__PURE__ */ jsx(
                 Badge,
                 {
                   variant: n.kind === "approved" ? "success" : n.kind === "rejected" ? "destructive" : n.kind === "status_update" ? "info" : "warning",
                   appearance: "light",
-                  className: "text-xs px-2 py-0.5",
+                  className: "text-xs px-1.5 sm:px-2 py-0.5",
                   children: n.kind === "approved" ? "อนุมัติแล้ว" : n.kind === "rejected" ? "ไม่อนุมัติ" : n.kind === "status_update" ? "อัปเดตสถานะ" : "ขออนุมัติ"
                 }
               )
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "text-xs text-muted-foreground font-medium", children: fmt(n.createdAt) })
+            /* @__PURE__ */ jsx("div", { className: "text-xs sm:text-sm text-muted-foreground font-medium", children: fmt(n.createdAt) })
           ] }),
-          /* @__PURE__ */ jsx("h3", { className: `text-base font-semibold mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title }),
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-xs text-muted-foreground", children: [
+          /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title }),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: [
             /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
               "จาก: ",
               n.fromUserName || "ระบบ"
@@ -435,35 +441,35 @@ function NotificationsPage() {
       },
       n.id
     )) }),
-    filteredAndSortedItems.length > 0 && /* @__PURE__ */ jsxs("div", { className: "mt-6 flex flex-col sm:flex-row items-center justify-between gap-4", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "แสดง" }),
-        /* @__PURE__ */ jsxs(
-          "select",
-          {
-            value: itemsPerPage,
-            onChange: (e) => handleItemsPerPageChange(e.target.value),
-            className: "border border-input bg-background rounded-md px-2 py-1 text-sm",
-            children: [
-              /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
-              /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
-              /* @__PURE__ */ jsx("option", { value: 20, children: "20" }),
-              /* @__PURE__ */ jsx("option", { value: 50, children: "50" })
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "รายการต่อหน้า" })
+    filteredAndSortedItems.length > 0 && /* @__PURE__ */ jsxs("div", { className: "mt-6 flex flex-col gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "แสดง" }),
+          /* @__PURE__ */ jsxs(
+            "select",
+            {
+              value: itemsPerPage,
+              onChange: (e) => handleItemsPerPageChange(e.target.value),
+              className: "border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm",
+              children: [
+                /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
+                /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
+                /* @__PURE__ */ jsx("option", { value: 20, children: "20" }),
+                /* @__PURE__ */ jsx("option", { value: 50, children: "50" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการ" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
+          startIndex + 1,
+          " - ",
+          Math.min(endIndex, filteredAndSortedItems.length),
+          " จาก ",
+          filteredAndSortedItems.length
+        ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
-        "แสดง ",
-        startIndex + 1,
-        " - ",
-        Math.min(endIndex, filteredAndSortedItems.length),
-        " จาก ",
-        filteredAndSortedItems.length,
-        " รายการ"
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center gap-1 sm:gap-2", children: [
         /* @__PURE__ */ jsxs(
           Button,
           {
@@ -471,13 +477,14 @@ function NotificationsPage() {
             size: "sm",
             onClick: () => handlePageChange(currentPage - 1),
             disabled: currentPage === 1,
+            className: "px-2 sm:px-3",
             children: [
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-4 h-4" }),
-              "ก่อนหน้า"
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }),
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline ml-1", children: "ก่อนหน้า" })
             ]
           }
         ),
-        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1", children: (() => {
+        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-0.5 sm:gap-1", children: (() => {
           const pages = [];
           const maxVisiblePages = 5;
           let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -493,7 +500,7 @@ function NotificationsPage() {
                   variant: currentPage === 1 ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(1),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: "1"
                 },
                 1
@@ -501,7 +508,7 @@ function NotificationsPage() {
             );
             if (startPage > 2) {
               pages.push(
-                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis1")
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis1")
               );
             }
           }
@@ -513,7 +520,7 @@ function NotificationsPage() {
                   variant: currentPage === i ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(i),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: i
                 },
                 i
@@ -523,7 +530,7 @@ function NotificationsPage() {
           if (endPage < totalPages) {
             if (endPage < totalPages - 1) {
               pages.push(
-                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis2")
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis2")
               );
             }
             pages.push(
@@ -533,7 +540,7 @@ function NotificationsPage() {
                   variant: currentPage === totalPages ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(totalPages),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: totalPages
                 },
                 totalPages
@@ -549,9 +556,10 @@ function NotificationsPage() {
             size: "sm",
             onClick: () => handlePageChange(currentPage + 1),
             disabled: currentPage === totalPages,
+            className: "px-2 sm:px-3",
             children: [
-              "ถัดไป",
-              /* @__PURE__ */ jsx(ChevronRight, { className: "w-4 h-4" })
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline mr-1", children: "ถัดไป" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" })
             ]
           }
         )

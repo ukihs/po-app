@@ -169,56 +169,56 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <FileText className="h-8 w-8 text-[#2b9ccc]" />
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
           ใบสั่งซื้อ #{order.orderNo}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           รายละเอียดใบสั่งซื้อ
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">ผู้ขอซื้อ</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm font-medium">ผู้ขอซื้อ</span>
             </div>
-            <p className="font-semibold">{order.requesterName}</p>
+            <p className="font-semibold text-sm sm:text-base">{order.requesterName}</p>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">วันที่เอกสาร</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm font-medium">วันที่เอกสาร</span>
             </div>
-            <p className="font-semibold">{order.date}</p>
+            <p className="font-semibold text-sm sm:text-base">{order.date}</p>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">ยอดรวม</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm font-medium">ยอดรวม</span>
             </div>
-            <p className="font-semibold">
+            <p className="font-semibold text-sm sm:text-base">
               {(order.totalAmount || order.grandTotal || 0).toLocaleString('th-TH')} บาท
             </p>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">สถานะ</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm font-medium">สถานะ</span>
             </div>
-            <Badge className={statusInfo.className}>
+            <Badge className={`${statusInfo.className} text-xs sm:text-sm`}>
               {statusInfo.text}
             </Badge>
           </CardContent>
@@ -228,30 +228,30 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
       {order.items?.length ? (
         <Card>
           <CardHeader>
-            <CardTitle>รายการสินค้า ({order.items.length} รายการ)</CardTitle>
+            <CardTitle className="text-base sm:text-lg">รายการสินค้า ({order.items.length} รายการ)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[600px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ลำดับ</TableHead>
-                    <TableHead>รายละเอียด</TableHead>
-                    <TableHead>วันที่ต้องการ</TableHead>
-                    <TableHead className="text-right">จำนวน</TableHead>
-                    <TableHead className="text-right">ราคา/หน่วย</TableHead>
-                    <TableHead className="text-right">รวม (บาท)</TableHead>
+                    <TableHead className="text-xs sm:text-sm">ลำดับ</TableHead>
+                    <TableHead className="text-xs sm:text-sm">รายละเอียด</TableHead>
+                    <TableHead className="text-xs sm:text-sm">วันที่ต้องการ</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">จำนวน</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">ราคา/หน่วย</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">รวม (บาท)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {order.items.map((item: any, index: number) => (
                     <TableRow key={item.no ?? index}>
-                      <TableCell className="font-medium">{item.no ?? index + 1}</TableCell>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.receivedDate || '-'}</TableCell>
-                      <TableCell className="text-right">{item.quantity?.toLocaleString('th-TH')}</TableCell>
-                      <TableCell className="text-right">{item.amount?.toLocaleString('th-TH')}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="font-medium text-xs sm:text-sm">{item.no ?? index + 1}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{item.description}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{item.receivedDate || '-'}</TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm">{item.quantity?.toLocaleString('th-TH')}</TableCell>
+                      <TableCell className="text-right text-xs sm:text-sm">{item.amount?.toLocaleString('th-TH')}</TableCell>
+                      <TableCell className="text-right font-medium text-xs sm:text-sm">
                         {item.lineTotal?.toLocaleString('th-TH') || item.amount?.toLocaleString('th-TH')}
                       </TableCell>
                     </TableRow>
@@ -264,20 +264,21 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
       ) : null}
 
       {canApprove ? (
-        <div className="mt-6 flex gap-4">
+        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button 
             onClick={approve} 
             disabled={saving}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                กำลังอนุมัติ...
+                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-2" />
+                <span className="hidden sm:inline">กำลังอนุมัติ...</span>
+                <span className="sm:hidden">กำลังอนุมัติ...</span>
               </>
             ) : (
               <>
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                 อนุมัติ
               </>
             )}
@@ -286,24 +287,26 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
             onClick={reject} 
             disabled={saving}
             variant="destructive"
+            className="w-full sm:w-auto"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                กำลังทำรายการ...
+                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-2" />
+                <span className="hidden sm:inline">กำลังทำรายการ...</span>
+                <span className="sm:hidden">กำลังทำรายการ...</span>
               </>
             ) : (
               <>
-                <XCircle className="h-4 w-4 mr-2" />
+                <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                 ไม่อนุมัติ
               </>
             )}
           </Button>
         </div>
       ) : (
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <Alert>
-            <AlertDescription>
+            <AlertDescription className="text-xs sm:text-sm">
               หน้านี้เป็นมุมมองอ่านอย่างเดียวสำหรับสิทธิ์ของคุณ
             </AlertDescription>
           </Alert>

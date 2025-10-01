@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_B8UevVxv.mjs';
+import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -14,6 +14,7 @@ import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_CEUNibaC.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const StepperContext = createContext(void 0);
@@ -433,9 +434,9 @@ function TrackingPage() {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
   if (loading) {
-    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-8 w-8 animate-spin text-primary" }) }),
-      /* @__PURE__ */ jsx("p", { className: "mt-4 text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
+      /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" }) }),
+      /* @__PURE__ */ jsx("p", { className: "mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
     ] }) });
   }
   if (err) {
@@ -450,15 +451,16 @@ function TrackingPage() {
   if (rows.length === 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
       /* @__PURE__ */ jsx(Toaster, {}),
-      /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-muted-foreground" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-lg font-bold mb-2", children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground mb-6", children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" }),
+      /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
+        /* @__PURE__ */ jsx("div", { className: "mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" }) }),
+        /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold mb-2", children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
+        /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6", children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" }),
         role === "buyer" && /* @__PURE__ */ jsx(
           Button,
           {
             asChild: true,
             variant: "primary",
+            className: "w-full sm:w-auto",
             children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
           }
         )
@@ -467,61 +469,63 @@ function TrackingPage() {
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     /* @__PURE__ */ jsx(Toaster, {}),
-    /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
-        /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-primary" }),
-        role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมด"
+    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
+      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+        /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
+        /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมด" }),
+        /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: role === "buyer" ? "ติดตามสถานะ" : role === "supervisor" ? "ติดตาม/อนุมัติ" : "ติดตาม" })
       ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "supervisor" ? "หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ" : role === "buyer" ? "ติดตามสถานะและความคืบหน้าของใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมดในระบบ" })
+      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: role === "supervisor" ? "หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ" : role === "buyer" ? "ติดตามสถานะและความคืบหน้าของใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมดในระบบ" })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "mb-6 space-y-4", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 flex-1 w-full", children: [
+    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6 space-y-3 sm:space-y-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full", children: [
           /* @__PURE__ */ jsxs("div", { className: "relative flex-1 max-w-md", children: [
-            /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
+            /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" }),
             /* @__PURE__ */ jsx(
               Input,
               {
                 type: "text",
                 placeholder: "ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ",
-                className: "pl-10 h-10",
+                className: "pl-9 sm:pl-10 h-9 sm:h-10 text-sm",
                 value: searchTerm,
                 onChange: (e) => setSearchTerm(e.target.value)
               }
             )
           ] }),
           /* @__PURE__ */ jsxs(Select, { value: statusFilter, onValueChange: setStatusFilter, children: [
-            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-[180px] h-10", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
+            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-[180px] h-9 sm:h-10 text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
             /* @__PURE__ */ jsxs(SelectContent, { children: [
-              /* @__PURE__ */ jsx(SelectItem, { value: "all", children: "สถานะทั้งหมด" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "pending", children: "รออนุมัติ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "approved", children: "อนุมัติแล้ว" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "rejected", children: "ไม่อนุมัติ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", children: "กำลังดำเนินการ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "delivered", children: "ได้รับแล้ว" })
+              /* @__PURE__ */ jsx(SelectItem, { value: "all", className: "text-sm", children: "สถานะทั้งหมด" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "pending", className: "text-sm", children: "รออนุมัติ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "approved", className: "text-sm", children: "อนุมัติแล้ว" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "rejected", className: "text-sm", children: "ไม่อนุมัติ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", className: "text-sm", children: "กำลังดำเนินการ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "delivered", className: "text-sm", children: "ได้รับแล้ว" })
             ] })
           ] })
         ] }),
         /* @__PURE__ */ jsxs(DropdownMenu, { children: [
-          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "h-10 px-4", children: [
-            /* @__PURE__ */ jsx(Filter, { className: "h-4 w-4 mr-2" }),
-            "มุมมอง"
+          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-4 text-sm", children: [
+            /* @__PURE__ */ jsx(Filter, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
+            /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "มุมมอง" }),
+            /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "แสดง" })
           ] }) }),
           /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
-            /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "เลือกมุมมอง" }),
+            /* @__PURE__ */ jsx(DropdownMenuLabel, { className: "text-xs sm:text-sm", children: "เลือกมุมมอง" }),
             /* @__PURE__ */ jsx(DropdownMenuSeparator, {}),
-            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), children: [
-              /* @__PURE__ */ jsx(LayoutGrid, { className: "h-4 w-4 mr-2" }),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), className: "text-xs sm:text-sm", children: [
+              /* @__PURE__ */ jsx(LayoutGrid, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
               "แบบการ์ด"
             ] }),
-            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), children: [
-              /* @__PURE__ */ jsx(Table2, { className: "h-4 w-4 mr-2" }),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), className: "text-xs sm:text-sm", children: [
+              /* @__PURE__ */ jsx(Table2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
               "แบบตาราง"
             ] })
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-sm text-muted-foreground", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs sm:text-sm text-muted-foreground gap-1 sm:gap-0", children: [
         /* @__PURE__ */ jsxs("span", { children: [
           "แสดง ",
           filteredRows.length,
@@ -537,76 +541,82 @@ function TrackingPage() {
         ] })
       ] })
     ] }),
-    filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-muted-foreground" }) }),
-      /* @__PURE__ */ jsx("h3", { className: "text-lg font-bold mb-2", children: "ไม่พบข้อมูล" }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: searchTerm || statusFilter !== "all" ? "ลองปรับเงื่อนไขการค้นหาหรือกรอง" : "ยังไม่มีใบขอซื้อในระบบ" })
-    ] }) : viewMode === "table" ? /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
-      /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-        /* @__PURE__ */ jsx(TableHead, { children: "หมายเลขใบขอซื้อ" }),
-        /* @__PURE__ */ jsx(TableHead, { children: "ผู้ขอซื้อ" }),
-        /* @__PURE__ */ jsx(TableHead, { children: "วันที่" }),
-        /* @__PURE__ */ jsx(TableHead, { children: "ยอดรวม" }),
-        /* @__PURE__ */ jsx(TableHead, { children: "สถานะ" }),
-        /* @__PURE__ */ jsx(TableHead, { children: "การดำเนินการ" })
-      ] }) }),
-      /* @__PURE__ */ jsx(TableBody, { children: paginatedRows.map((order) => /* @__PURE__ */ jsxs(TableRow, { children: [
-        /* @__PURE__ */ jsx(TableCell, { className: "font-medium", children: generateOrderNumber(order.orderNo, order.date) }),
-        /* @__PURE__ */ jsx(TableCell, { children: order.requesterName }),
-        /* @__PURE__ */ jsx(TableCell, { children: order.date }),
-        /* @__PURE__ */ jsxs(TableCell, { className: "tabular-nums", children: [
-          order.total.toLocaleString("th-TH"),
-          " บาท"
-        ] }),
-        /* @__PURE__ */ jsx(TableCell, { children: getStatusBadge(order.status) }),
-        /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxs(
-            Button,
-            {
-              variant: "outline",
-              size: "sm",
-              onClick: () => window.open(`/orders/${order.id}`, "_blank"),
-              children: [
-                /* @__PURE__ */ jsx(Eye, { className: "h-4 w-4 mr-1" }),
-                "ดูรายละเอียด"
-              ]
-            }
-          ),
-          role === "supervisor" && order.status === "pending" && /* @__PURE__ */ jsxs(Fragment, { children: [
+    filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
+      /* @__PURE__ */ jsx("div", { className: "mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" }) }),
+      /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold mb-2", children: "ไม่พบข้อมูล" }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: searchTerm || statusFilter !== "all" ? "ลองปรับเงื่อนไขการค้นหาหรือกรอง" : "ยังไม่มีใบขอซื้อในระบบ" })
+    ] }) : viewMode === "table" ? /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
+      /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px]", children: [
+        /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "หมายเลขใบขอซื้อ" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "ผู้ขอซื้อ" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "วันที่" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "ยอดรวม" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "สถานะ" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "การดำเนินการ" })
+        ] }) }),
+        /* @__PURE__ */ jsx(TableBody, { children: paginatedRows.map((order) => /* @__PURE__ */ jsxs(TableRow, { children: [
+          /* @__PURE__ */ jsx(TableCell, { className: "font-medium text-xs sm:text-sm", children: generateOrderNumber(order.orderNo, order.date) }),
+          /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.requesterName }),
+          /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.date }),
+          /* @__PURE__ */ jsxs(TableCell, { className: "tabular-nums text-xs sm:text-sm", children: [
+            order.total.toLocaleString("th-TH"),
+            " บาท"
+          ] }),
+          /* @__PURE__ */ jsx(TableCell, { children: getStatusBadge(order.status) }),
+          /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2", children: [
             /* @__PURE__ */ jsxs(
               Button,
               {
-                onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
-                disabled: processingOrders.has(order.id),
+                variant: "outline",
                 size: "sm",
-                className: "bg-green-600 hover:bg-green-700 text-white",
+                className: "text-xs w-full sm:w-auto",
+                onClick: () => window.open(`/orders/${order.id}`, "_blank"),
                 children: [
-                  processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
-                  "อนุมัติ"
+                  /* @__PURE__ */ jsx(Eye, { className: "h-3 w-3 sm:h-4 sm:w-4 mr-1" }),
+                  /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ดูรายละเอียด" }),
+                  /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "ดู" })
                 ]
               }
             ),
-            /* @__PURE__ */ jsxs(
-              Button,
-              {
-                onClick: () => showApprovalModal(order.id, false, order.orderNo, order.requesterName),
-                disabled: processingOrders.has(order.id),
-                size: "sm",
-                variant: "destructive",
-                children: [
-                  processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3 mr-1" }),
-                  "ไม่อนุมัติ"
-                ]
-              }
-            )
-          ] })
-        ] }) })
-      ] }, order.id)) })
-    ] }) }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-6", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-4", children: [
-        /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsx("h3", { className: "text-lg font-bold", children: generateOrderNumber(order.orderNo, order.date) }),
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4 text-sm text-muted-foreground mt-1", children: [
+            role === "supervisor" && order.status === "pending" && /* @__PURE__ */ jsxs(Fragment, { children: [
+              /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
+                  disabled: processingOrders.has(order.id),
+                  size: "sm",
+                  className: "bg-green-600 hover:bg-green-700 text-white text-xs w-full sm:w-auto",
+                  children: [
+                    processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
+                    "อนุมัติ"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  onClick: () => showApprovalModal(order.id, false, order.orderNo, order.requesterName),
+                  disabled: processingOrders.has(order.id),
+                  size: "sm",
+                  variant: "destructive",
+                  className: "text-xs w-full sm:w-auto",
+                  children: [
+                    processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3 mr-1" }),
+                    "ไม่อนุมัติ"
+                  ]
+                }
+              )
+            ] })
+          ] }) })
+        ] }, order.id)) })
+      ] }),
+      /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
+    ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
+          /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold", children: generateOrderNumber(order.orderNo, order.date) }),
+          /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1", children: [
             /* @__PURE__ */ jsxs("span", { className: "flex items-center gap-1", children: [
               "ชื่อผู้ขอ: ",
               order.requesterName
@@ -627,38 +637,38 @@ function TrackingPage() {
             }) : "—"
           ] })
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "text-right", children: /* @__PURE__ */ jsx("div", { className: "mb-3", children: getStatusBadge(order.status) }) })
+        /* @__PURE__ */ jsx("div", { className: "text-left sm:text-right w-full sm:w-auto", children: /* @__PURE__ */ jsx("div", { className: "mb-2 sm:mb-3", children: getStatusBadge(order.status) }) })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
-        /* @__PURE__ */ jsx("h4", { className: "text-sm font-bold mb-3", children: "ขั้นตอนการดำเนินงาน" }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-3 sm:mb-4", children: [
+        /* @__PURE__ */ jsx("h4", { className: "text-xs sm:text-sm font-bold mb-2 sm:mb-3", children: "ขั้นตอนการดำเนินงาน" }),
         renderProgressFlow(order.status)
       ] }),
       order.items && order.items.length > 0 && /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsxs("h4", { className: "text-sm font-bold mb-2 flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxs("h4", { className: "text-xs sm:text-sm font-bold mb-2 flex items-center gap-2", children: [
           "รายการสินค้า (",
           order.items.length,
           " รายการ)"
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "space-y-3", children: order.items.map((item, idx) => {
+        /* @__PURE__ */ jsx("div", { className: "space-y-2 sm:space-y-3", children: order.items.map((item, idx) => {
           const category = getItemCategory(order, idx);
           const itemStatus = getItemStatus(order, idx);
-          return /* @__PURE__ */ jsx("div", { className: "bg-muted rounded-lg p-4 mb-4 border", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-start mb-3", children: [
-            /* @__PURE__ */ jsxs("div", { className: "flex-1", children: [
-              /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 mb-2", children: /* @__PURE__ */ jsxs("span", { className: "text-sm font-medium", children: [
+          return /* @__PURE__ */ jsx("div", { className: "bg-muted rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start mb-2 sm:mb-3 gap-3", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
+              /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 mb-2", children: /* @__PURE__ */ jsxs("span", { className: "text-xs sm:text-sm font-medium", children: [
                 "รายการที่ ",
                 idx + 1,
                 ' : "',
                 item.description,
                 '"'
               ] }) }),
-              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 mb-2", children: [
-                /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1", children: [
-                  /* @__PURE__ */ jsx(Tag, { className: "w-3 h-3" }),
+              /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2", children: [
+                /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1 text-xs", children: [
+                  /* @__PURE__ */ jsx(Tag, { className: "w-2.5 h-2.5 sm:w-3 sm:h-3" }),
                   "ประเภท: ",
                   category
                 ] }),
-                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1", children: [
-                  /* @__PURE__ */ jsx(Activity, { className: "w-3 h-3" }),
+                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1 text-xs", children: [
+                  /* @__PURE__ */ jsx(Activity, { className: "w-2.5 h-2.5 sm:w-3 sm:h-3" }),
                   "สถานะ: ",
                   itemStatus
                 ] })
@@ -668,7 +678,7 @@ function TrackingPage() {
                 item.receivedDate
               ] })
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "text-right min-w-[120px]", children: /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
+            /* @__PURE__ */ jsx("div", { className: "text-left sm:text-right w-full sm:min-w-[120px]", children: /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground space-y-0.5", children: [
               /* @__PURE__ */ jsxs("div", { children: [
                 "จำนวน ",
                 item.quantity?.toLocaleString("th-TH")
@@ -686,9 +696,9 @@ function TrackingPage() {
             ] }) })
           ] }) }, idx);
         }) }),
-        /* @__PURE__ */ jsx(Separator, { className: "my-3" }),
-        /* @__PURE__ */ jsx("h4", { className: "text-sm font-bold mb-2 flex items-center gap-2", children: "สรุปรายการ" }),
-        /* @__PURE__ */ jsx("div", { className: "mt-3 flex justify-end", children: /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground text-right", children: [
+        /* @__PURE__ */ jsx(Separator, { className: "my-2 sm:my-3" }),
+        /* @__PURE__ */ jsx("h4", { className: "text-xs sm:text-sm font-bold mb-2 flex items-center gap-2", children: "สรุปรายการ" }),
+        /* @__PURE__ */ jsx("div", { className: "mt-2 sm:mt-3 flex justify-start sm:justify-end", children: /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground text-left sm:text-right w-full", children: [
           /* @__PURE__ */ jsxs("div", { className: "mb-1", children: [
             /* @__PURE__ */ jsx("span", { children: "จำนวนรายการทั้งหมด : " }),
             /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
@@ -698,26 +708,27 @@ function TrackingPage() {
           ] }),
           /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsx("span", { children: "ยอดรวมทั้งสิ้น : " }),
-            /* @__PURE__ */ jsxs("span", { className: "text-lg font-bold text-primary", children: [
+            /* @__PURE__ */ jsxs("span", { className: "text-base sm:text-lg font-bold text-primary", children: [
               order.total.toLocaleString("th-TH"),
               " บาท"
             ] })
           ] })
         ] }) }),
-        /* @__PURE__ */ jsxs("div", { className: "mt-4 flex justify-between items-center", children: [
+        /* @__PURE__ */ jsxs("div", { className: "mt-3 sm:mt-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2", children: [
           /* @__PURE__ */ jsxs(
             Button,
             {
               variant: "outline",
               size: "sm",
+              className: "w-full sm:w-auto text-xs",
               onClick: () => window.open(`/orders/${order.id}`, "_blank"),
               children: [
-                /* @__PURE__ */ jsx(Eye, { className: "h-4 w-4 mr-1" }),
+                /* @__PURE__ */ jsx(Eye, { className: "h-3 w-3 sm:h-4 sm:w-4 mr-1" }),
                 "ดูรายละเอียด"
               ]
             }
           ),
-          role === "supervisor" && order.status === "pending" && /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+          role === "supervisor" && order.status === "pending" && /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-2 w-full sm:w-auto", children: [
             /* @__PURE__ */ jsxs(
               Button,
               {
@@ -725,7 +736,7 @@ function TrackingPage() {
                 disabled: processingOrders.has(order.id),
                 size: "sm",
                 variant: "destructive",
-                className: "font-normal",
+                className: "font-normal text-xs w-full sm:w-auto",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3 mr-1" }),
                   "ไม่อนุมัติ"
@@ -738,7 +749,7 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                className: "bg-green-600 hover:bg-green-700 text-white font-normal",
+                className: "bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"
@@ -749,15 +760,15 @@ function TrackingPage() {
         ] })
       ] })
     ] }) }, order.id)) }),
-    filteredRows.length > 0 && /* @__PURE__ */ jsxs("div", { className: "mt-6 flex flex-col sm:flex-row items-center justify-between gap-4", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "แสดง" }),
+    filteredRows.length > 0 && /* @__PURE__ */ jsx("div", { className: "mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start", children: [
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "แสดง" }),
         /* @__PURE__ */ jsxs(
           "select",
           {
             value: itemsPerPage,
             onChange: (e) => handleItemsPerPageChange(e.target.value),
-            className: "border border-input bg-background rounded-md px-2 py-1 text-sm",
+            className: "border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm",
             children: [
               /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
               /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
@@ -766,9 +777,9 @@ function TrackingPage() {
             ]
           }
         ),
-        /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "รายการต่อหน้า" })
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการต่อหน้า" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
+      /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
         "แสดง ",
         (currentPage - 1) * itemsPerPage + 1,
         " - ",
@@ -777,21 +788,22 @@ function TrackingPage() {
         filteredRows.length,
         " รายการ"
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-center", children: [
         /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
             size: "sm",
+            className: "text-xs h-7 sm:h-8",
             onClick: () => handlePageChange(currentPage - 1),
             disabled: currentPage === 1,
             children: [
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-4 h-4" }),
-              "ก่อนหน้า"
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-3 h-3 sm:w-4 sm:h-4" }),
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ก่อนหน้า" })
             ]
           }
         ),
-        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1", children: (() => {
+        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-0.5 sm:gap-1", children: (() => {
           const pages = [];
           const maxVisiblePages = 5;
           let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -807,7 +819,7 @@ function TrackingPage() {
                   variant: currentPage === 1 ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(1),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: "1"
                 },
                 1
@@ -815,7 +827,7 @@ function TrackingPage() {
             );
             if (startPage > 2) {
               pages.push(
-                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis1")
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis1")
               );
             }
           }
@@ -827,7 +839,7 @@ function TrackingPage() {
                   variant: currentPage === i ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(i),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: i
                 },
                 i
@@ -837,7 +849,7 @@ function TrackingPage() {
           if (endPage < totalPages) {
             if (endPage < totalPages - 1) {
               pages.push(
-                /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis2")
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis2")
               );
             }
             pages.push(
@@ -847,7 +859,7 @@ function TrackingPage() {
                   variant: currentPage === totalPages ? "primary" : "outline",
                   size: "sm",
                   onClick: () => handlePageChange(totalPages),
-                  className: "w-8 h-8 p-0",
+                  className: "w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm",
                   children: totalPages
                 },
                 totalPages
@@ -861,39 +873,40 @@ function TrackingPage() {
           {
             variant: "outline",
             size: "sm",
+            className: "text-xs h-7 sm:h-8",
             onClick: () => handlePageChange(currentPage + 1),
             disabled: currentPage === totalPages,
             children: [
-              "ถัดไป",
-              /* @__PURE__ */ jsx(ChevronRight, { className: "w-4 h-4" })
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ถัดไป" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "w-3 h-3 sm:w-4 sm:h-4" })
             ]
           }
         )
       ] })
-    ] }),
-    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { showCloseButton: false, children: [
+    ] }) }),
+    /* @__PURE__ */ jsx(Dialog, { open: showConfirmModal, onOpenChange: setShowConfirmModal, children: /* @__PURE__ */ jsxs(DialogContent, { showCloseButton: false, className: "w-[95vw] max-w-md", children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
-        /* @__PURE__ */ jsx(DialogTitle, { className: "flex items-center gap-2", children: confirmData?.approved ? /* @__PURE__ */ jsxs(Fragment, { children: [
-          /* @__PURE__ */ jsx(CheckCircle, { className: "w-6 h-6 text-green-500" }),
+        /* @__PURE__ */ jsx(DialogTitle, { className: "flex items-center gap-2 text-base sm:text-lg", children: confirmData?.approved ? /* @__PURE__ */ jsxs(Fragment, { children: [
+          /* @__PURE__ */ jsx(CheckCircle, { className: "w-5 h-5 sm:w-6 sm:h-6 text-green-500" }),
           "ยืนยันการอนุมัติ"
         ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
-          /* @__PURE__ */ jsx(XCircle, { className: "w-6 h-6 text-red-500" }),
+          /* @__PURE__ */ jsx(XCircle, { className: "w-5 h-5 sm:w-6 sm:h-6 text-red-500" }),
           "ยืนยันการไม่อนุมัติ"
         ] }) }),
-        /* @__PURE__ */ jsx(DialogDescription, { children: confirmData && /* @__PURE__ */ jsxs("span", { className: "text-base", children: [
+        /* @__PURE__ */ jsx(DialogDescription, { className: "text-sm sm:text-base", children: confirmData && /* @__PURE__ */ jsxs("span", { children: [
           "คุณต้องการ",
           confirmData.approved ? "อนุมัติ" : "ไม่อนุมัติ",
           "ใบขอซื้อนี้หรือไม่?"
         ] }) })
       ] }),
-      /* @__PURE__ */ jsxs(DialogFooter, { children: [
+      /* @__PURE__ */ jsxs(DialogFooter, { className: "flex flex-col sm:flex-row gap-2", children: [
         /* @__PURE__ */ jsx(
           Button,
           {
             variant: "outline",
             onClick: cancelApproval,
             disabled: processingOrders.has(confirmData?.orderId || ""),
-            className: "font-normal",
+            className: "font-normal w-full sm:w-auto text-sm",
             children: "ยกเลิก"
           }
         ),
@@ -903,9 +916,11 @@ function TrackingPage() {
             variant: confirmData?.approved ? "primary" : "destructive",
             onClick: handleApproval,
             disabled: processingOrders.has(confirmData?.orderId || ""),
+            className: "w-full sm:w-auto text-sm",
             children: processingOrders.has(confirmData?.orderId || "") ? /* @__PURE__ */ jsxs(Fragment, { children: [
-              /* @__PURE__ */ jsx(RefreshCw, { className: "w-4 h-4 mr-2 animate-spin" }),
-              "กำลังดำเนินการ..."
+              /* @__PURE__ */ jsx(RefreshCw, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" }),
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "กำลังดำเนินการ..." }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "กำลังทำงาน..." })
             ] }) : "ยืนยัน"
           }
         )

@@ -358,12 +358,12 @@ export default function UsersManagementPage() {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <Users className="h-8 w-8 text-[#2b9ccc]" />
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
           การจัดการผู้ใช้งาน
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           หน้าจัดการผู้ใช้งานในระบบทั้งหมด
         </p>
       </div>
@@ -381,25 +381,25 @@ export default function UsersManagementPage() {
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
               เพิ่มผู้ใช้
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               กรอกข้อมูลผู้ใช้ใหม่ในระบบ
             </DialogDescription>
           </DialogHeader>
           
-          <form className="space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium">
+          <form className="space-y-3 sm:space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="firstName" className="text-xs sm:text-sm font-medium">
                   ชื่อ <span className="text-destructive">*</span>
                 </label>
                 <Input 
                   id="firstName"
                   type="text" 
-                  className={validationErrors.firstName ? 'border-destructive' : ''}
+                  className={`text-sm ${validationErrors.firstName ? 'border-destructive' : ''}`}
                   placeholder="กรอกชื่อ"
                   value={newUser.firstName}
                   onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
@@ -411,14 +411,14 @@ export default function UsersManagementPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="lastName" className="text-xs sm:text-sm font-medium">
                   นามสกุล <span className="text-destructive">*</span>
                 </label>
                 <Input 
                   id="lastName"
                   type="text" 
-                  className={validationErrors.lastName ? 'border-destructive' : ''}
+                  className={`text-sm ${validationErrors.lastName ? 'border-destructive' : ''}`}
                   placeholder="กรอกนามสกุล"
                   value={newUser.lastName}
                   onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
@@ -431,14 +431,14 @@ export default function UsersManagementPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="email" className="text-xs sm:text-sm font-medium">
                 อีเมล <span className="text-destructive">*</span>
               </label>
               <Input 
                 id="email"
                 type="email" 
-                className={validationErrors.email ? 'border-destructive' : ''}
+                className={`text-sm ${validationErrors.email ? 'border-destructive' : ''}`}
                 placeholder="กรอกอีเมล"
                 value={newUser.email}
                 onChange={(e) => setNewUser({...newUser, email: e.target.value})}
@@ -450,14 +450,14 @@ export default function UsersManagementPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="password" className="text-xs sm:text-sm font-medium">
                 รหัสผ่าน <span className="text-destructive">*</span>
               </label>
               <Input 
                 id="password"
                 type="password" 
-                className={validationErrors.password ? 'border-destructive' : ''}
+                className={`text-sm ${validationErrors.password ? 'border-destructive' : ''}`}
                 placeholder="กรอกรหัสผ่าน"
                 value={newUser.password}
                 onChange={(e) => setNewUser({...newUser, password: e.target.value})}
@@ -469,21 +469,22 @@ export default function UsersManagementPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="department" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="department" className="text-xs sm:text-sm font-medium">
                 แผนก
               </label>
               <Input
                 id="department"
                 type="text"
+                className="text-sm"
                 placeholder="กรอกแผนก"
                 value={newUser.department}
                 onChange={(e) => setNewUser({...newUser, department: e.target.value})}
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="supervisor" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="supervisor" className="text-xs sm:text-sm font-medium">
                 หัวหน้างาน
               </label>
               <Popover open={supervisorOpen} onOpenChange={setSupervisorOpen}>
@@ -492,7 +493,7 @@ export default function UsersManagementPage() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={supervisorOpen}
-                    className="w-full justify-between"
+                    className="w-full justify-between text-xs sm:text-sm"
                   >
                     {supervisorValue
                       ? supervisors.find((supervisor) => supervisor.uid === supervisorValue)?.displayName
@@ -552,22 +553,22 @@ export default function UsersManagementPage() {
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="role" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="role" className="text-xs sm:text-sm font-medium">
                 บทบาท <span className="text-destructive">*</span>
               </label>
               <Select
                 value={newUser.role}
                 onValueChange={(value) => setNewUser({...newUser, role: value})}
               >
-                <SelectTrigger className={validationErrors.role ? 'border-destructive' : ''}>
+                <SelectTrigger className={`text-sm ${validationErrors.role ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder="เลือกบทบาท" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="buyer">ผู้ขอซื้อ</SelectItem>
-                  <SelectItem value="supervisor">หัวหน้างาน</SelectItem>
-                  <SelectItem value="procurement">ฝ่ายจัดซื้อ</SelectItem>
-                  <SelectItem value="superadmin">ผู้ดูแลระบบ</SelectItem>
+                  <SelectItem value="buyer" className="text-sm">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="supervisor" className="text-sm">หัวหน้างาน</SelectItem>
+                  <SelectItem value="procurement" className="text-sm">ฝ่ายจัดซื้อ</SelectItem>
+                  <SelectItem value="superadmin" className="text-sm">ผู้ดูแลระบบ</SelectItem>
                 </SelectContent>
               </Select>
               {validationErrors.role && (
@@ -623,25 +624,25 @@ export default function UsersManagementPage() {
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Edit className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
               แก้ไขข้อมูลผู้ใช้
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               แก้ไขข้อมูลผู้ใช้ในระบบ
             </DialogDescription>
           </DialogHeader>
           
-          <form className="space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="edit-firstName" className="text-sm font-medium">
+          <form className="space-y-3 sm:space-y-4 max-h-[70vh] overflow-y-auto px-1" onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="edit-firstName" className="text-xs sm:text-sm font-medium">
                   ชื่อ <span className="text-destructive">*</span>
                 </label>
                 <Input
                   id="edit-firstName"
                   type="text"
-                  className={editValidationErrors.firstName ? 'border-destructive' : ''}
+                  className={`text-sm ${editValidationErrors.firstName ? 'border-destructive' : ''}`}
                   placeholder="กรอกชื่อ"
                   value={editUser.firstName}
                   onChange={(e) => setEditUser({...editUser, firstName: e.target.value})}
@@ -653,14 +654,14 @@ export default function UsersManagementPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="edit-lastName" className="text-sm font-medium">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="edit-lastName" className="text-xs sm:text-sm font-medium">
                   นามสกุล <span className="text-destructive">*</span>
                 </label>
                 <Input
                   id="edit-lastName"
                   type="text"
-                  className={editValidationErrors.lastName ? 'border-destructive' : ''}
+                  className={`text-sm ${editValidationErrors.lastName ? 'border-destructive' : ''}`}
                   placeholder="กรอกนามสกุล"
                   value={editUser.lastName}
                   onChange={(e) => setEditUser({...editUser, lastName: e.target.value})}
@@ -673,14 +674,14 @@ export default function UsersManagementPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="edit-email" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="edit-email" className="text-xs sm:text-sm font-medium">
                 อีเมล <span className="text-destructive">*</span>
               </label>
               <Input
                 id="edit-email"
                 type="email"
-                className={editValidationErrors.email ? 'border-destructive' : ''}
+                className={`text-sm ${editValidationErrors.email ? 'border-destructive' : ''}`}
                 placeholder="กรอกอีเมล"
                 value={editUser.email}
                 onChange={(e) => setEditUser({...editUser, email: e.target.value})}
@@ -692,8 +693,8 @@ export default function UsersManagementPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="edit-supervisor" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="edit-supervisor" className="text-xs sm:text-sm font-medium">
                 หัวหน้างาน
               </label>
               <Popover open={editSupervisorOpen} onOpenChange={setEditSupervisorOpen}>
@@ -702,7 +703,7 @@ export default function UsersManagementPage() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={editSupervisorOpen}
-                    className="w-full justify-between"
+                    className="w-full justify-between text-xs sm:text-sm"
                   >
                     {editSupervisorValue
                       ? supervisors.find((supervisor) => supervisor.uid === editSupervisorValue)?.displayName
@@ -762,22 +763,22 @@ export default function UsersManagementPage() {
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="edit-role" className="text-sm font-medium">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="edit-role" className="text-xs sm:text-sm font-medium">
                 บทบาท <span className="text-destructive">*</span>
               </label>
               <Select
                 value={editUser.role}
                 onValueChange={(value) => setEditUser({...editUser, role: value})}
               >
-                <SelectTrigger className={editValidationErrors.role ? 'border-destructive' : ''}>
+                <SelectTrigger className={`text-sm ${editValidationErrors.role ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder="เลือกบทบาท" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="buyer">ผู้ขอซื้อ</SelectItem>
-                  <SelectItem value="supervisor">หัวหน้างาน</SelectItem>
-                  <SelectItem value="procurement">ฝ่ายจัดซื้อ</SelectItem>
-                  <SelectItem value="superadmin">ผู้ดูแลระบบ</SelectItem>
+                  <SelectItem value="buyer" className="text-sm">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="supervisor" className="text-sm">หัวหน้างาน</SelectItem>
+                  <SelectItem value="procurement" className="text-sm">ฝ่ายจัดซื้อ</SelectItem>
+                  <SelectItem value="superadmin" className="text-sm">ผู้ดูแลระบบ</SelectItem>
                 </SelectContent>
               </Select>
               {editValidationErrors.role && (
@@ -810,22 +811,22 @@ export default function UsersManagementPage() {
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-destructive" />
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
               ยืนยันการลบผู้ใช้
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               คุณต้องการลบผู้ใช้นี้หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
+          <div className="py-3 sm:py-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               ผู้ใช้: {selectedUser?.displayName || selectedUser?.email}
             </p>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline" 
               className="w-full sm:w-auto"

@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, b as CardHeader, c as CardHeading, d as CardToolbar, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, i as DropdownMenuCheckboxItem, j as CardTable, $ as $$MainLayout } from '../../chunks/card_B8UevVxv.mjs';
+import { C as Card, b as CardHeader, c as CardHeading, d as CardToolbar, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, i as DropdownMenuCheckboxItem, j as CardTable, k as CardFooter, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import React__default, { useState, useMemo, useEffect } from 'react';
 import { I as Input, B as Button, s as subscribeAuthAndRole, f as db } from '../../chunks/input_CuwRcyyb.mjs';
@@ -9,9 +9,10 @@ import { Loader2, Search, Settings, ChevronDown, ChevronRight, ChevronLeft, File
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
 import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/checkbox_D5uEAeNY.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_CEUNibaC.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
 import 'clsx';
+import '../../chunks/checkbox_pSuwQxN8.mjs';
 import '../../chunks/label_B4e7hkFR.mjs';
 export { renderers } from '../../renderers.mjs';
 
@@ -201,24 +202,25 @@ function OrdersDataTable({
   }
   return /* @__PURE__ */ jsxs(Card, { children: [
     /* @__PURE__ */ jsxs(CardHeader, { className: "border-b", children: [
-      /* @__PURE__ */ jsx(CardHeading, { children: "รายการใบขอซื้อ" }),
-      /* @__PURE__ */ jsx(CardToolbar, { children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-        /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+      /* @__PURE__ */ jsx(CardHeading, { className: "text-lg sm:text-xl", children: "รายการใบขอซื้อ" }),
+      /* @__PURE__ */ jsx(CardToolbar, { children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto", children: [
+        /* @__PURE__ */ jsxs("div", { className: "relative flex-1 sm:flex-none", children: [
           /* @__PURE__ */ jsx(Search, { className: "absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
           /* @__PURE__ */ jsx(
             Input,
             {
-              placeholder: "ค้นหาชื่อผู้ขอซื้อหรือหมายเลขใบขอซื้อ...",
+              placeholder: "ค้นหา...",
               value: searchTerm,
               onChange: (e) => setSearchTerm(e.target.value),
-              className: "pl-8 w-64"
+              className: "pl-8 w-full sm:w-48 md:w-64 text-sm"
             }
           )
         ] }),
         /* @__PURE__ */ jsxs(DropdownMenu, { children: [
-          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", size: "sm", children: [
+          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", size: "sm", className: "w-full sm:w-auto", children: [
             /* @__PURE__ */ jsx(Settings, { className: "h-4 w-4 mr-2" }),
-            "คอลัมน์"
+            /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "คอลัมน์" }),
+            /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "คอลัมน์" })
           ] }) }),
           /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
             /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "แสดงคอลัมน์" }),
@@ -239,165 +241,202 @@ function OrdersDataTable({
         ] })
       ] }) })
     ] }),
-    /* @__PURE__ */ jsxs(CardTable, { children: [
-      /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[600px]", children: [
-        /* @__PURE__ */ jsxs(Table, { children: [
-          /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[120px]", children: "รายการที่" }),
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "วันที่" }),
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[180px]", children: "ผู้ขอซื้อ" }),
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "ยอดรวม" }),
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[140px]", children: "สถานะ" }),
-            /* @__PURE__ */ jsx(TableHead, { className: "w-[200px]", children: "การดำเนินการ" })
-          ] }) }),
-          /* @__PURE__ */ jsx(TableBody, { children: paginatedData.map((order) => {
-            const isOpen = !!expanded[order.id];
-            return /* @__PURE__ */ jsxs(React__default.Fragment, { children: [
-              /* @__PURE__ */ jsxs(TableRow, { className: "hover", children: [
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
-                  Button,
+    /* @__PURE__ */ jsx(CardTable, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
+      /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px]", children: [
+        /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[100px] sm:w-[120px] text-xs sm:text-sm", children: "รายการที่" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[120px] sm:w-[140px] text-xs sm:text-sm", children: "วันที่" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[140px] sm:w-[180px] text-xs sm:text-sm", children: "ผู้ขอซื้อ" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[120px] sm:w-[140px] text-xs sm:text-sm", children: "ยอดรวม" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[120px] sm:w-[140px] text-xs sm:text-sm", children: "สถานะ" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[160px] sm:w-[200px] text-xs sm:text-sm", children: "การดำเนินการ" })
+        ] }) }),
+        /* @__PURE__ */ jsx(TableBody, { children: paginatedData.map((order) => {
+          const isOpen = !!expanded[order.id];
+          return /* @__PURE__ */ jsxs(React__default.Fragment, { children: [
+            /* @__PURE__ */ jsxs(TableRow, { className: "hover", children: [
+              /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "sm",
+                  className: "inline-flex items-center gap-1 h-auto p-0 font-semibold text-sm sm:text-base",
+                  onClick: () => onToggleExpanded(order.id),
+                  children: [
+                    isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }),
+                    "#",
+                    order.orderNo ?? "-"
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "text-muted-foreground text-xs sm:text-sm", children: order.date || fmtTS(order.createdAt) }) }),
+              /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "font-normal text-xs sm:text-sm", children: order.requesterName || order.requester || "-" }) }),
+              /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs("div", { className: "tabular-nums text-xs sm:text-sm", children: [
+                (order.totalAmount ?? order.total ?? 0).toLocaleString("th-TH"),
+                " บาท"
+              ] }) }),
+              /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "text-xs sm:text-sm", children: getStatusBadge(order.status) }) }),
+              /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsxs(
+                  Select,
                   {
-                    variant: "ghost",
-                    size: "sm",
-                    className: "inline-flex items-center gap-1 h-auto p-0 font-semibold text-base",
-                    onClick: () => onToggleExpanded(order.id),
+                    value: order.status,
+                    onValueChange: (value) => onSaveOrderStatus(order, value),
+                    disabled: processingKeys.has(order.id),
                     children: [
-                      isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-4 h-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "w-4 h-4" }),
-                      "#",
-                      order.orderNo ?? "-"
+                      /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[140px] sm:w-[180px] text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
+                      /* @__PURE__ */ jsx(SelectContent, { children: ORDER_STATUS_OPTIONS.map((x) => /* @__PURE__ */ jsx(SelectItem, { value: x.value, children: x.label }, x.value)) })
                     ]
                   }
-                ) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "text-muted-foreground", children: order.date || fmtTS(order.createdAt) }) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsx("div", { className: "font-normal", children: order.requesterName || order.requester || "-" }) }),
-                /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs("div", { className: "tabular-nums", children: [
-                  (order.totalAmount ?? order.total ?? 0).toLocaleString("th-TH"),
-                  " บาท"
+                ),
+                processingKeys.has(order.id) && /* @__PURE__ */ jsx(Loader2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" })
+              ] }) : /* @__PURE__ */ jsx("span", { className: "text-muted-foreground text-xs sm:text-sm", children: "—" }) })
+            ] }),
+            isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: 6, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/50 p-2 sm:p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-background overflow-hidden", children: [
+              /* @__PURE__ */ jsx("div", { className: "px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b", children: "รายการสินค้า" }),
+              /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-[600px]", children: [
+                /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "รายละเอียด" }),
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "จำนวน" }),
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "ราคาต่อหน่วย" }),
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "รวมทั้งสิ้น" }),
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "ประเภทสินค้า" }),
+                  /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "สถานะรายการ" }),
+                  role === "procurement" && /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm" })
                 ] }) }),
-                /* @__PURE__ */ jsx(TableCell, { children: getStatusBadge(order.status) }),
-                /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-                  /* @__PURE__ */ jsxs(
-                    Select,
-                    {
-                      value: order.status,
-                      onValueChange: (value) => onSaveOrderStatus(order, value),
-                      disabled: processingKeys.has(order.id),
-                      children: [
-                        /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[180px]", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
-                        /* @__PURE__ */ jsx(SelectContent, { children: ORDER_STATUS_OPTIONS.map((x) => /* @__PURE__ */ jsx(SelectItem, { value: x.value, children: x.label }, x.value)) })
-                      ]
-                    }
-                  ),
-                  processingKeys.has(order.id) && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin" })
-                ] }) : /* @__PURE__ */ jsx("span", { className: "text-muted-foreground", children: "—" }) })
-              ] }),
-              isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: 6, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/50 p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-background overflow-hidden", children: [
-                /* @__PURE__ */ jsx("div", { className: "px-4 py-3 text-sm font-semibold border-b", children: "รายการสินค้า" }),
-                /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { children: [
-                  /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-                    /* @__PURE__ */ jsx(TableHead, { children: "รายละเอียด" }),
-                    /* @__PURE__ */ jsx(TableHead, { children: "จำนวน" }),
-                    /* @__PURE__ */ jsx(TableHead, { children: "ราคาต่อหน่วย(บาท)" }),
-                    /* @__PURE__ */ jsx(TableHead, { children: "รวมทั้งสิ้น(บาท)" }),
-                    /* @__PURE__ */ jsx(TableHead, { children: "ประเภทสินค้า" }),
-                    /* @__PURE__ */ jsx(TableHead, { children: "สถานะรายการ" }),
-                    role === "procurement" && /* @__PURE__ */ jsx(TableHead, {})
-                  ] }) }),
-                  /* @__PURE__ */ jsx(TableBody, { children: (order.items || []).map((it, idx) => {
-                    const val = onGetItemValue(order, idx);
-                    const options = getItemStatusOptions(val.category);
-                    return /* @__PURE__ */ jsxs(TableRow, { children: [
-                      /* @__PURE__ */ jsx(TableCell, { children: it.description || "-" }),
-                      /* @__PURE__ */ jsx(TableCell, { children: it.quantity ?? "-" }),
-                      /* @__PURE__ */ jsx(TableCell, { children: it.amount != null ? Number(it.amount).toLocaleString("th-TH") : "-" }),
-                      /* @__PURE__ */ jsx(TableCell, { children: it.lineTotal != null ? Number(it.lineTotal).toLocaleString("th-TH") : "-" }),
-                      /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
-                        Select,
-                        {
-                          value: val.category,
-                          onValueChange: (value) => onSetDraft(order.id, idx, { category: value }),
-                          disabled: processingKeys.has(`${order.id}:${idx}`),
-                          children: [
-                            /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
-                            /* @__PURE__ */ jsx(SelectContent, { children: ITEM_CATEGORIES.map((c) => /* @__PURE__ */ jsx(SelectItem, { value: c, children: c }, c)) })
-                          ]
-                        }
-                      ) : /* @__PURE__ */ jsx(Badge, { variant: val.category ? "info" : "secondary", appearance: "light", children: val.category || "ยังไม่ระบุ" }) }),
-                      /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
-                        Select,
-                        {
-                          value: val.itemStatus,
-                          onValueChange: (value) => onSetDraft(order.id, idx, { itemStatus: value }),
-                          disabled: processingKeys.has(`${order.id}:${idx}`),
-                          children: [
-                            /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
-                            /* @__PURE__ */ jsx(SelectContent, { children: options.map((s) => /* @__PURE__ */ jsx(SelectItem, { value: s, children: s }, s)) })
-                          ]
-                        }
-                      ) : /* @__PURE__ */ jsx(Badge, { variant: val.itemStatus ? "secondary" : "secondary", appearance: "light", children: val.itemStatus || "รอดำเนินการ" }) }),
-                      role === "procurement" && /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
-                        Button,
-                        {
-                          variant: "primary",
-                          size: "sm",
-                          onClick: () => onSaveItem(order, idx),
-                          disabled: processingKeys.has(`${order.id}:${idx}`),
-                          className: "font-normal",
-                          children: [
-                            processingKeys.has(`${order.id}:${idx}`) && /* @__PURE__ */ jsx(Loader2, { className: "h-4 w-4 animate-spin mr-1" }),
-                            "บันทึก"
-                          ]
-                        }
-                      ) })
-                    ] }, idx);
-                  }) })
-                ] }) })
-              ] }) }) }) })
-            ] }, order.id);
-          }) })
-        ] }),
-        /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
+                /* @__PURE__ */ jsx(TableBody, { children: (order.items || []).map((it, idx) => {
+                  const val = onGetItemValue(order, idx);
+                  const options = getItemStatusOptions(val.category);
+                  return /* @__PURE__ */ jsxs(TableRow, { children: [
+                    /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: it.description || "-" }),
+                    /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: it.quantity ?? "-" }),
+                    /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: it.amount != null ? Number(it.amount).toLocaleString("th-TH") : "-" }),
+                    /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: it.lineTotal != null ? Number(it.lineTotal).toLocaleString("th-TH") : "-" }),
+                    /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
+                      Select,
+                      {
+                        value: val.category,
+                        onValueChange: (value) => onSetDraft(order.id, idx, { category: value }),
+                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        children: [
+                          /* @__PURE__ */ jsx(SelectTrigger, { className: "text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
+                          /* @__PURE__ */ jsx(SelectContent, { children: ITEM_CATEGORIES.map((c) => /* @__PURE__ */ jsx(SelectItem, { value: c, children: c }, c)) })
+                        ]
+                      }
+                    ) : /* @__PURE__ */ jsx(Badge, { variant: val.category ? "info" : "secondary", appearance: "light", className: "text-xs", children: val.category || "ยังไม่ระบุ" }) }),
+                    /* @__PURE__ */ jsx(TableCell, { children: role === "procurement" ? /* @__PURE__ */ jsxs(
+                      Select,
+                      {
+                        value: val.itemStatus,
+                        onValueChange: (value) => onSetDraft(order.id, idx, { itemStatus: value }),
+                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        children: [
+                          /* @__PURE__ */ jsx(SelectTrigger, { className: "text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
+                          /* @__PURE__ */ jsx(SelectContent, { children: options.map((s) => /* @__PURE__ */ jsx(SelectItem, { value: s, children: s }, s)) })
+                        ]
+                      }
+                    ) : /* @__PURE__ */ jsx(Badge, { variant: val.itemStatus ? "secondary" : "secondary", appearance: "light", className: "text-xs", children: val.itemStatus || "รอดำเนินการ" }) }),
+                    role === "procurement" && /* @__PURE__ */ jsx(TableCell, { children: /* @__PURE__ */ jsxs(
+                      Button,
+                      {
+                        variant: "primary",
+                        size: "sm",
+                        onClick: () => onSaveItem(order, idx),
+                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        className: "font-normal text-xs sm:text-sm",
+                        children: [
+                          processingKeys.has(`${order.id}:${idx}`) && /* @__PURE__ */ jsx(Loader2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-1" }),
+                          "บันทึก"
+                        ]
+                      }
+                    ) })
+                  ] }, idx);
+                }) })
+              ] }) })
+            ] }) }) }) })
+          ] }, order.id);
+        }) })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between p-4 border-t", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx("span", { className: "text-sm text-muted-foreground", children: "Rows per page" }),
-          /* @__PURE__ */ jsxs(Select, { value: itemsPerPage.toString(), onValueChange: handleItemsPerPageChange, children: [
-            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[80px] h-8", children: /* @__PURE__ */ jsx(SelectValue, {}) }),
-            /* @__PURE__ */ jsxs(SelectContent, { children: [
-              /* @__PURE__ */ jsx(SelectItem, { value: "5", children: "5" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "10", children: "10" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "20", children: "20" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "50", children: "50" })
-            ] })
+      /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
+    ] }) }),
+    /* @__PURE__ */ jsx(CardFooter, { children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-center justify-between gap-3 w-full", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "แสดง" }),
+        /* @__PURE__ */ jsxs(Select, { value: itemsPerPage.toString(), onValueChange: handleItemsPerPageChange, children: [
+          /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[70px] sm:w-[80px] h-7 sm:h-8 text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, {}) }),
+          /* @__PURE__ */ jsxs(SelectContent, { children: [
+            /* @__PURE__ */ jsx(SelectItem, { value: "5", children: "5" }),
+            /* @__PURE__ */ jsx(SelectItem, { value: "10", children: "10" }),
+            /* @__PURE__ */ jsx(SelectItem, { value: "20", children: "20" }),
+            /* @__PURE__ */ jsx(SelectItem, { value: "50", children: "50" })
           ] })
         ] }),
-        /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
-          (currentPage - 1) * itemsPerPage + 1,
-          " - ",
-          Math.min(currentPage * itemsPerPage, filteredData.length),
-          " of ",
-          filteredData.length
-        ] }),
-        totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ jsxs(
-            Button,
-            {
-              variant: "outline",
-              size: "sm",
-              onClick: () => handlePageChange(currentPage - 1),
-              disabled: currentPage === 1,
-              className: "h-8 w-8 p-0",
-              children: [
-                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ก่อนหน้า" }),
-                /* @__PURE__ */ jsx(ChevronLeft, { className: "h-4 w-4" })
-              ]
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการ" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
+        (currentPage - 1) * itemsPerPage + 1,
+        " - ",
+        Math.min(currentPage * itemsPerPage, filteredData.length),
+        " จาก ",
+        filteredData.length
+      ] }),
+      totalPages > 1 && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-0.5 sm:gap-1", children: [
+        /* @__PURE__ */ jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: () => handlePageChange(currentPage - 1),
+            disabled: currentPage === 1,
+            className: "h-7 w-7 sm:h-8 sm:w-8 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ก่อนหน้า" }),
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4" })
+            ]
+          }
+        ),
+        (() => {
+          const pages = [];
+          const maxVisible = 5;
+          if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) {
+              pages.push(
+                /* @__PURE__ */ jsx(
+                  Button,
+                  {
+                    variant: currentPage === i ? "primary" : "outline",
+                    size: "sm",
+                    onClick: () => handlePageChange(i),
+                    className: "h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm",
+                    children: i
+                  },
+                  i
+                )
+              );
             }
-          ),
-          (() => {
-            const pages = [];
-            const maxVisible = 5;
-            if (totalPages <= maxVisible) {
-              for (let i = 1; i <= totalPages; i++) {
+          } else {
+            pages.push(
+              /* @__PURE__ */ jsx(
+                Button,
+                {
+                  variant: currentPage === 1 ? "primary" : "outline",
+                  size: "sm",
+                  onClick: () => handlePageChange(1),
+                  className: "h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm",
+                  children: "1"
+                },
+                1
+              )
+            );
+            if (currentPage > 3) {
+              pages.push(
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis1")
+              );
+            }
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+              if (i !== 1 && i !== totalPages) {
                 pages.push(
                   /* @__PURE__ */ jsx(
                     Button,
@@ -405,91 +444,53 @@ function OrdersDataTable({
                       variant: currentPage === i ? "primary" : "outline",
                       size: "sm",
                       onClick: () => handlePageChange(i),
-                      className: "h-8 w-8 p-0",
+                      className: "h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm",
                       children: i
                     },
                     i
                   )
                 );
               }
-            } else {
+            }
+            if (currentPage < totalPages - 2) {
+              pages.push(
+                /* @__PURE__ */ jsx("span", { className: "px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground", children: "..." }, "ellipsis2")
+              );
+            }
+            if (totalPages > 1) {
               pages.push(
                 /* @__PURE__ */ jsx(
                   Button,
                   {
-                    variant: currentPage === 1 ? "primary" : "outline",
+                    variant: currentPage === totalPages ? "primary" : "outline",
                     size: "sm",
-                    onClick: () => handlePageChange(1),
-                    className: "h-8 w-8 p-0",
-                    children: "1"
+                    onClick: () => handlePageChange(totalPages),
+                    className: "h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm",
+                    children: totalPages
                   },
-                  1
+                  totalPages
                 )
               );
-              if (currentPage > 3) {
-                pages.push(
-                  /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis1")
-                );
-              }
-              const start = Math.max(2, currentPage - 1);
-              const end = Math.min(totalPages - 1, currentPage + 1);
-              for (let i = start; i <= end; i++) {
-                if (i !== 1 && i !== totalPages) {
-                  pages.push(
-                    /* @__PURE__ */ jsx(
-                      Button,
-                      {
-                        variant: currentPage === i ? "primary" : "outline",
-                        size: "sm",
-                        onClick: () => handlePageChange(i),
-                        className: "h-8 w-8 p-0",
-                        children: i
-                      },
-                      i
-                    )
-                  );
-                }
-              }
-              if (currentPage < totalPages - 2) {
-                pages.push(
-                  /* @__PURE__ */ jsx("span", { className: "px-2 text-muted-foreground", children: "..." }, "ellipsis2")
-                );
-              }
-              if (totalPages > 1) {
-                pages.push(
-                  /* @__PURE__ */ jsx(
-                    Button,
-                    {
-                      variant: currentPage === totalPages ? "primary" : "outline",
-                      size: "sm",
-                      onClick: () => handlePageChange(totalPages),
-                      className: "h-8 w-8 p-0",
-                      children: totalPages
-                    },
-                    totalPages
-                  )
-                );
-              }
             }
-            return pages;
-          })(),
-          /* @__PURE__ */ jsxs(
-            Button,
-            {
-              variant: "outline",
-              size: "sm",
-              onClick: () => handlePageChange(currentPage + 1),
-              disabled: currentPage === totalPages,
-              className: "h-8 w-8 p-0",
-              children: [
-                /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ถัดไป" }),
-                /* @__PURE__ */ jsx(ChevronRight, { className: "h-4 w-4" })
-              ]
-            }
-          )
-        ] })
+          }
+          return pages;
+        })(),
+        /* @__PURE__ */ jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: () => handlePageChange(currentPage + 1),
+            disabled: currentPage === totalPages,
+            className: "h-7 w-7 sm:h-8 sm:w-8 p-0",
+            children: [
+              /* @__PURE__ */ jsx("span", { className: "sr-only", children: "ถัดไป" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4" })
+            ]
+          }
+        )
       ] })
-    ] })
+    ] }) })
   ] });
 }
 
