@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 
 interface NavItem {
@@ -37,18 +38,15 @@ export function NavMain({ items }: { items: NavItem[] }) {
               tooltip={item.title}
               isActive={item.isActive}
               onClick={() => handleItemClick(item.url)}
-              className="flex items-center justify-between w-full"
             >
-              <div className="flex items-center gap-2">
-                {item.icon && <item.icon className="h-4 w-4" />}
-                <span>{item.title}</span>
-              </div>
-              {item.badge && (
-                <div className="ml-auto">
-                  {item.badge}
-                </div>
-              )}
+              {item.icon && <item.icon className="h-4 w-4" />}
+              <span>{item.title}</span>
             </SidebarMenuButton>
+            {item.badge && (
+              <SidebarMenuBadge>
+                {item.badge}
+              </SidebarMenuBadge>
+            )}
           </SidebarMenuItem>
         ))}
       </SidebarMenu>

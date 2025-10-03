@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useNotifications, B as Badge, C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_BCFqNZAv.mjs';
+import { u as useNotifications, B as Badge, C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';

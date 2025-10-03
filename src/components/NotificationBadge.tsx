@@ -1,7 +1,8 @@
 "use client";
 
 import { useNotifications } from '../hooks/use-notifications';
-import { Badge } from './ui/badge';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface NotificationBadgeProps {
   className?: string;
@@ -12,14 +13,9 @@ export default function NotificationBadge({ className = "" }: NotificationBadgeP
 
   if (loading) {
     return (
-      <Badge 
-        variant="secondary" 
-        size="sm" 
-        shape="circle" 
-        className={`animate-pulse ${className}`}
-      >
-        ...
-      </Badge>
+      <Skeleton 
+        className={`h-5 w-5 rounded-full ${className}`}
+      />
     );
   }
 

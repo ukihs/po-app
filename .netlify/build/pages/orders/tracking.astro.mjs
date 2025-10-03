@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BCFqNZAv.mjs';
+import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
