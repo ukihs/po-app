@@ -97,17 +97,11 @@ function NotificationsPage() {
     ] }) });
   }
   if (!notifications.length) {
-    return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-      /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
-        /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
-        /* @__PURE__ */ jsx("h1", { className: "text-xl sm:text-2xl font-bold", children: "ข้อความแจ้งเตือน" })
-      ] }) }) }),
-      /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Bell, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ยังไม่มีการแจ้งเตือน" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto", children: "การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่" })
-      ] })
-    ] });
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
+      /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Bell, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
+      /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ยังไม่มีการแจ้งเตือน" }),
+      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto", children: "การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่" })
+    ] }) });
   }
   if (!filteredAndSortedItems.length && notifications.length > 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [

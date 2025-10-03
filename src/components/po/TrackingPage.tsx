@@ -319,11 +319,10 @@ export default function TrackingPage() {
   }, [searchTerm, statusFilter]);
 
 
-
   if (loading) {
     return (
       <div className="w-full">
-        <div className="text-center py-8 sm:py-12">
+        <div className="text-center py-16">
           <div className="flex justify-center">
             <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
           </div>
@@ -350,12 +349,11 @@ export default function TrackingPage() {
   if (rows.length === 0) {
     return (
       <div className="w-full">
-        <Toaster />
-        <div className="text-center py-8 sm:py-12">
-          <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-            <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
+        <div className="text-center py-16">
+          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <FileText className="w-12 h-12 text-[#2b9ccc]" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold mb-2">
+          <h3 className="text-xl font-semibold mb-3">
             {role === 'buyer' ? 'คุณยังไม่มีใบขอซื้อ' : 'ยังไม่มีใบขอซื้อในระบบ'}
           </h3>
           <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
@@ -379,8 +377,6 @@ export default function TrackingPage() {
 
   return (
     <div className="w-full">
-      <Toaster />
-      
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
@@ -448,7 +444,6 @@ export default function TrackingPage() {
           </DropdownMenu>
         </div>
 
-        {/* Results Summary */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs sm:text-sm text-muted-foreground gap-1 sm:gap-0">
           <span>แสดง {filteredRows.length} รายการจาก {rows.length} รายการทั้งหมด</span>
           {totalPages > 1 && (
@@ -458,7 +453,7 @@ export default function TrackingPage() {
       </div>
 
       {filteredRows.length === 0 ? (
-        <div className="text-center py-8 sm:py-12">
+        <div className="text-center py-16">
           <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4">
             <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
           </div>
@@ -710,7 +705,6 @@ export default function TrackingPage() {
         </div>
       )}
       
-      {/* Pagination Section */}
       {filteredRows.length > 0 && (
         <div className="mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">

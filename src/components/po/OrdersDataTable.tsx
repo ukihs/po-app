@@ -32,8 +32,6 @@ import { DataGridColumnHeader } from '../ui/data-grid-column-header';
 import { DataGridPagination } from '../ui/data-grid-pagination';
 import {
   DataGridTable,
-  DataGridTableRowSelect,
-  DataGridTableRowSelectAll,
 } from '../ui/data-grid-table';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
@@ -180,15 +178,6 @@ function ActionsCell({ row, onViewOrder, onDeleteOrder }: {
 }
 
 const createColumns = (onViewOrder: (order: Order) => void, onDeleteOrder: (order: Order) => void): ColumnDef<Order>[] => [
-  {
-    accessorKey: "id",
-    id: "id",
-    header: () => <DataGridTableRowSelectAll />,
-    cell: ({ row }) => <DataGridTableRowSelect row={row} />,
-    enableSorting: false,
-    size: 35,
-    enableResizing: false,
-  },
   {
     accessorKey: "orderNo",
     id: "orderNo",
@@ -363,17 +352,6 @@ export default function OrdersDataTable({
       <div className="flex justify-center items-center p-8 sm:p-12">
         <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#6EC1E4]"></div>
         <span className="ml-3 sm:ml-4 text-sm sm:text-lg">โหลดข้อมูลใบขอซื้อ...</span>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="text-center p-8 sm:p-12">
-        <h3 className="text-lg sm:text-xl font-semibold mb-2">ไม่พบข้อมูลใบขอซื้อ</h3>
-        <p className="text-sm sm:text-base text-muted-foreground mb-4">
-          ยังไม่มีใบขอซื้อในระบบ
-        </p>
       </div>
     );
   }

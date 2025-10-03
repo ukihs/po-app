@@ -32,8 +32,6 @@ import { DataGridColumnHeader } from '../ui/data-grid-column-header';
 import { DataGridPagination } from '../ui/data-grid-pagination';
 import {
   DataGridTable,
-  DataGridTableRowSelect,
-  DataGridTableRowSelectAll,
 } from '../ui/data-grid-table';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
@@ -139,15 +137,6 @@ function ActionsCell({ row, onEditUser, onDeleteUser }: {
 
 
 const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void): ColumnDef<User>[] => [
-  {
-    accessorKey: "uid",
-    id: "uid",
-    header: () => <DataGridTableRowSelectAll />,
-    cell: ({ row }) => <DataGridTableRowSelect row={row} />,
-    enableSorting: false,
-    size: 35,
-    enableResizing: false,
-  },
   {
     accessorKey: "displayName",
     id: "displayName",

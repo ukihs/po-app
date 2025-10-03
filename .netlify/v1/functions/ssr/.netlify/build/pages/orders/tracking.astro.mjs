@@ -9,7 +9,8 @@ import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'fire
 import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BJrAafgi.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/sonner_BAvMtGXo.mjs';
+import 'next-themes';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BGfyje_r.mjs';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
@@ -433,7 +434,7 @@ function TrackingPage() {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
   if (loading) {
-    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
       /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" }) }),
       /* @__PURE__ */ jsx("p", { className: "mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
     ] }) });
@@ -448,26 +449,22 @@ function TrackingPage() {
     ] }) });
   }
   if (rows.length === 0) {
-    return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-      /* @__PURE__ */ jsx(Toaster, {}),
-      /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold mb-2", children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
-        /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6", children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" }),
-        role === "buyer" && /* @__PURE__ */ jsx(
-          Button,
-          {
-            asChild: true,
-            variant: "primary",
-            className: "w-full sm:w-auto",
-            children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
-          }
-        )
-      ] })
-    ] });
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
+      /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
+      /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6", children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" }),
+      role === "buyer" && /* @__PURE__ */ jsx(
+        Button,
+        {
+          asChild: true,
+          variant: "primary",
+          className: "w-full sm:w-auto",
+          children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
+        }
+      )
+    ] }) });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsx(Toaster, {}),
     /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
       /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
       /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามสถานะใบขอซื้อทั้งหมด" }),
@@ -537,7 +534,7 @@ function TrackingPage() {
         ] })
       ] })
     ] }),
-    filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-8 sm:py-12", children: [
+    filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
       /* @__PURE__ */ jsx("div", { className: "mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" }) }),
       /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold mb-2", children: "ไม่พบข้อมูล" }),
       /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: searchTerm || statusFilter !== "all" ? "ลองปรับเงื่อนไขการค้นหาหรือกรอง" : "ยังไม่มีใบขอซื้อในระบบ" })

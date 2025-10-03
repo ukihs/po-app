@@ -160,16 +160,7 @@ export default function NotificationsPage() {
 
   if (!notifications.length) {
     return (
-      <div className="w-full">
-        <div className="mb-4 sm:mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
-              <h1 className="text-xl sm:text-2xl font-bold">ข้อความแจ้งเตือน</h1>
-            </div>
-          </div>
-        </div>
-        
+      <div className="w-full">        
         <div className="text-center py-16">
           <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
             <Bell className="w-12 h-12 text-[#2b9ccc]" />

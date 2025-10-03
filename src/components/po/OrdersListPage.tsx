@@ -179,6 +179,28 @@ export default function OrdersListPage(){
     );
   }
 
+  if (orders.length === 0 && !loading) {
+    return (
+      <div className="w-full">
+        {err && (
+          <Alert className="mb-4" variant="destructive">
+            <AlertDescription>{err}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="text-center py-16">
+          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <FileText className="w-12 h-12 text-[#2b9ccc]" />
+          </div>
+          <h3 className="text-xl font-semibold mb-3">ยังไม่มีใบขอซื้อ</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            ขณะนี้ยังไม่มีใบขอซื้อใดๆ ในระบบ
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       {err && (
@@ -197,15 +219,8 @@ export default function OrdersListPage(){
       <OrdersDataTable
         data={orders}
         loading={loading}
-        role={role}
-        expanded={expanded}
-        processingKeys={processingKeys}
-        drafts={drafts}
-        onToggleExpanded={toggle}
-        onSaveOrderStatus={saveOrderStatus}
-        onSaveItem={saveOneItem}
-        onSetDraft={setDraft}
-        onGetItemValue={getItemValue}
+        onViewOrder={(order) => window.open(`/orders/${order.id}`, '_blank')}
+        onDeleteOrder={() => {}} // OrdersListPage doesn't support delete
       />
     </div>
   );
