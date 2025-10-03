@@ -1,7 +1,7 @@
 import { d as createComponent, e as createAstro } from '../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
 import 'clsx';
-/* empty css                                */
+/* empty css                                  */
 import { v as validateServerSession } from '../chunks/server-session_BqtPVC-t.mjs';
 export { renderers } from '../renderers.mjs';
 
@@ -22,7 +22,7 @@ const $$Index = createComponent(($$result, $$props, $$slots) => {
         } else if (user.role === "procurement") {
           redirectUrl = "/orders/list";
         } else if (user.role === "superadmin") {
-          redirectUrl = "/users";
+          redirectUrl = "/admin/users";
         }
       }
     } catch (error) {

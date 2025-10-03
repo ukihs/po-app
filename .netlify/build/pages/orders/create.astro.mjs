@@ -1,18 +1,18 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
+import { C as Card, j as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { b as cn, d as buttonVariants, B as Button, e as auth, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
-import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_BPoLA-4y.mjs';
+import { c as cn, e as buttonVariants, B as Button, f as auth, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
+import { t as toNum, g as grandTotal, c as createOrder } from '../../chunks/poApi_BJrAafgi.mjs';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
-import { L as Label } from '../../chunks/label_B4e7hkFR.mjs';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/sonner_BAvMtGXo.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
+import { L as Label } from '../../chunks/label_-TiFLeF9.mjs';
 import { getDefaultClassNames, DayPicker } from 'react-day-picker';
-import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_DsyM45qf.mjs';
+import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_pllnwC04.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function Calendar({
@@ -346,13 +346,10 @@ function CreateOrderPage() {
   };
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     /* @__PURE__ */ jsx(Toaster, {}),
-    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
-        /* @__PURE__ */ jsx(Package, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
-        "สร้างใบขอซื้อ"
-      ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: "สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า" })
-    ] }),
+    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+      /* @__PURE__ */ jsx(Package, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+      "สร้างใบขอซื้อ"
+    ] }) }),
     /* @__PURE__ */ jsx(Dialog, { open: showModal, onOpenChange: setShowModal, children: /* @__PURE__ */ jsxs(DialogContent, { className: "max-w-[95vw] sm:max-w-[500px]", showCloseButton: false, children: [
       /* @__PURE__ */ jsxs(DialogHeader, { children: [
         /* @__PURE__ */ jsxs(DialogTitle, { className: "flex items-center gap-2", children: [

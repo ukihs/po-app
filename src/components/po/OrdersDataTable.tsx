@@ -1,40 +1,46 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { 
-  ArrowUpDown, 
-  ChevronDown, 
-  ChevronRight, 
-  MoreHorizontal, 
-  Loader2,
-  Search,
-  Filter,
-  Eye,
-  Settings,
-  ChevronLeft
-} from 'lucide-react';
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type PaginationState,
+  type SortingState,
+  type Row,
+} from "@tanstack/react-table";
+import type {
+  ColumnDef,
+} from "@tanstack/react-table";
+import { Ellipsis, Trash2, Eye, FileText, Search, X, Filter, Plus } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Card, CardHeader, CardHeading, CardToolbar, CardTable, CardFooter } from '../ui/card';
-import { ScrollArea, ScrollBar } from '../ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { 
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { Card, CardFooter, CardHeader, CardHeading, CardTable, CardToolbar } from '../ui/card';
+import { DataGrid } from '../ui/data-grid';
+import { DataGridColumnHeader } from '../ui/data-grid-column-header';
+import { DataGridPagination } from '../ui/data-grid-pagination';
+import {
+  DataGridTable,
+  DataGridTableRowSelect,
+  DataGridTableRowSelectAll,
+} from '../ui/data-grid-table';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
+import { toast } from 'sonner';
 
-type Role = 'buyer' | 'supervisor' | 'procurement' | null;
 type OrderStatus = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
 
 type OrderItem = {
@@ -62,630 +68,410 @@ type Order = {
   itemsStatuses?: Record<string, string>;
 };
 
-const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software/Hardware', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
-
-const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: 'approved',    label: 'อนุมัติแล้ว' },
-  { value: 'in_progress', label: 'กำลังดำเนินการ' },
-  { value: 'delivered',   label: 'ได้รับแล้ว' },
-];
-
-const STATUS_TH: Record<OrderStatus,string> = {
-  pending:'รออนุมัติ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', in_progress:'กำลังดำเนินการ', delivered:'ได้รับแล้ว'
-};
-const getStatusBadge = (status: OrderStatus) => {
-  switch (status) {
-    case 'pending':
-      return <Badge variant="warning" appearance="light">{STATUS_TH[status]}</Badge>;
-    case 'approved':
-      return <Badge variant="success" appearance="light">{STATUS_TH[status]}</Badge>;
-    case 'rejected':
-      return <Badge variant="destructive" appearance="light">{STATUS_TH[status]}</Badge>;
-    case 'in_progress':
-      return <Badge variant="info" appearance="light">{STATUS_TH[status]}</Badge>;
-    case 'delivered':
-      return <Badge variant="success" appearance="light">{STATUS_TH[status]}</Badge>;
-    default:
-      return <Badge variant="secondary" appearance="light">{STATUS_TH[status]}</Badge>;
-  }
-};
-
-const ITEM_STATUS_G1 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ', 'สินค้าเข้าคลัง'] as const;
-const ITEM_STATUS_G2 = ['จัดซื้อ', 'ของมาส่ง', 'ส่งมอบของ'] as const;
-const getItemStatusOptions = (category?: string) =>
-  category === 'วัตถุดิบ' ? ITEM_STATUS_G1 : ITEM_STATUS_G2;
-
-const fmtTS = (ts:any) =>
-  ts?.toDate
-    ? ts.toDate().toLocaleString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
-    : '—';
-
 interface OrdersDataTableProps {
   data: Order[];
   loading: boolean;
-  role: Role;
-  expanded: Record<string, boolean>;
-  processingKeys: Set<string>;
-  drafts: Record<string, Record<number, {category?:string; itemStatus?:string}>>;
-  onToggleExpanded: (id: string) => void;
-  onSaveOrderStatus: (order: Order, status: OrderStatus) => Promise<void>;
-  onSaveItem: (order: Order, idx: number) => Promise<void>;
-  onSetDraft: (orderId: string, idx: number, patch: Partial<{category: string; itemStatus: string}>) => void;
-  onGetItemValue: (order: Order, idx: number) => {category: string; itemStatus: string};
+  onViewOrder: (order: Order) => void;
+  onDeleteOrder: (order: Order) => void;
 }
 
-const createColumns = (
-  role: Role,
-  expanded: Record<string, boolean>,
-  processingKeys: Set<string>,
-  drafts: Record<string, Record<number, {category?:string; itemStatus?:string}>>,
-  onToggleExpanded: (id: string) => void,
-  onSaveOrderStatus: (order: Order, status: OrderStatus) => Promise<void>,
-  onSaveItem: (order: Order, idx: number) => Promise<void>,
-  onSetDraft: (orderId: string, idx: number, patch: Partial<{category: string; itemStatus: string}>) => void,
-  onGetItemValue: (order: Order, idx: number) => {category: string; itemStatus: string}
-) => [
-  {
-    accessorKey: "orderNo",
-    header: "รายการที่",
-    cell: ({ row }: { row: any }) => {
-      const order = row.original;
-      const isOpen = !!expanded[order.id];
-      
-      return (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="inline-flex items-center gap-1 h-auto p-0 font-medium"
-          onClick={() => onToggleExpanded(order.id)}
-        >
-          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          #{order.orderNo ?? '-'}
-        </Button>
-      );
+const getStatusBadge = (status: OrderStatus) => {
+  const statusConfig: Record<OrderStatus, { 
+    variant: "primary" | "secondary" | "destructive" | "success" | "warning" | "info";
+    appearance: "default" | "light" | "outline" | "ghost";
+    name: string 
+  }> = {
+    pending: { 
+      variant: "warning",
+      appearance: "light",
+      name: 'รอการอนุมัติ' 
     },
-    size: 120,
+    approved: { 
+      variant: "success",
+      appearance: "light",
+      name: 'อนุมัติแล้ว' 
+    },
+    rejected: { 
+      variant: "destructive",
+      appearance: "light",
+      name: 'ปฏิเสธ' 
+    },
+    in_progress: { 
+      variant: "info",
+      appearance: "light",
+      name: 'กำลังดำเนินการ' 
+    },
+    delivered: { 
+      variant: "secondary",
+      appearance: "light",
+      name: 'ส่งมอบแล้ว' 
+    }
+  };
+  
+  const config = statusConfig[status] || {
+    variant: "secondary",
+    appearance: "light",
+    name: status
+  };
+  
+  return (
+    <Badge variant={config.variant} appearance={config.appearance} size="sm">
+      {config.name}
+    </Badge>
+  );
+};
+
+const formatDate = (date: any) => {
+  if (!date) return '-';
+  try {
+    if (date.toDate) {
+      return date.toDate().toLocaleDateString('th-TH');
+    }
+    return new Date(date).toLocaleDateString('th-TH');
+  } catch {
+    return '-';
+  }
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('th-TH', {
+    style: 'currency',
+    currency: 'THB'
+  }).format(amount || 0);
+};
+
+function ActionsCell({ row, onViewOrder, onDeleteOrder }: { 
+  row: Row<Order>; 
+  onViewOrder: (order: Order) => void;
+  onDeleteOrder: (order: Order) => void;
+}) {
+  const handleViewOrder = () => {
+    window.open(`/orders/${row.original.id}`, '_blank');
+  };
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(row.original.id);
+    toast.success(`Order ID คัดลอกแล้ว: ${row.original.id}`);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className="size-7" mode="icon" variant="ghost">
+          <Ellipsis />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="bottom" align="end">
+        <DropdownMenuItem onClick={handleViewOrder}>
+          <Eye className="mr-2 h-4 w-4" />
+          ดูรายละเอียด
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleCopyId}>
+          คัดลอก Order ID
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={() => onDeleteOrder(row.original)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          ลบใบขอซื้อ
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const createColumns = (onViewOrder: (order: Order) => void, onDeleteOrder: (order: Order) => void): ColumnDef<Order>[] => [
+  {
+    accessorKey: "id",
+    id: "id",
+    header: () => <DataGridTableRowSelectAll />,
+    cell: ({ row }) => <DataGridTableRowSelect row={row} />,
+    enableSorting: false,
+    size: 35,
+    enableResizing: false,
   },
   {
-    accessorKey: "date",
-    header: "วันที่",
-    cell: ({ row }: { row: any }) => {
-      const order = row.original;
+    accessorKey: "orderNo",
+    id: "orderNo",
+    header: ({ column }) => <DataGridColumnHeader title="เลขที่ใบขอซื้อ" visibility={true} column={column} />,
+    cell: ({ row }) => {
+      const orderNo = row.getValue("orderNo") as number;
+      const id = row.original.id;
       return (
-        <div className="text-muted-foreground">
-          {order.date || fmtTS(order.createdAt)}
+        <div className="space-y-px">
+          <div className="font-medium text-foreground">
+            #{orderNo || id.slice(-8)}
+          </div>
         </div>
       );
     },
-    size: 140,
+    size: 150,
+    enableSorting: true,
+    enableHiding: false,
+    enableResizing: true,
   },
   {
     accessorKey: "requesterName",
-    header: "ผู้ขอซื้อ",
-    cell: ({ row }: { row: any }) => {
+    id: "requesterName",
+    header: ({ column }) => <DataGridColumnHeader title="ผู้ขอซื้อ" visibility={true} column={column} />,
+    cell: ({ row }) => {
       const requesterName = row.getValue("requesterName") as string;
       const requester = row.original.requester;
       return (
-        <div className="font-normal">
+        <div className="font-medium text-foreground">
           {requesterName || requester || '-'}
         </div>
       );
     },
-    size: 180,
+    size: 200,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
-    accessorKey: "totalAmount",
-    header: "ยอดรวม",
-    cell: ({ row }: { row: any }) => {
-      const order = row.original;
-      const total = (order.totalAmount ?? order.total ?? 0) as number;
+    accessorKey: "createdAt",
+    id: "createdAt",
+    header: ({ column }) => <DataGridColumnHeader title="วันที่สร้าง" visibility={true} column={column} />,
+    cell: ({ row }) => {
+      const createdAt = row.getValue("createdAt");
       return (
-        <div className="tabular-nums">
-          {total.toLocaleString('th-TH')} บาท
+        <div className="font-medium text-foreground">
+          {formatDate(createdAt)}
         </div>
       );
     },
-    size: 140,
+    size: 120,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
+  },
+  {
+    accessorKey: "totalAmount",
+    id: "totalAmount",
+    header: ({ column }) => <DataGridColumnHeader title="ยอดรวม" visibility={true} column={column} />,
+    cell: ({ row }) => {
+      const totalAmount = row.getValue("totalAmount") as number;
+      const total = row.original.total;
+      const amount = totalAmount || total || 0;
+      return (
+        <div className="font-medium text-foreground">
+          {formatCurrency(amount)}
+        </div>
+      );
+    },
+    size: 120,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     accessorKey: "status",
-    header: "สถานะ",
-    cell: ({ row }: { row: any }) => {
+    id: "status",
+    header: ({ column }) => <DataGridColumnHeader title="สถานะ" visibility={true} column={column} />,
+    cell: ({ row }) => {
       const status = row.getValue("status") as OrderStatus;
       return getStatusBadge(status);
     },
-    size: 140,
+    size: 120,
+    enableSorting: true,
+    enableHiding: true,
+    enableResizing: true,
   },
   {
     id: "actions",
-    header: "การดำเนินการ",
-    cell: ({ row }: { row: any }) => {
-      const order = row.original;
-
-      if (role === 'procurement') {
-        return (
-          <div className="flex items-center gap-2">
-            <Select
-              value={order.status}
-              onValueChange={(value) => onSaveOrderStatus(order, value as OrderStatus)}
-              disabled={processingKeys.has(order.id)}
-            >
-              <SelectTrigger className="w-[180px]">
-               <SelectValue placeholder="เลือกสถานะ…" />
-              </SelectTrigger>
-              <SelectContent>
-                {ORDER_STATUS_OPTIONS.map(x=>(
-                  <SelectItem key={x.value} value={x.value}>{x.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {processingKeys.has(order.id) && <Loader2 className="h-4 w-4 animate-spin" />}
-          </div>
-        );
-      }
-
-      return <span className="text-muted-foreground">—</span>;
-    },
-    size: 200,
+    header: '',
+    cell: ({ row }) => <ActionsCell row={row} onViewOrder={onViewOrder} onDeleteOrder={onDeleteOrder} />,
+    size: 60,
+    enableSorting: false,
+    enableHiding: false,
+    enableResizing: false,
   },
 ];
 
 export default function OrdersDataTable({ 
   data, 
   loading, 
-  role,
-  expanded,
-  processingKeys,
-  drafts,
-  onToggleExpanded,
-  onSaveOrderStatus,
-  onSaveItem,
-  onSetDraft,
-  onGetItemValue
+  onViewOrder, 
+  onDeleteOrder
 }: OrdersDataTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-  const columns = useMemo(() => createColumns(
-    role,
-    expanded,
-    processingKeys,
-    drafts,
-    onToggleExpanded,
-    onSaveOrderStatus,
-    onSaveItem,
-    onSetDraft,
-    onGetItemValue
-  ), [role, expanded, processingKeys, drafts, onToggleExpanded, onSaveOrderStatus, onSaveItem, onSetDraft, onGetItemValue]);
+  const columns = useMemo(() => createColumns(onViewOrder, onDeleteOrder), [onViewOrder, onDeleteOrder]);
 
   const filteredData = useMemo(() => {
-    if (!searchTerm) return data;
-    
-    const search = searchTerm.toLowerCase();
-    return data.filter(order => 
-      order.requesterName?.toLowerCase().includes(search) ||
-      order.requester?.toLowerCase().includes(search) ||
-      order.id.toLowerCase().includes(search) ||
-      order.orderNo?.toString().includes(search)
+    return data.filter((item) => {
+      const matchesStatus = !selectedStatuses?.length || selectedStatuses.includes(item.status);
+
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        !searchQuery ||
+        (item.requesterName || '').toLowerCase().includes(searchLower) ||
+        (item.requester || '').toLowerCase().includes(searchLower) ||
+        (item.orderNo?.toString() || '').includes(searchQuery) ||
+        item.id.toLowerCase().includes(searchLower);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [searchQuery, selectedStatuses, data]);
+
+  const statusCounts = useMemo(() => {
+    return data.reduce(
+      (acc, item) => {
+        const status = item.status;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
     );
-  }, [data, searchTerm]);
+  }, [data]);
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleStatusChange = (checked: boolean, value: string) => {
+    setSelectedStatuses(
+      (prev = []) => (checked ? [...prev, value] : prev.filter((v) => v !== value)),
+    );
   };
 
-  const handleItemsPerPageChange = (value: string) => {
-    setItemsPerPage(Number(value));
-    setCurrentPage(1); // Reset to first page when changing items per page
-  };
+  const [columnOrder, setColumnOrder] = useState<string[]>(columns.map((column) => column.id as string));
 
-  // Reset to first page when search term changes
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  const table = useReactTable({
+    columns,
+    data: filteredData,
+    pageCount: Math.ceil((filteredData?.length || 0) / pagination.pageSize),
+    getRowId: (row: Order) => row.id,
+    state: {
+      pagination,
+      sorting,
+      columnOrder,
+    },
+    columnResizeMode: 'onChange',
+    onColumnOrderChange: setColumnOrder,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary"></Loader2>
-        <span className="ml-4 text-lg">โหลดข้อมูลใบสั่งซื้อ...</span>
+      <div className="flex justify-center items-center p-8 sm:p-12">
+        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#6EC1E4]"></div>
+        <span className="ml-3 sm:ml-4 text-sm sm:text-lg">โหลดข้อมูลใบขอซื้อ...</span>
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-12">
-        <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลใบสั่งซื้อ</h3>
-        <p className="text-muted-foreground mb-4">
-          ยังไม่มีใบสั่งซื้อในระบบ
+      <div className="text-center p-8 sm:p-12">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2">ไม่พบข้อมูลใบขอซื้อ</h3>
+        <p className="text-sm sm:text-base text-muted-foreground mb-4">
+          ยังไม่มีใบขอซื้อในระบบ
         </p>
       </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="border-b">
-        <CardHeading className="text-lg sm:text-xl">รายการใบขอซื้อ</CardHeading>
-        <CardToolbar>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="ค้นหา..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-full sm:w-48 md:w-64 text-sm"
-              />
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                  <Settings className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">คอลัมน์</span>
-                  <span className="sm:hidden">คอลัมน์</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>แสดงคอลัมน์</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {columns.map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.accessorKey || column.id}
-                    checked={columnVisibility[column.accessorKey || column.id || ''] !== false}
-                    onCheckedChange={(checked) =>
-                      setColumnVisibility(prev => ({
-                        ...prev,
-                        [column.accessorKey || column.id || '']: checked
-                      }))
-                    }
+    <DataGrid
+      table={table}
+      recordCount={filteredData?.length || 0}
+      tableLayout={{
+        columnsPinnable: true,
+        columnsResizable: true,
+        columnsMovable: true,
+        columnsVisibility: true,
+      }}
+    >
+      <Card>
+        <CardHeader className="py-3 sm:py-4">
+          <CardHeading>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="size-3.5 sm:size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  placeholder="ค้นหาใบขอซื้อ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="ps-9 w-full sm:w-64 text-sm"
+                />
+                {searchQuery.length > 0 && (
+                  <Button
+                    mode="icon"
+                    variant="ghost"
+                    className="absolute end-1.5 top-1/2 -translate-y-1/2 h-6 w-6"
+                    onClick={() => setSearchQuery('')}
                   >
-                    {column.header}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardToolbar>
-      </CardHeader>
-      <CardTable>
-        <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">
-          <Table className="min-w-[800px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px] sm:w-[120px] text-xs sm:text-sm">รายการที่</TableHead>
-                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">วันที่</TableHead>
-                  <TableHead className="w-[140px] sm:w-[180px] text-xs sm:text-sm">ผู้ขอซื้อ</TableHead>
-                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">ยอดรวม</TableHead>
-                  <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">สถานะ</TableHead>
-                  <TableHead className="w-[160px] sm:w-[200px] text-xs sm:text-sm">การดำเนินการ</TableHead>
-                </TableRow>
-              </TableHeader>
-            <TableBody>
-              {paginatedData.map((order) => {
-                const isOpen = !!expanded[order.id];
-                
-                return (
-                  <React.Fragment key={order.id}>
-                    <TableRow className="hover">
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="inline-flex items-center gap-1 h-auto p-0 font-semibold text-sm sm:text-base"
-                          onClick={() => onToggleExpanded(order.id)}
-                        >
-                          {isOpen ? <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                          #{order.orderNo ?? '-'}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-muted-foreground text-xs sm:text-sm">
-                          {order.date || fmtTS(order.createdAt)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-normal text-xs sm:text-sm">
-                          {order.requesterName || order.requester || '-'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="tabular-nums text-xs sm:text-sm">
-                          {((order.totalAmount ?? order.total ?? 0) as number).toLocaleString('th-TH')} บาท
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs sm:text-sm">
-                          {getStatusBadge(order.status)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {role === 'procurement' ? (
-                          <div className="flex items-center gap-2">
-                            <Select
-                              value={order.status}
-                              onValueChange={(value) => onSaveOrderStatus(order, value as OrderStatus)}
-                              disabled={processingKeys.has(order.id)}
-                            >
-                              <SelectTrigger className="w-[140px] sm:w-[180px] text-xs sm:text-sm">
-                               <SelectValue placeholder="เลือกสถานะ…" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ORDER_STATUS_OPTIONS.map(x=>(
-                                  <SelectItem key={x.value} value={x.value}>{x.label}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {processingKeys.has(order.id) && <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-xs sm:text-sm">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-
-                    {isOpen && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="p-0">
-                          <div className="bg-muted/50 p-2 sm:p-4">
-                            <div className="rounded-md border bg-background overflow-hidden">
-                              <div className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b">รายการสินค้า</div>
-                              <div className="overflow-x-auto">
-                                <Table className="min-w-[600px]">
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead className="text-xs sm:text-sm">รายละเอียด</TableHead>
-                                      <TableHead className="text-xs sm:text-sm">จำนวน</TableHead>
-                                      <TableHead className="text-xs sm:text-sm">ราคาต่อหน่วย</TableHead>
-                                      <TableHead className="text-xs sm:text-sm">รวมทั้งสิ้น</TableHead>
-                                      <TableHead className="text-xs sm:text-sm">ประเภทสินค้า</TableHead>
-                                      <TableHead className="text-xs sm:text-sm">สถานะรายการ</TableHead>
-                                      {role === 'procurement' && (
-                                        <TableHead className="text-xs sm:text-sm"></TableHead>
-                                      )}
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                  {(order.items||[]).map((it, idx)=>{
-                                    const val = onGetItemValue(order, idx);
-                                    const options = getItemStatusOptions(val.category);
-
-                                    return (
-                                      <TableRow key={idx}>
-                                        <TableCell className="text-xs sm:text-sm">{it.description || '-'}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm">{it.quantity ?? '-'}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm">{it.amount!=null ? Number(it.amount).toLocaleString('th-TH') : '-'}</TableCell>
-                                        <TableCell className="text-xs sm:text-sm">{it.lineTotal!=null ? Number(it.lineTotal).toLocaleString('th-TH') : '-'}</TableCell>
-
-                                        <TableCell>
-                                          {role === 'procurement' ? (
-                                            <Select
-                                              value={val.category}
-                                              onValueChange={(value)=>onSetDraft(order.id, idx, {category: value})}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
-                                            >
-                                              <SelectTrigger className="text-xs sm:text-sm">
-                                                <SelectValue placeholder="เลือกประเภท…" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                {ITEM_CATEGORIES.map(c=> <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                              </SelectContent>
-                                            </Select>
-                                          ) : (
-                                            <Badge variant={val.category ? "info" : "secondary"} appearance="light" className="text-xs">
-                                              {val.category || 'ยังไม่ระบุ'}
-                                            </Badge>
-                                          )}
-                                        </TableCell>
-
-                                        <TableCell>
-                                          {role === 'procurement' ? (
-                                            <Select
-                                              value={val.itemStatus}
-                                              onValueChange={(value)=>onSetDraft(order.id, idx, {itemStatus: value})}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
-                                            >
-                                              <SelectTrigger className="text-xs sm:text-sm">
-                                               <SelectValue placeholder="เลือกสถานะ…" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                {options.map(s=> <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                              </SelectContent>
-                                            </Select>
-                                          ) : (
-                                            <Badge variant={val.itemStatus ? "secondary" : "secondary"} appearance="light" className="text-xs">
-                                              {val.itemStatus || 'รอดำเนินการ'}
-                                            </Badge>
-                                          )}
-                                        </TableCell>
-
-                                        {role === 'procurement' && (
-                                          <TableCell>
-                                            <Button
-                                              variant="primary"
-                                              size="sm"
-                                              onClick={()=>onSaveItem(order, idx)}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
-                                              className="font-normal text-xs sm:text-sm"
-                                            >
-                                              {processingKeys.has(`${order.id}:${idx}`) && <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-1" />}
-                                              บันทึก
-                                            </Button>
-                                          </TableCell>
-                                        )}
-                                      </TableRow>
-                                    );
-                                  })}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                    <X />
+                  </Button>
+                )}
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto text-sm">
+                    <Filter />
+                    <span className="hidden sm:inline">สถานะ</span>
+                    <span className="sm:hidden">กรอง</span>
+                    {selectedStatuses.length > 0 && (
+                      <Badge size="sm" appearance="outline">
+                        {selectedStatuses.length}
+                      </Badge>
                     )}
-                  </React.Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </CardTable>
-      <CardFooter>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
-          {/* Left - Rows per page */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm text-muted-foreground">แสดง</span>
-            <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-[70px] sm:w-[80px] h-7 sm:h-8 text-xs sm:text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-xs sm:text-sm text-muted-foreground">รายการ</span>
-          </div>
-
-          {/* Center - Item count */}
-          <div className="text-xs sm:text-sm text-muted-foreground">
-            {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredData.length)} จาก {filteredData.length}
-          </div>
-
-          {/* Right - Page navigation */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-              >
-                <span className="sr-only">ก่อนหน้า</span>
-                <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </Button>
-              
-              {/* Page numbers with ellipsis */}
-              {(() => {
-                const pages = [];
-                const maxVisible = 5;
-                
-                if (totalPages <= maxVisible) {
-                  // Show all pages if total is small
-                  for (let i = 1; i <= totalPages; i++) {
-                    pages.push(
-                      <Button
-                        key={i}
-                        variant={currentPage === i ? "primary" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(i)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
-                      >
-                        {i}
-                      </Button>
-                    );
-                  }
-                } else {
-                  // Always show first page
-                  pages.push(
-                    <Button
-                      key={1}
-                      variant={currentPage === 1 ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(1)}
-                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
-                    >
-                      1
-                    </Button>
-                  );
-                  
-                  // Add ellipsis after first page if needed
-                  if (currentPage > 3) {
-                    pages.push(
-                      <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  
-                  // Show pages around current page
-                  const start = Math.max(2, currentPage - 1);
-                  const end = Math.min(totalPages - 1, currentPage + 1);
-                  
-                  for (let i = start; i <= end; i++) {
-                    if (i !== 1 && i !== totalPages) {
-                      pages.push(
-                        <Button
-                          key={i}
-                          variant={currentPage === i ? "primary" : "outline"}
-                          size="sm"
-                          onClick={() => handlePageChange(i)}
-                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
-                        >
-                          {i}
-                        </Button>
-                      );
-                    }
-                  }
-                  
-                  // Add ellipsis before last page if needed
-                  if (currentPage < totalPages - 2) {
-                    pages.push(
-                      <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  
-                  // Always show last page (if more than 1 page)
-                  if (totalPages > 1) {
-                    pages.push(
-                      <Button
-                        key={totalPages}
-                        variant={currentPage === totalPages ? "primary" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(totalPages)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
-                      >
-                        {totalPages}
-                      </Button>
-                    );
-                  }
-                }
-                
-                return pages;
-              })()}
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-              >
-                <span className="sr-only">ถัดไป</span>
-                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </Button>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-3" align="start">
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium text-muted-foreground">กรองตามสถานะ</div>
+                    <div className="space-y-3">
+                      {Object.keys(statusCounts).map((status) => (
+                        <div key={status} className="flex items-center gap-2.5">
+                          <Checkbox
+                            id={status}
+                            checked={selectedStatuses.includes(status)}
+                            onCheckedChange={(checked) => handleStatusChange(checked === true, status)}
+                          />
+                          <Label
+                            htmlFor={status}
+                            className="grow flex items-center justify-between font-normal gap-1.5"
+                          >
+                            {status === 'pending' ? 'รอการอนุมัติ' :
+                             status === 'approved' ? 'อนุมัติแล้ว' :
+                             status === 'rejected' ? 'ปฏิเสธ' :
+                             status === 'in_progress' ? 'กำลังดำเนินการ' :
+                             status === 'delivered' ? 'ส่งมอบแล้ว' : status}
+                            <span className="text-muted-foreground">{statusCounts[status]}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
-          )}
-        </div>
-      </CardFooter>
-    </Card>
+          </CardHeading>
+        </CardHeader>
+        <CardTable>
+          <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">
+            <div className="min-w-[800px]">
+              <DataGridTable />
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardTable>
+        <CardFooter>
+          <DataGridPagination 
+            sizes={[5, 10, 20, 50]}
+            rowsPerPageLabel="Rows per page"
+            info="{from} - {to} of {count}"
+          />
+        </CardFooter>
+      </Card>
+    </DataGrid>
   );
 }

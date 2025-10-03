@@ -6,7 +6,8 @@ const PROTECTED_ROUTES = [
   '/orders/tracking', 
   '/orders/notifications',
   '/orders/list',
-  '/users'
+  '/admin/users',
+  '/admin/orders'
 ];
 
 const ROLE_PERMISSIONS = {
@@ -14,7 +15,8 @@ const ROLE_PERMISSIONS = {
   '/orders/tracking': ['buyer', 'supervisor', 'procurement'],
   '/orders/notifications': ['buyer', 'supervisor', 'procurement'],
   '/orders/list': ['supervisor', 'procurement'],
-  '/users': ['superadmin']
+  '/admin/users': ['superadmin'],
+  '/admin/orders': ['superadmin']
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {

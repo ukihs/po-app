@@ -164,18 +164,15 @@ export default function NotificationsPage() {
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
+              <h1 className="text-xl sm:text-2xl font-bold">ข้อความแจ้งเตือน</h1>
             </div>
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
-          </p>
         </div>
         
         <div className="text-center py-16">
           <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-            <Bell className="w-12 h-12 text-primary" />
+            <Bell className="w-12 h-12 text-[#2b9ccc]" />
           </div>
           <h3 className="text-xl font-semibold mb-3">ยังไม่มีการแจ้งเตือน</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
@@ -192,9 +189,9 @@ export default function NotificationsPage() {
         <div className="mb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">ข้อความแจ้งเตือน</h1>
                 {unreadCount > 0 && (
                   <Badge variant="primary" appearance="light" className="mt-1 text-xs sm:text-sm">
                     {unreadCount} รายการใหม่
@@ -215,12 +212,8 @@ export default function NotificationsPage() {
               </Button>
             )}
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
-          </p>
         </div>
 
-        {/* Search and Filter Controls */}
         <div className="mb-6 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -287,9 +280,9 @@ export default function NotificationsPage() {
       <div className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">ข้อความแจ้งเตือน</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">ข้อความแจ้งเตือน</h1>
               {unreadCount > 0 && (
                 <Badge variant="primary" appearance="light" className="mt-1 text-xs sm:text-sm">
                   {unreadCount} รายการใหม่
@@ -310,15 +303,10 @@ export default function NotificationsPage() {
             </Button>
           )}
         </div>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ{getRoleDisplayName(role || '')}
-        </p>
       </div>
 
-      {/* Search and Filter Controls */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search Bar */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -329,7 +317,6 @@ export default function NotificationsPage() {
             />
           </div>
           
-          {/* Filter by Type */}
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-full sm:w-auto">
               <Filter className="w-4 h-4 mr-2" />
@@ -344,7 +331,6 @@ export default function NotificationsPage() {
             </SelectContent>
           </Select>
 
-          {/* Sort Options */}
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full sm:w-auto">
               <SelectValue placeholder="เรียงตาม" />
@@ -357,7 +343,6 @@ export default function NotificationsPage() {
           </Select>
         </div>
         
-        {/* Results Summary */}
         {filteredAndSortedItems.length !== notifications.length && (
           <div className="text-xs sm:text-sm text-muted-foreground">
             แสดง {filteredAndSortedItems.length} จาก {notifications.length} รายการ

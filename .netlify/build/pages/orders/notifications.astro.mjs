@@ -1,30 +1,18 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useNotifications, B as Badge, C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
+import { u as useNotifications, B as Badge, C as Card, j as CardContent, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
-import { B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
+import { B as Button, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const fmt = (ts) => {
   if (!ts?.toDate) return "";
   const d = ts.toDate();
   return d.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
-};
-const getRoleDisplayName = (role) => {
-  switch (role) {
-    case "buyer":
-      return "ผู้ขอซื้อ";
-    case "supervisor":
-      return "หัวหน้างาน";
-    case "procurement":
-      return "ฝ่ายจัดซื้อ";
-    default:
-      return role;
-  }
 };
 function NotificationsPage() {
   const { notifications, unreadCount, loading, error, role, markAsRead, markAllAsRead } = useNotifications();
@@ -110,18 +98,12 @@ function NotificationsPage() {
   }
   if (!notifications.length) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-      /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
-        /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
-          /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
-          /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" })
-        ] }) }),
-        /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
-          "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
-          getRoleDisplayName(role || "")
-        ] })
-      ] }),
+      /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+        /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+        /* @__PURE__ */ jsx("h1", { className: "text-xl sm:text-2xl font-bold", children: "ข้อความแจ้งเตือน" })
+      ] }) }) }),
       /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Bell, { className: "w-12 h-12 text-primary" }) }),
+        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Bell, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
         /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ยังไม่มีการแจ้งเตือน" }),
         /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto", children: "การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่" })
       ] })
@@ -129,38 +111,32 @@ function NotificationsPage() {
   }
   if (!filteredAndSortedItems.length && notifications.length > 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-      /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
-            /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
-            /* @__PURE__ */ jsxs("div", { children: [
-              /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
-              unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
-                unreadCount,
-                " รายการใหม่"
-              ] })
+      /* @__PURE__ */ jsx("div", { className: "mb-6", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+          /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+          /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx("h1", { className: "text-xl sm:text-2xl font-bold", children: "ข้อความแจ้งเตือน" }),
+            unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
+              unreadCount,
+              " รายการใหม่"
             ] })
-          ] }),
-          unreadCount > 0 && /* @__PURE__ */ jsxs(
-            Button,
-            {
-              variant: "outline",
-              onClick: markAllAsRead,
-              className: "w-full sm:w-auto",
-              size: "sm",
-              children: [
-                /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
-                /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
-                /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
-              ]
-            }
-          )
+          ] })
         ] }),
-        /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
-          "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
-          getRoleDisplayName(role || "")
-        ] })
-      ] }),
+        unreadCount > 0 && /* @__PURE__ */ jsxs(
+          Button,
+          {
+            variant: "outline",
+            onClick: markAllAsRead,
+            className: "w-full sm:w-auto",
+            size: "sm",
+            children: [
+              /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
+              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
+            ]
+          }
+        )
+      ] }) }),
       /* @__PURE__ */ jsx("div", { className: "mb-6 space-y-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "relative flex-1", children: [
           /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
@@ -216,38 +192,32 @@ function NotificationsPage() {
     ] });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
-          /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("h1", { className: "text-2xl sm:text-3xl font-bold", children: "ข้อความแจ้งเตือน" }),
-            unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
-              unreadCount,
-              " รายการใหม่"
-            ] })
+    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+        /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("h1", { className: "text-xl sm:text-2xl font-bold", children: "ข้อความแจ้งเตือน" }),
+          unreadCount > 0 && /* @__PURE__ */ jsxs(Badge, { variant: "primary", appearance: "light", className: "mt-1 text-xs sm:text-sm", children: [
+            unreadCount,
+            " รายการใหม่"
           ] })
-        ] }),
-        unreadCount > 0 && /* @__PURE__ */ jsxs(
-          Button,
-          {
-            variant: "outline",
-            onClick: markAllAsRead,
-            className: "w-full sm:w-auto",
-            size: "sm",
-            children: [
-              /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
-              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
-              /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
-            ]
-          }
-        )
+        ] })
       ] }),
-      /* @__PURE__ */ jsxs("p", { className: "text-sm sm:text-base text-muted-foreground", children: [
-        "แจ้งเตือนการอนุมัติใบขอซื้อสำหรับ",
-        getRoleDisplayName(role || "")
-      ] })
-    ] }),
+      unreadCount > 0 && /* @__PURE__ */ jsxs(
+        Button,
+        {
+          variant: "outline",
+          onClick: markAllAsRead,
+          className: "w-full sm:w-auto",
+          size: "sm",
+          children: [
+            /* @__PURE__ */ jsx(CheckCheck, { className: "w-4 h-4 mr-2" }),
+            /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "อ่านทั้งหมด" }),
+            /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "อ่านแล้วทั้งหมด" })
+          ]
+        }
+      )
+    ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-6 space-y-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "relative flex-1", children: [

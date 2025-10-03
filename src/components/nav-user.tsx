@@ -107,20 +107,20 @@ export function NavUser({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Theme</span>
+                <span>ธีม</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuItem onClick={() => setThemeState("light")}>
                   <Sun className="mr-2 h-4 w-4" />
-                  <span>Light Mode</span>
+                  <span>สว่าง</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setThemeState("dark")}>
                   <Moon className="mr-2 h-4 w-4" />
-                  <span>Dark Mode</span>
+                  <span>มืด</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setThemeState("system")}>
                   <Monitor className="mr-2 h-4 w-4" />
-                  <span>System</span>
+                  <span>ระบบ</span>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
@@ -129,7 +129,7 @@ export function NavUser({
             
             <DropdownMenuItem onClick={signOutUser} variant="destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log Out</span>
+              <span>ออกจากระบบ</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

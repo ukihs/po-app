@@ -9,7 +9,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '../ui/breadcrumb';
-
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -38,13 +37,15 @@ export default function AppBreadcrumb() {
     } else if (pathname.startsWith('/orders/notifications')) {
       items.push({ label: 'การแจ้งเตือน' });
     } else if (pathname.startsWith('/orders/list')) {
-      items.push({ label: 'รายการใบสั่งซื้อ' });
+      items.push({ label: 'รายการใบขอซื้อ' });
     } else if (pathname.startsWith('/orders/')) {
       const orderId = pathname.split('/').pop();
-      items.push({ label: 'รายการใบสั่งซื้อ', href: '/orders/list' });
+      items.push({ label: 'รายการใบขอซื้อ', href: '/orders/list' });
       items.push({ label: `ใบสั่งซื้อ #${orderId}` });
-    } else if (pathname.startsWith('/users')) {
+    } else if (pathname.startsWith('/admin/users')) {
       items.push({ label: 'จัดการผู้ใช้งาน' });
+    } else if (pathname.startsWith('/admin/orders')) {
+      items.push({ label: 'จัดการใบขอซื้อ' });
     } else if (pathname.startsWith('/login')) {
       items.push({ label: 'เข้าสู่ระบบ' });
     } else {
@@ -85,11 +86,13 @@ export default function AppBreadcrumb() {
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {item.href ? (
-                <BreadcrumbLink href={item.href}>
+                <BreadcrumbLink href={item.href} className="hover:text-primary">
                   {item.label}
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="text-foreground">
+                  {item.label}
+                </BreadcrumbPage>
               )}
             </BreadcrumbItem>
             {index < breadcrumbItems.length - 1 && (

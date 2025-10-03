@@ -16,7 +16,7 @@ if (sessionId) {
       } else if (user.role === 'procurement') {
         redirectUrl = '/orders/list';
       } else if (user.role === 'superadmin') {
-        redirectUrl = '/users';
+        redirectUrl = '/admin/users';
       }
     }
   } catch (error) {

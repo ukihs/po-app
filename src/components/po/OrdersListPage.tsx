@@ -188,15 +188,10 @@ export default function OrdersListPage(){
       )}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="w-8 h-8 text-primary" />
           รายการใบขอซื้อ
         </h1>
-        <p className="text-muted-foreground">
-          {role === 'procurement' ? 'สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ' : 
-           role === 'supervisor' ? 'สำหรับหัวหน้างาน – ดูรายการใบขอซื้อทั้งหมด' :
-           'รายการใบขอซื้อทั้งหมด'}
-        </p>
       </div>  
 
       <OrdersDataTable

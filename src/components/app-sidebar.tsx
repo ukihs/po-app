@@ -102,7 +102,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         '/tracking': 'tracking',
         '/notifications': 'notifications',
         '/list': 'list',
-        '/users': 'users'
+        '/users': 'users',
+        '/admin/users': 'admin-users',
+        '/admin/orders': 'admin-orders'
       };
       
       const activeTab = Object.entries(tabMap).find(([key]) => path.includes(key))?.[1] || '';
@@ -154,7 +156,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: CheckCircle2, 
           isActive: activeTab === 'tracking'
         },
-        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
+        { title: "รายการใบขอซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
         { 
           title: "การแจ้งเตือน", 
           url: "/orders/notifications", 
@@ -165,7 +167,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
       procurement: [
         { 
-          title: "รายการใบสั่งซื้อ", 
+          title: "รายการใบขอซื้อ", 
           url: "/orders/list", 
           icon: ShoppingCart, 
           isActive: activeTab === 'list'
@@ -180,7 +182,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         }
       ],
       superadmin: [
-        { title: "จัดการผู้ใช้งาน", url: "/users", icon: Users, isActive: activeTab === 'users' }
+        { title: "จัดการผู้ใช้งาน", url: "/admin/users", icon: Users, isActive: activeTab === 'admin-users' },
+        { title: "จัดการใบขอซื้อ", url: "/admin/orders", icon: FileText, isActive: activeTab === 'admin-orders' }
       ]
     };
 

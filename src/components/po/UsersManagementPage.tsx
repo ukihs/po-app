@@ -6,6 +6,7 @@ import {
   Trash2,
   Check,
   ChevronsUpDown,
+  RefreshCw,
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -356,16 +357,26 @@ export default function UsersManagementPage() {
     validateEditForm();
   }, [editUser]);
 
+  if (loading) {
+    return (
+      <div className="w-full">
+        <div className="text-center py-8 sm:py-12">
+          <div className="flex justify-center">
+            <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
+          </div>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูลผู้ใช้งาน...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
-          การจัดการผู้ใช้งาน
+          จัดการผู้ใช้งาน
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          หน้าจัดการผู้ใช้งานในระบบทั้งหมด
-        </p>
       </div>
 
       <Toaster />

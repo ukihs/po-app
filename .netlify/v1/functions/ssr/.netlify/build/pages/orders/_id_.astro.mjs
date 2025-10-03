@@ -1,12 +1,12 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, B as Badge, b as CardHeader, m as CardTitle, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
+import { C as Card, j as CardContent, B as Badge, a as CardHeader, r as CardTitle, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { s as subscribeAuthAndRole, f as db, B as Button, e as auth } from '../../chunks/input_CuwRcyyb.mjs';
+import { s as subscribeAuthAndRole, d as db, B as Button, f as auth } from '../../chunks/auth_DhMUJu7S.mjs';
 import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 export { renderers } from '../../renderers.mjs';
 
@@ -136,14 +136,11 @@ function OrderDetailPage({ orderId }) {
   }
   const statusInfo = getStatusInfo(String(order.status));
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
-        /* @__PURE__ */ jsx(FileText, { className: "h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" }),
-        "ใบสั่งซื้อ #",
-        order.orderNo
-      ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: "รายละเอียดใบสั่งซื้อ" })
-    ] }),
+    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+      /* @__PURE__ */ jsx(FileText, { className: "h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" }),
+      "ใบสั่งซื้อ #",
+      order.orderNo
+    ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6", children: [
       /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(CardContent, { className: "p-3 sm:p-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2", children: [

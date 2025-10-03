@@ -382,12 +382,12 @@ export default function TrackingPage() {
       <Toaster />
       
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
-          <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
           <span className="hidden sm:inline">
             {role === 'buyer' ? 'ติดตามสถานะใบขอซื้อ' : 
              role === 'supervisor' ? 'ติดตามและอนุมัติใบขอซื้อ' :
-             'ติดตามใบขอซื้อทั้งหมด'}
+             'ติดตามสถานะใบขอซื้อทั้งหมด'}
           </span>
           <span className="sm:hidden">
             {role === 'buyer' ? 'ติดตามสถานะ' : 
@@ -395,59 +395,53 @@ export default function TrackingPage() {
              'ติดตาม'}
           </span>
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          {role === 'supervisor' ? 'หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ' :
-           role === 'buyer' ? 'ติดตามสถานะและความคืบหน้าของใบขอซื้อ' :
-           'ติดตามใบขอซื้อทั้งหมดในระบบ'}
-        </p>
       </div>
 
-      {/* Search and Filter Section */}
       <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
-                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-9 sm:h-10 text-sm">
+              <SelectTrigger className="w-full sm:w-auto">
                 <SelectValue placeholder="สถานะทั้งหมด" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all" className="text-sm">สถานะทั้งหมด</SelectItem>
-                <SelectItem value="pending" className="text-sm">รออนุมัติ</SelectItem>
-                <SelectItem value="approved" className="text-sm">อนุมัติแล้ว</SelectItem>
-                <SelectItem value="rejected" className="text-sm">ไม่อนุมัติ</SelectItem>
-                <SelectItem value="in_progress" className="text-sm">กำลังดำเนินการ</SelectItem>
-                <SelectItem value="delivered" className="text-sm">ได้รับแล้ว</SelectItem>
+                <SelectItem value="all">สถานะทั้งหมด</SelectItem>
+                <SelectItem value="pending">รออนุมัติ</SelectItem>
+                <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
+                <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
+                <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
+                <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-4 text-sm">
-                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Filter className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">มุมมอง</span>
                 <span className="sm:hidden">แสดง</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="text-xs sm:text-sm">เลือกมุมมอง</DropdownMenuLabel>
+              <DropdownMenuLabel>เลือกมุมมอง</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setViewMode('card')} className="text-xs sm:text-sm">
-                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+              <DropdownMenuItem onClick={() => setViewMode('card')}>
+                <LayoutGrid className="h-4 w-4 mr-2" />
                 แบบการ์ด
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewMode('table')} className="text-xs sm:text-sm">
-                <Table2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+              <DropdownMenuItem onClick={() => setViewMode('table')}>
+                <Table2 className="h-4 w-4 mr-2" />
                 แบบตาราง
               </DropdownMenuItem>
             </DropdownMenuContent>

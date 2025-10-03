@@ -21,7 +21,7 @@ const getRedirectUrl = (role: string): string => {
     buyer: '/orders/create',
     supervisor: '/orders/tracking',
     procurement: '/orders/list',
-    superadmin: '/users'
+    superadmin: '/admin/users'
   };
   return redirects[role] || '/login';
 };

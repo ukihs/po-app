@@ -209,13 +209,10 @@ export default function CreateOrderPage() {
       <Toaster />
       
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <Package className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
           สร้างใบขอซื้อ
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          สร้างใบขอซื้อใหม่สำหรับการสั่งซื้อสินค้า
-        </p>
       </div>
       
       <Dialog open={showModal} onOpenChange={setShowModal}>

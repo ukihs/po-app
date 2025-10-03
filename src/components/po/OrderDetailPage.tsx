@@ -170,13 +170,10 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
   return (
     <div className="w-full">
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
           ใบสั่งซื้อ #{order.orderNo}
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          รายละเอียดใบสั่งซื้อ
-        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">

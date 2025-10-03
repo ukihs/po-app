@@ -1,19 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BfNVnIHh.mjs';
+import { D as DropdownMenu, f as DropdownMenuTrigger, g as DropdownMenuContent, k as DropdownMenuLabel, i as DropdownMenuSeparator, h as DropdownMenuItem, C as Card, j as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { b as cn, s as subscribeAuthAndRole, f as db, B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
+import { c as cn, s as subscribeAuthAndRole, d as db, B as Button, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
 import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BPoLA-4y.mjs';
+import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BJrAafgi.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
-import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_CEUNibaC.mjs';
+import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/sonner_BAvMtGXo.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BVmw7K_-.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const StepperContext = createContext(void 0);
@@ -468,57 +468,54 @@ function TrackingPage() {
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     /* @__PURE__ */ jsx(Toaster, {}),
-    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
-        /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-primary" }),
-        /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมด" }),
-        /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: role === "buyer" ? "ติดตามสถานะ" : role === "supervisor" ? "ติดตาม/อนุมัติ" : "ติดตาม" })
-      ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: role === "supervisor" ? "หน้าจัดการตรวจสอบและอนุมัติใบขอซื้อทั้งหมดในระบบ" : role === "buyer" ? "ติดตามสถานะและความคืบหน้าของใบขอซื้อ" : "ติดตามใบขอซื้อทั้งหมดในระบบ" })
-    ] }),
+    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+      /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+      /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามสถานะใบขอซื้อทั้งหมด" }),
+      /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: role === "buyer" ? "ติดตามสถานะ" : role === "supervisor" ? "ติดตาม/อนุมัติ" : "ติดตาม" })
+    ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6 space-y-3 sm:space-y-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full", children: [
           /* @__PURE__ */ jsxs("div", { className: "relative flex-1 max-w-md", children: [
-            /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" }),
+            /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
             /* @__PURE__ */ jsx(
               Input,
               {
                 type: "text",
                 placeholder: "ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ",
-                className: "pl-9 sm:pl-10 h-9 sm:h-10 text-sm",
+                className: "pl-10",
                 value: searchTerm,
                 onChange: (e) => setSearchTerm(e.target.value)
               }
             )
           ] }),
           /* @__PURE__ */ jsxs(Select, { value: statusFilter, onValueChange: setStatusFilter, children: [
-            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-[180px] h-9 sm:h-10 text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
+            /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-auto", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
             /* @__PURE__ */ jsxs(SelectContent, { children: [
-              /* @__PURE__ */ jsx(SelectItem, { value: "all", className: "text-sm", children: "สถานะทั้งหมด" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "pending", className: "text-sm", children: "รออนุมัติ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "approved", className: "text-sm", children: "อนุมัติแล้ว" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "rejected", className: "text-sm", children: "ไม่อนุมัติ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", className: "text-sm", children: "กำลังดำเนินการ" }),
-              /* @__PURE__ */ jsx(SelectItem, { value: "delivered", className: "text-sm", children: "ได้รับแล้ว" })
+              /* @__PURE__ */ jsx(SelectItem, { value: "all", children: "สถานะทั้งหมด" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "pending", children: "รออนุมัติ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "approved", children: "อนุมัติแล้ว" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "rejected", children: "ไม่อนุมัติ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", children: "กำลังดำเนินการ" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "delivered", children: "ได้รับแล้ว" })
             ] })
           ] })
         ] }),
         /* @__PURE__ */ jsxs(DropdownMenu, { children: [
-          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-4 text-sm", children: [
-            /* @__PURE__ */ jsx(Filter, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
+          /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "w-full sm:w-auto", children: [
+            /* @__PURE__ */ jsx(Filter, { className: "h-4 w-4 mr-2" }),
             /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "มุมมอง" }),
             /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: "แสดง" })
           ] }) }),
           /* @__PURE__ */ jsxs(DropdownMenuContent, { align: "end", children: [
-            /* @__PURE__ */ jsx(DropdownMenuLabel, { className: "text-xs sm:text-sm", children: "เลือกมุมมอง" }),
+            /* @__PURE__ */ jsx(DropdownMenuLabel, { children: "เลือกมุมมอง" }),
             /* @__PURE__ */ jsx(DropdownMenuSeparator, {}),
-            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), className: "text-xs sm:text-sm", children: [
-              /* @__PURE__ */ jsx(LayoutGrid, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("card"), children: [
+              /* @__PURE__ */ jsx(LayoutGrid, { className: "h-4 w-4 mr-2" }),
               "แบบการ์ด"
             ] }),
-            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), className: "text-xs sm:text-sm", children: [
-              /* @__PURE__ */ jsx(Table2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" }),
+            /* @__PURE__ */ jsxs(DropdownMenuItem, { onClick: () => setViewMode("table"), children: [
+              /* @__PURE__ */ jsx(Table2, { className: "h-4 w-4 mr-2" }),
               "แบบตาราง"
             ] })
           ] })
