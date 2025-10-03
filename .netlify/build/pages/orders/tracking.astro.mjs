@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
+import { D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, l as DropdownMenuItem, C as Card, a as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BCFqNZAv.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -10,7 +10,6 @@ import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { T as Toaster, D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_CFCMQlrt.mjs';
-import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';

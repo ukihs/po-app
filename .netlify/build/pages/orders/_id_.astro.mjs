@@ -1,11 +1,10 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, b as CardHeader, m as CardTitle, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
+import { C as Card, a as CardContent, B as Badge, b as CardHeader, m as CardTitle, $ as $$MainLayout } from '../../chunks/card_BCFqNZAv.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { s as subscribeAuthAndRole, f as db, B as Button, e as auth } from '../../chunks/input_CuwRcyyb.mjs';
 import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_B5AV3It3.mjs';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';

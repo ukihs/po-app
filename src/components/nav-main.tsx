@@ -15,6 +15,7 @@ interface NavItem {
   url: string;
   icon?: LucideIcon;
   isActive?: boolean;
+  badge?: React.ReactNode;
 }
 
 export function NavMain({ items }: { items: NavItem[] }) {
@@ -36,9 +37,17 @@ export function NavMain({ items }: { items: NavItem[] }) {
               tooltip={item.title}
               isActive={item.isActive}
               onClick={() => handleItemClick(item.url)}
+              className="flex items-center justify-between w-full"
             >
-              {item.icon && <item.icon />}
-              <span>{item.title}</span>
+              <div className="flex items-center gap-2">
+                {item.icon && <item.icon className="h-4 w-4" />}
+                <span>{item.title}</span>
+              </div>
+              {item.badge && (
+                <div className="ml-auto">
+                  {item.badge}
+                </div>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

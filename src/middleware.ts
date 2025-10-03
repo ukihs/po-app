@@ -12,7 +12,7 @@ const PROTECTED_ROUTES = [
 const ROLE_PERMISSIONS = {
   '/orders/create': ['buyer'],
   '/orders/tracking': ['buyer', 'supervisor', 'procurement'],
-  '/orders/notifications': ['buyer'],
+  '/orders/notifications': ['buyer', 'supervisor', 'procurement'],
   '/orders/list': ['supervisor', 'procurement'],
   '/users': ['superadmin']
 };

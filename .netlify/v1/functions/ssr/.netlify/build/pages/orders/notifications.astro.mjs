@@ -1,13 +1,11 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_CEy1BhEv.mjs';
+import { u as useNotifications, B as Badge, C as Card, a as CardContent, $ as $$MainLayout } from '../../chunks/card_BCFqNZAv.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { s as subscribeAuthAndRole, f as db, B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
-import { query, collection, where, orderBy, onSnapshot, updateDoc, doc } from 'firebase/firestore';
-import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { B as Badge } from '../../chunks/badge_B56HWNP0.mjs';
+import { useState, useMemo, useEffect } from 'react';
+import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_DVins7mI.mjs';
+import { B as Button, I as Input } from '../../chunks/input_CuwRcyyb.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DMNDlMRd.mjs';
 export { renderers } from '../../renderers.mjs';
 
@@ -29,115 +27,14 @@ const getRoleDisplayName = (role) => {
   }
 };
 function NotificationsPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  const [role, setRole] = useState(null);
+  const { notifications, unreadCount, loading, error, role, markAsRead, markAllAsRead } = useNotifications();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const stopSnap = useRef(null);
-  const stopAuth = useRef(null);
-  useEffect(() => {
-    stopAuth.current = subscribeAuthAndRole((user, userRole) => {
-      if (stopSnap.current) {
-        stopSnap.current();
-        stopSnap.current = null;
-      }
-      if (!user) {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-      setRole(userRole);
-      setLoading(true);
-      setErr("");
-      if (userRole === "buyer" || userRole === "supervisor") {
-        const q = query(
-          collection(db, "notifications"),
-          where("toUserUid", "==", user.uid),
-          orderBy("createdAt", "desc")
-        );
-        stopSnap.current = onSnapshot(
-          q,
-          (snap) => {
-            const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            setItems(rows);
-            setLoading(false);
-          },
-          (e) => {
-            console.error("notifications error:", e);
-            setErr((e?.message || "").toString());
-            setItems([]);
-            setLoading(false);
-          }
-        );
-      } else if (userRole === "procurement") {
-        const personalQ = query(
-          collection(db, "notifications"),
-          where("toUserUid", "==", user.uid),
-          orderBy("createdAt", "desc")
-        );
-        const roleQ = query(
-          collection(db, "notifications"),
-          where("forRole", "==", "procurement"),
-          orderBy("createdAt", "desc")
-        );
-        let personalNotifs = [];
-        let roleNotifs = [];
-        let loadedCount = 0;
-        const combineAndSetNotifications = () => {
-          if (loadedCount < 2) return;
-          const allNotifs = [...personalNotifs, ...roleNotifs];
-          const uniqueNotifs = allNotifs.filter(
-            (notif, index, arr) => arr.findIndex((n) => n.id === notif.id) === index
-          );
-          uniqueNotifs.sort((a, b) => {
-            if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
-            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
-          });
-          setItems(uniqueNotifs);
-          setLoading(false);
-        };
-        const unsubPersonal = onSnapshot(personalQ, (snap) => {
-          personalNotifs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          loadedCount = Math.max(loadedCount, 1);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error("personal notifications error:", e);
-          setErr((e?.message || "").toString());
-          setLoading(false);
-        });
-        const unsubRole = onSnapshot(roleQ, (snap) => {
-          roleNotifs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          loadedCount = Math.max(loadedCount, 2);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error("role notifications error:", e);
-          setErr((e?.message || "").toString());
-          setLoading(false);
-        });
-        stopSnap.current = () => {
-          unsubPersonal();
-          unsubRole();
-        };
-      } else {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-    });
-    return () => {
-      if (stopSnap.current) stopSnap.current();
-      if (stopAuth.current) stopAuth.current();
-      stopSnap.current = null;
-      stopAuth.current = null;
-    };
-  }, []);
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = items.filter((item) => {
+    let filtered = notifications.filter((item) => {
       const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.message?.toLowerCase().includes(searchTerm.toLowerCase()) || item.orderNo?.toString().includes(searchTerm) || item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === "all" || item.kind === filterType;
       return matchesSearch && matchesType;
@@ -156,16 +53,15 @@ function NotificationsPage() {
       return timeB - timeA;
     });
     return filtered;
-  }, [items, searchTerm, filterType, sortBy]);
+  }, [notifications, searchTerm, filterType, sortBy]);
   const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = filteredAndSortedItems.slice(startIndex, endIndex);
-  const unreadCount = items.filter((item) => !item.read).length;
   const markReadAndGo = async (n) => {
     try {
       if (!n.read) {
-        await updateDoc(doc(db, "notifications", n.id), { read: true });
+        await markAsRead(n.id);
       }
       if (role === "buyer") {
         window.location.href = "/orders/tracking";
@@ -181,17 +77,6 @@ function NotificationsPage() {
       } else {
         window.location.href = "/orders/list";
       }
-    }
-  };
-  const markAllAsRead = async () => {
-    try {
-      const unreadItems = items.filter((item) => !item.read);
-      const promises = unreadItems.map(
-        (item) => updateDoc(doc(db, "notifications", item.id), { read: true })
-      );
-      await Promise.all(promises);
-    } catch (e) {
-      console.error("Error marking all as read:", e);
     }
   };
   const handlePageChange = (page) => {
@@ -210,20 +95,20 @@ function NotificationsPage() {
       /* @__PURE__ */ jsx("p", { className: "mt-4 text-muted-foreground", children: "กำลังโหลดแจ้งเตือน..." })
     ] }) });
   }
-  if (err && /requires an index/i.test(err)) {
+  if (error && /requires an index/i.test(error)) {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Alert, { variant: "destructive", children: [
       /* @__PURE__ */ jsx(AlertTriangle, { className: "h-4 w-4" }),
       /* @__PURE__ */ jsxs(AlertDescription, { children: [
         /* @__PURE__ */ jsx("h3", { className: "font-bold", children: "เกิดข้อผิดพลาดในการโหลดข้อมูล" }),
         /* @__PURE__ */ jsxs("div", { className: "text-sm mt-2", children: [
-          err,
+          error,
           /* @__PURE__ */ jsx("br", {}),
           "ถ้า error มีคำว่า requires an index ให้คลิกลิงก์ในข้อความนั้นเพื่อสร้าง Index แล้วรีเฟรชใหม่อีกครั้ง"
         ] })
       ] })
     ] }) });
   }
-  if (!items.length) {
+  if (!notifications.length) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
       /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
         /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
@@ -242,7 +127,7 @@ function NotificationsPage() {
       ] })
     ] });
   }
-  if (!filteredAndSortedItems.length && items.length > 0) {
+  if (!filteredAndSortedItems.length && notifications.length > 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
       /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2", children: [
@@ -399,11 +284,11 @@ function NotificationsPage() {
           ] })
         ] })
       ] }),
-      filteredAndSortedItems.length !== items.length && /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
+      filteredAndSortedItems.length !== notifications.length && /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
         "แสดง ",
         filteredAndSortedItems.length,
         " จาก ",
-        items.length,
+        notifications.length,
         " รายการ"
       ] })
     ] }),
@@ -426,17 +311,13 @@ function NotificationsPage() {
                 }
               )
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "text-xs sm:text-sm text-muted-foreground font-medium", children: fmt(n.createdAt) })
+            /* @__PURE__ */ jsx("div", { className: "text-xs text-muted-foreground/70 font-normal", children: fmt(n.createdAt) })
           ] }),
           /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title }),
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: [
-            /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
-              "จาก: ",
-              n.fromUserName || "ระบบ"
-            ] }),
-            /* @__PURE__ */ jsx(ArrowRight, { className: "w-3 h-3" }),
-            /* @__PURE__ */ jsx("span", { className: "font-medium", children: getRoleDisplayName(role || "") })
-          ] })
+          /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
+            "จากคุณ ",
+            n.fromUserName || "ระบบ"
+          ] }) })
         ] }) }) })
       },
       n.id

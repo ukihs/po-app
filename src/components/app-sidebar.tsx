@@ -10,8 +10,12 @@ import {
   List,
   CheckCircle2,
   Building2,
+  ShoppingCart,
+  Package,
+  Settings,
   type LucideIcon,
 } from "lucide-react"
+import NotificationBadge from "./NotificationBadge"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
@@ -38,6 +42,7 @@ interface NavItem {
   url: string;
   icon: LucideIcon;
   isActive: boolean;
+  badge?: React.ReactNode;
 }
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
@@ -134,15 +139,45 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       buyer: [
         { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
         { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' },
-        { title: "การแจ้งเตือน", url: "/orders/notifications", icon: Bell, isActive: activeTab === 'notifications' }
+        { 
+          title: "การแจ้งเตือน", 
+          url: "/orders/notifications", 
+          icon: Bell, 
+          isActive: activeTab === 'notifications',
+          badge: <NotificationBadge />
+        }
       ],
       supervisor: [
-        { title: "ติดตามและอนุมัติ", url: "/orders/tracking", icon: CheckCircle2, isActive: activeTab === 'tracking' },
-        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' }
+        { 
+          title: "ติดตามและอนุมัติ", 
+          url: "/orders/tracking", 
+          icon: CheckCircle2, 
+          isActive: activeTab === 'tracking'
+        },
+        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
+        { 
+          title: "การแจ้งเตือน", 
+          url: "/orders/notifications", 
+          icon: Bell, 
+          isActive: activeTab === 'notifications',
+          badge: <NotificationBadge />
+        }
       ],
       procurement: [
-        { title: "รายการใบสั่งซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
-        { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' }
+        { 
+          title: "รายการใบสั่งซื้อ", 
+          url: "/orders/list", 
+          icon: ShoppingCart, 
+          isActive: activeTab === 'list'
+        },
+        { title: "ติดตามสถานะ", url: "/orders/tracking", icon: Package, isActive: activeTab === 'tracking' },
+        { 
+          title: "การแจ้งเตือน", 
+          url: "/orders/notifications", 
+          icon: Bell, 
+          isActive: activeTab === 'notifications',
+          badge: <NotificationBadge />
+        }
       ],
       superadmin: [
         { title: "จัดการผู้ใช้งาน", url: "/users", icon: Users, isActive: activeTab === 'users' }

@@ -1,18 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { auth, db } from '../../firebase/client';
-import { subscribeAuthAndRole } from '../../lib/auth';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-} from 'firebase/firestore';
-import type { Unsubscribe } from 'firebase/firestore';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNotifications } from '../../hooks/use-notifications';
 import { 
   Bell, 
   ArrowRight,
@@ -61,131 +50,16 @@ const getRoleDisplayName = (role: string) => {
 };
 
 export default function NotificationsPage() {
-  const [items, setItems] = useState<Noti[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string>('');
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
+  const { notifications, unreadCount, loading, error, role, markAsRead, markAllAsRead } = useNotifications();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const stopSnap = useRef<Unsubscribe | null>(null);
-  const stopAuth = useRef<Unsubscribe | null>(null);
 
-  useEffect(() => {
-    stopAuth.current = subscribeAuthAndRole((user, userRole) => {
-      if (stopSnap.current) {
-        stopSnap.current();
-        stopSnap.current = null;
-      }
-
-      if (!user) {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-
-      setRole(userRole);
-      setLoading(true);
-      setErr('');
-
-      if (userRole === 'buyer' || userRole === 'supervisor') {
-        const q = query(
-          collection(db, 'notifications'),
-          where('toUserUid', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-
-        stopSnap.current = onSnapshot(
-          q,
-          (snap) => {
-            const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-            setItems(rows as Noti[]);
-            setLoading(false);
-          },
-          (e) => {
-            console.error('notifications error:', e);
-            setErr((e?.message || '').toString());
-            setItems([]);
-            setLoading(false);
-          }
-        );
-      } else if (userRole === 'procurement') {
-        const personalQ = query(
-          collection(db, 'notifications'),
-          where('toUserUid', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-
-        const roleQ = query(
-          collection(db, 'notifications'),
-          where('forRole', '==', 'procurement'),
-          orderBy('createdAt', 'desc')
-        );
-
-        let personalNotifs: Noti[] = [];
-        let roleNotifs: Noti[] = [];
-        let loadedCount = 0;
-
-        const combineAndSetNotifications = () => {
-          if (loadedCount < 2) return;
-          
-          const allNotifs = [...personalNotifs, ...roleNotifs];
-          const uniqueNotifs = allNotifs.filter((notif, index, arr) => 
-            arr.findIndex(n => n.id === notif.id) === index
-          );
-          
-          uniqueNotifs.sort((a, b) => {
-            if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
-            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
-          });
-
-          setItems(uniqueNotifs);
-          setLoading(false);
-        };
-
-        const unsubPersonal = onSnapshot(personalQ, (snap) => {
-          personalNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
-          loadedCount = Math.max(loadedCount, 1);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error('personal notifications error:', e);
-          setErr((e?.message || '').toString());
-          setLoading(false);
-        });
-
-        const unsubRole = onSnapshot(roleQ, (snap) => {
-          roleNotifs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Noti[];
-          loadedCount = Math.max(loadedCount, 2);
-          combineAndSetNotifications();
-        }, (e) => {
-          console.error('role notifications error:', e);
-          setErr((e?.message || '').toString());
-          setLoading(false);
-        });
-
-        stopSnap.current = () => {
-          unsubPersonal();
-          unsubRole();
-        };
-      } else {
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-    });
-
-    return () => {
-      if (stopSnap.current) stopSnap.current();
-      if (stopAuth.current) stopAuth.current();
-      stopSnap.current = null;
-      stopAuth.current = null;
-    };
-  }, []);
 
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = items.filter(item => {
+    let filtered = notifications.filter(item => {
       const matchesSearch = !searchTerm || 
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -212,18 +86,16 @@ export default function NotificationsPage() {
     });
 
     return filtered;
-  }, [items, searchTerm, filterType, sortBy]);
+  }, [notifications, searchTerm, filterType, sortBy]);
   const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = filteredAndSortedItems.slice(startIndex, endIndex);
 
-  const unreadCount = items.filter(item => !item.read).length;
-
   const markReadAndGo = async (n: Noti) => {
     try {
       if (!n.read) {
-        await updateDoc(doc(db, 'notifications', n.id), { read: true });
+        await markAsRead(n.id);
       }
       
       if (role === 'buyer') {
@@ -240,18 +112,6 @@ export default function NotificationsPage() {
       } else {
         window.location.href = '/orders/list';
       }
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const unreadItems = items.filter(item => !item.read);
-      const promises = unreadItems.map(item => 
-        updateDoc(doc(db, 'notifications', item.id), { read: true })
-      );
-      await Promise.all(promises);
-    } catch (e) {
-      console.error('Error marking all as read:', e);
     }
   };
 
@@ -280,7 +140,7 @@ export default function NotificationsPage() {
     );
   }
 
-  if (err && /requires an index/i.test(err)) {
+  if (error && /requires an index/i.test(error)) {
     return (
       <div className="w-full">
         <Alert variant="destructive">
@@ -288,7 +148,7 @@ export default function NotificationsPage() {
           <AlertDescription>
             <h3 className="font-bold">เกิดข้อผิดพลาดในการโหลดข้อมูล</h3>
             <div className="text-sm mt-2">
-              {err}
+              {error}
               <br />
               ถ้า error มีคำว่า requires an index ให้คลิกลิงก์ในข้อความนั้นเพื่อสร้าง Index แล้วรีเฟรชใหม่อีกครั้ง
             </div>
@@ -298,7 +158,7 @@ export default function NotificationsPage() {
     );
   }
 
-  if (!items.length) {
+  if (!notifications.length) {
     return (
       <div className="w-full">
         <div className="mb-4 sm:mb-6">
@@ -326,7 +186,7 @@ export default function NotificationsPage() {
     );
   }
 
-  if (!filteredAndSortedItems.length && items.length > 0) {
+  if (!filteredAndSortedItems.length && notifications.length > 0) {
     return (
       <div className="w-full">
         <div className="mb-6">
@@ -498,9 +358,9 @@ export default function NotificationsPage() {
         </div>
         
         {/* Results Summary */}
-        {filteredAndSortedItems.length !== items.length && (
+        {filteredAndSortedItems.length !== notifications.length && (
           <div className="text-xs sm:text-sm text-muted-foreground">
-            แสดง {filteredAndSortedItems.length} จาก {items.length} รายการ
+            แสดง {filteredAndSortedItems.length} จาก {notifications.length} รายการ
           </div>
         )}
       </div>
@@ -540,7 +400,7 @@ export default function NotificationsPage() {
                          'ขออนุมัติ'}
                       </Badge>
                     </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground font-medium">
+                    <div className="text-xs text-muted-foreground/70 font-normal">
                       {fmt(n.createdAt)}
                     </div>
                   </div>
@@ -550,9 +410,7 @@ export default function NotificationsPage() {
                   </h3>
 
                   <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap">
-                    <span className="font-medium">จาก: {n.fromUserName || 'ระบบ'}</span>
-                    <ArrowRight className="w-3 h-3" />
-                    <span className="font-medium">{getRoleDisplayName(role || '')}</span>
+                    <span className="font-medium">จากคุณ {n.fromUserName || 'ระบบ'}</span>
                   </div>
                 </div>
               </div>
