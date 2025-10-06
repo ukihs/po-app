@@ -13,85 +13,49 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
 import { sendOrderCreatedNotification, sendOrderApprovedNotification, sendOrderRejectedNotification } from './email-notifications';
+import type { 
+  ItemType, 
+  ProcurementStatus, 
+  OrderItemInput, 
+  Order,
+  CreateOrderPayload,
+  OrderStatus
+} from '../types';
+import { 
+  toNum, 
+  calculateLineTotal,
+  calculateGrandTotal,
+  getItemCategory,
+  getInitialProcurementStatus,
+  getProcurementStatusDisplay,
+  isProcurementComplete,
+  generateOrderNumber
+} from './order-utils';
+import { COLLECTIONS } from './constants';
 
-export type ItemType = 'วัตถุดิบ' | 'เครื่องมือ' | 'วัสดุสิ้นเปลือง' | 'Software/Hardware';
-export type ProcurementStatus = 'จัดซื้อ' | 'ของมาส่ง' | 'ส่งมอบของ' | 'คลังสินค้า' | 'จัดซื้อ_2' | 'ของมาส่ง_2' | 'ส่งมอบของ_2';
-
-export type Item = {
-  no: number;
-  description: string;
-  receivedDate: string;
-  quantity: string;
-  amount: string;
-  itemType: ItemType;
+// Re-export types for backward compatibility
+export type { 
+  ItemType, 
+  ProcurementStatus, 
+  OrderItemInput as Item,
+  Order,
+  OrderStatus
 };
 
-export const toNum = (v: string) => {
-  const n = parseFloat((v ?? '').toString().replace(/[^\d.]/g, ''));
-  return Number.isFinite(n) ? n : 0;
+// Re-export utilities for backward compatibility
+export { 
+  toNum,
+  getItemCategory,
+  getInitialProcurementStatus,
+  getProcurementStatusDisplay,
+  generateOrderNumber
 };
 
-export const lineTotal = (it: Item) => toNum(it.quantity) * toNum(it.amount);
-export const grandTotal = (items: Item[]) =>
-  items.reduce((s, it) => s + lineTotal(it), 0);
+export const lineTotal = (it: OrderItemInput) => calculateLineTotal(it.quantity, it.amount);
+export const grandTotal = (items: OrderItemInput[]) => calculateGrandTotal(items);
 
-export const getItemCategory = (itemType: ItemType): 'raw_material' | 'other' => {
-  return itemType === 'วัตถุดิบ' ? 'raw_material' : 'other';
-};
-
-export const getInitialProcurementStatus = (itemType: ItemType): ProcurementStatus => {
-  const category = getItemCategory(itemType);
-  return category === 'raw_material' ? 'จัดซื้อ' : 'จัดซื้อ_2';
-};
-
-export const getProcurementStatusDisplay = (status: ProcurementStatus): string => {
-  switch (status) {
-    case 'จัดซื้อ':
-    case 'จัดซื้อ_2':
-      return 'จัดซื้อ';
-    case 'ของมาส่ง':
-    case 'ของมาส่ง_2':
-      return 'ของมาส่ง';
-    case 'ส่งมอบของ':
-    case 'ส่งมอบของ_2':
-      return 'ส่งมอบของ';
-    case 'คลังสินค้า':
-      return 'คลังสินค้า';
-    default:
-      return status;
-  }
-};
-
-export type Order = {
-  id: string;
-  orderNo: number;
-  date: string;
-  requester: string;
-  requesterUid: string;
-  items: Array<{
-    description: string;
-    receivedDate: string | null;
-    quantity: number;
-    amount: number;
-    lineTotal: number;
-    itemType: ItemType;
-  }>;
-  totalAmount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
-  createdAt: any;
-  procurementStatus?: ProcurementStatus;
-  timestamps?: {
-    submitted?: any;
-    approved?: any;
-    rejected?: any;
-    procurementStarted?: any;
-    procurementUpdated?: any;
-    delivered?: any;
-  };
-};
-
-async function getNextNumber(seqDocId = 'orders'): Promise<number> {
-  const ref = doc(db, 'counters', seqDocId);
+async function getNextNumber(seqDocId = COLLECTIONS.ORDERS): Promise<number> {
+  const ref = doc(db, COLLECTIONS.COUNTERS, seqDocId);
   const next = await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const last = (snap.exists() ? (snap.data() as any).last : 0) || 0;
@@ -102,7 +66,7 @@ async function getNextNumber(seqDocId = 'orders'): Promise<number> {
   return next;
 }
 
-async function createNotification(data: {
+export async function createNotification(data: {
   title: string;
   message: string;
   orderId: string;
@@ -142,7 +106,7 @@ async function createNotification(data: {
   });
 
   try {
-    const docRef = await addDoc(collection(db, 'notifications'), notificationData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), notificationData);
     console.log('createNotification: Successfully created notification', docRef.id);
     return docRef.id;
   } catch (error) {
@@ -152,18 +116,14 @@ async function createNotification(data: {
 }
 
 
-export async function createOrder(payload: {
-  date: string;
-  requesterName: string;
-  items: Item[];
-}) {
+export async function createOrder(payload: CreateOrderPayload) {
   const u = auth.currentUser;
   if (!u) throw new Error('ยังไม่ได้ล็อกอิน');
 
   console.log('createOrder: Starting', { userEmail: u.email, requesterName: payload.requesterName });
 
   try {
-    const orderNo = await getNextNumber('orders');
+    const orderNo = await getNextNumber(COLLECTIONS.ORDERS);
     console.log('createOrder: Got order number', orderNo);
 
     const cleanItems = payload.items.map((it) => ({
@@ -191,7 +151,7 @@ export async function createOrder(payload: {
     };
 
     console.log('createOrder: Saving to Firestore...', { orderNo, total: docData.total });
-    const ref = await addDoc(collection(db, 'orders'), docData);
+    const ref = await addDoc(collection(db, COLLECTIONS.ORDERS), docData);
     console.log('createOrder: Saved with ID', ref.id);
 
     console.log('createOrder: Creating notification...');
@@ -212,7 +172,7 @@ export async function createOrder(payload: {
 
       console.log('createOrder: Notification data', notificationData);
       
-      const notifRef = await addDoc(collection(db, 'notifications'), notificationData);
+      const notifRef = await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), notificationData);
       console.log('createOrder: Notification created', notifRef.id);
       
     } catch (notifError) {
@@ -245,7 +205,7 @@ export async function createOrder(payload: {
 }
 
 export function listenOrdersAll(callback: (orders: Order[]) => void) {
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+  const q = query(collection(db, COLLECTIONS.ORDERS), orderBy('createdAt', 'desc'));
   return onSnapshot(q, (snapshot) => {
     const orders = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -266,7 +226,7 @@ export function listenOrdersAll(callback: (orders: Order[]) => void) {
 
 export function listenUserOrders(userUid: string, callback: (orders: Order[]) => void) {
   const q = query(
-    collection(db, 'orders'), 
+    collection(db, COLLECTIONS.ORDERS), 
     where('requesterUid', '==', userUid),
     orderBy('createdAt', 'desc')
   );
@@ -290,7 +250,7 @@ export function listenUserOrders(userUid: string, callback: (orders: Order[]) =>
 
 export async function getOrder(orderId: string): Promise<Order | null> {
   try {
-    const orderSnap = await getDoc(doc(db, 'orders', orderId));
+    const orderSnap = await getDoc(doc(db, COLLECTIONS.ORDERS, orderId));
     if (!orderSnap.exists()) return null;
     
     const data = orderSnap.data();
@@ -314,7 +274,7 @@ export async function getOrder(orderId: string): Promise<Order | null> {
 }
 
 export async function approveOrder(orderId: string, approved: boolean) {
-  const orderRef = doc(db, 'orders', orderId);
+  const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   const newStatus = approved ? 'approved' : 'rejected';
   
   console.log('approveOrder: Processing approval', {
@@ -433,9 +393,9 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
     newStatus
   });
 
-  const orderRef = doc(db, 'orders', orderId);
+  const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   
-  const isComplete = newStatus === 'คลังสินค้า' || newStatus === 'ส่งมอบของ_2';
+  const isComplete = isProcurementComplete(newStatus);
   
   const updateData: any = {
     procurementStatus: newStatus,
@@ -483,13 +443,13 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
   });
 }
 
-export async function setOrderStatus(orderId: string, status: Order['status']) {
+export async function setOrderStatus(orderId: string, status: OrderStatus) {
   console.log('setOrderStatus: Updating order status', {
     orderId,
     status
   });
 
-  const orderRef = doc(db, 'orders', orderId);
+  const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   await updateDoc(orderRef, {
     status: status,
     updatedAt: serverTimestamp()
@@ -536,7 +496,7 @@ export async function updateOrderItems(orderId: string, updates: {
     updates: Object.keys(updates)
   });
 
-  const orderRef = doc(db, 'orders', orderId);
+  const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   const updateData: any = {
     updatedAt: serverTimestamp(),
     'timestamps.procurementUpdated': serverTimestamp(),
@@ -556,61 +516,13 @@ export async function updateOrderItems(orderId: string, updates: {
   console.log('updateOrderItems: Items updated successfully');
 }
 
-export const generateOrderNumber = (orderNo: number, date: string): string => {
-  const orderDate = new Date(date);
-  const year = orderDate.getFullYear();
-  const month = (orderDate.getMonth() + 1).toString().padStart(2, '0');
-  const number = orderNo.toString().padStart(3, '0');
-  
-  return `PR${year}${month}-${number}`;
-};
+// Helper function for getting status label
+import { getStatusLabel } from './order-utils';
 
-function getStatusLabel(status: Order['status']): string {
-  switch (status) {
-    case 'pending': return 'รออนุมัติ';
-    case 'approved': return 'อนุมัติแล้ว';
-    case 'rejected': return 'ไม่อนุมัติ';
-    case 'in_progress': return 'กำลังดำเนินการ';
-    case 'delivered': return 'ได้รับแล้ว';
-    default: return status;
-  }
-}
-
-export const getItemTypeColor = (itemType: ItemType): string => {
-  switch (itemType) {
-    case 'วัตถุดิบ':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'เครื่องมือ':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'วัสดุสิ้นเปลือง':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'Software/Hardware':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
-
-export const formatCurrency = (amount: number): string => {
-  return amount.toLocaleString('th-TH') + ' บาท';
-};
-
-export const getOrderStats = (orders: Order[]) => {
-  const total = orders.length;
-  const pending = orders.filter(o => o.status === 'pending').length;
-  const approved = orders.filter(o => o.status === 'approved').length;
-  const rejected = orders.filter(o => o.status === 'rejected').length;
-  const inProgress = orders.filter(o => o.status === 'in_progress').length;
-  const delivered = orders.filter(o => o.status === 'delivered').length;
-  const totalAmount = orders.reduce((sum, o) => sum + o.totalAmount, 0);
-
-  return {
-    total,
-    pending,
-    approved,
-    rejected,
-    inProgress,
-    delivered,
-    totalAmount,
-  };
-};
+// Re-export utilities that were moved
+export { 
+  getItemTypeColor,
+  formatCurrency,
+  getOrderStats,
+  getStatusLabel
+} from './order-utils';

@@ -2,7 +2,7 @@ import { d as createComponent, e as createAstro } from '../chunks/astro/server_7
 import 'kleur/colors';
 import 'clsx';
 /* empty css                                  */
-import { v as validateServerSession } from '../chunks/server-session_BqtPVC-t.mjs';
+import { v as validateServerSession } from '../chunks/server-session_BHsHKFG5.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro();

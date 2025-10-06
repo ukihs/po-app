@@ -1,22 +1,142 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, f as DropdownMenuTrigger, g as DropdownMenuContent, k as DropdownMenuLabel, i as DropdownMenuSeparator, h as DropdownMenuItem, C as Card, j as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
+import { u as useAuth, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, j as DropdownMenuLabel, h as DropdownMenuSeparator, g as DropdownMenuItem, C as Card, p as CardContent, B as Badge, q as Separator, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
-import { createContext, useContext, useState, useEffect } from 'react';
-import { c as cn, s as subscribeAuthAndRole, d as db, B as Button, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
-import { getDoc, doc, query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { a as generateOrderNumber, b as approveOrder } from '../../chunks/poApi_BJrAafgi.mjs';
-import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, Activity, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
+import React__default, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { c as cn, d as db, B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
+import { query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
+import { generateOrderNumber, approveOrder } from '../../chunks/poApi_BPDxzvB4.mjs';
+import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import 'next-themes';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BGfyje_r.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BVmw7K_-.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DTMsjQQh.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_aEL3Ocvi.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_D154Dyvp.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_D95jMiPk.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_5IwvD082.mjs';
+import { Slot } from '@radix-ui/react-slot';
+import { cva } from 'class-variance-authority';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BwZ-J0fD.mjs';
 export { renderers } from '../../renderers.mjs';
+
+function ItemGroup({ className, ...props }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      role: "list",
+      "data-slot": "item-group",
+      className: cn("group/item-group flex flex-col", className),
+      ...props
+    }
+  );
+}
+const itemVariants = cva(
+  "group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+  {
+    variants: {
+      variant: {
+        default: "bg-transparent",
+        outline: "border-border",
+        muted: "bg-muted/50"
+      },
+      size: {
+        default: "p-4 gap-4 ",
+        sm: "py-3 px-4 gap-2.5"
+      }
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default"
+    }
+  }
+);
+function Item({
+  className,
+  variant = "default",
+  size = "default",
+  asChild = false,
+  ...props
+}) {
+  const Comp = asChild ? Slot : "div";
+  return /* @__PURE__ */ jsx(
+    Comp,
+    {
+      "data-slot": "item",
+      "data-variant": variant,
+      "data-size": size,
+      className: cn(itemVariants({ variant, size, className })),
+      ...props
+    }
+  );
+}
+const itemMediaVariants = cva(
+  "flex shrink-0 items-center justify-center gap-2 group-has-[[data-slot=item-description]]/item:self-start [&_svg]:pointer-events-none group-has-[[data-slot=item-description]]/item:translate-y-0.5",
+  {
+    variants: {
+      variant: {
+        default: "bg-transparent",
+        icon: "size-8 border rounded-sm bg-muted [&_svg:not([class*='size-'])]:size-4",
+        image: "size-10 rounded-sm overflow-hidden [&_img]:size-full [&_img]:object-cover"
+      }
+    },
+    defaultVariants: {
+      variant: "default"
+    }
+  }
+);
+function ItemMedia({
+  className,
+  variant = "default",
+  ...props
+}) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      "data-slot": "item-media",
+      "data-variant": variant,
+      className: cn(itemMediaVariants({ variant, className })),
+      ...props
+    }
+  );
+}
+function ItemContent({ className, ...props }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      "data-slot": "item-content",
+      className: cn(
+        "flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function ItemTitle({ className, ...props }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      "data-slot": "item-title",
+      className: cn(
+        "flex w-fit items-center gap-2 text-sm leading-snug font-medium",
+        className
+      ),
+      ...props
+    }
+  );
+}
+function ItemActions({ className, ...props }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      "data-slot": "item-actions",
+      className: cn("flex items-center gap-2", className),
+      ...props
+    }
+  );
+}
 
 const StepperContext = createContext(void 0);
 const StepItemContext = createContext(void 0);
@@ -252,13 +372,12 @@ function StepperNav({ children, className }) {
 }
 
 function TrackingPage() {
+  const { user, role, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]);
   const [err, setErr] = useState("");
-  const [role, setRole] = useState(null);
   const [processingOrders, setProcessingOrders] = useState(/* @__PURE__ */ new Set());
-  const [user, setUser] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -267,84 +386,55 @@ function TrackingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   useEffect(() => {
-    let offOrders;
-    let offAuth;
-    offAuth = subscribeAuthAndRole((authUser, userRole) => {
-      if (!authUser) {
-        window.location.href = "/login";
-        return;
+    if (!user || !role || authLoading) return;
+    let q;
+    if (role === "buyer") {
+      q = query(
+        collection(db, COLLECTIONS.ORDERS),
+        where("requesterUid", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
+    } else if (role === "supervisor" || role === "procurement" || role === "superadmin") {
+      q = query(
+        collection(db, COLLECTIONS.ORDERS),
+        orderBy("createdAt", "desc")
+      );
+    } else {
+      setLoading(false);
+      setErr("ไม่พบ role ในระบบ");
+      return;
+    }
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            orderNo: data.orderNo || 0,
+            date: data.date || "",
+            requesterName: data.requesterName || "",
+            requesterUid: data.requesterUid || "",
+            total: Number(data.total || 0),
+            status: data.status || "pending",
+            createdAt: data.createdAt,
+            items: data.items || [],
+            itemsCategories: data.itemsCategories || {},
+            itemsStatuses: data.itemsStatuses || {}
+          };
+        });
+        setRows(list);
+        setFilteredRows(list);
+        setErr("");
+        setLoading(false);
+      },
+      (e) => {
+        setErr(String(e?.message || e));
+        setLoading(false);
       }
-      setUser(authUser);
-      const detectRole = async () => {
-        let detectedRole = userRole;
-        if (!userRole || authUser.email?.includes("tanza") && userRole === "buyer") {
-          try {
-            const userDoc = await getDoc(doc(db, "users", authUser.uid));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              detectedRole = userData.role;
-            }
-          } catch (error) {
-            console.error("Error detecting role:", error);
-          }
-        }
-        setRole(detectedRole);
-        offOrders?.();
-        let q;
-        if (detectedRole === "buyer") {
-          q = query(
-            collection(db, "orders"),
-            where("requesterUid", "==", authUser.uid),
-            orderBy("createdAt", "desc")
-          );
-        } else if (detectedRole === "supervisor" || detectedRole === "procurement") {
-          q = query(
-            collection(db, "orders"),
-            orderBy("createdAt", "desc")
-          );
-        } else {
-          setLoading(false);
-          setErr("ไม่พบ role ในระบบ กรุณาตรวจสอบการตั้งค่า role ใน Firestore");
-          return;
-        }
-        offOrders = onSnapshot(
-          q,
-          (snap) => {
-            const list = snap.docs.map((d) => {
-              const data = d.data();
-              return {
-                id: d.id,
-                orderNo: data.orderNo || 0,
-                date: data.date || "",
-                requesterName: data.requesterName || "",
-                requesterUid: data.requesterUid || "",
-                total: Number(data.total || 0),
-                status: data.status || "pending",
-                createdAt: data.createdAt,
-                items: data.items || [],
-                itemsCategories: data.itemsCategories || {},
-                itemsStatuses: data.itemsStatuses || {}
-              };
-            });
-            setRows(list);
-            setFilteredRows(list);
-            setErr("");
-            setLoading(false);
-          },
-          (e) => {
-            console.error("Orders query error:", e);
-            setErr(String(e?.message || e));
-            setLoading(false);
-          }
-        );
-      };
-      detectRole();
-    });
-    return () => {
-      offOrders?.();
-      offAuth?.();
-    };
-  }, []);
+    );
+    return () => unsubscribe();
+  }, [user, role, authLoading]);
   useEffect(() => {
     let filtered = rows;
     if (searchTerm) {
@@ -375,16 +465,12 @@ function TrackingPage() {
     try {
       setProcessingOrders((prev) => new Set(prev).add(orderId));
       setShowConfirmModal(false);
-      console.log(`กำลัง${action}ใบขอซื้อ...`, orderId);
       await approveOrder(orderId, approved);
-      console.log(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
       toast.success(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
     } catch (error) {
-      console.error("Error approving order:", error);
       const errorMessage = error?.message || "";
       const isPermissionError = errorMessage.includes("permission") || errorMessage.includes("insufficient") || errorMessage.includes("Missing") || errorMessage.includes("FirebaseError");
       if (isPermissionError) {
-        console.warn("Permission warning occurred, checking if operation succeeded");
         setTimeout(() => {
           window.location.reload();
         }, 1e3);
@@ -419,11 +505,17 @@ function TrackingPage() {
     const status = item?.itemStatus || "รอดำเนินการ";
     return status;
   };
-  const paginatedRows = filteredRows.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const paginatedRows = useMemo(
+    () => filteredRows.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    ),
+    [filteredRows, currentPage, itemsPerPage]
   );
-  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredRows.length / itemsPerPage),
+    [filteredRows.length, itemsPerPage]
+  );
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -608,7 +700,7 @@ function TrackingPage() {
         ] }, order.id)) })
       ] }),
       /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
-    ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
+    ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg bg-card border-border", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
           /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold", children: generateOrderNumber(order.orderNo, order.date) }),
@@ -640,52 +732,55 @@ function TrackingPage() {
         renderProgressFlow(order.status)
       ] }),
       order.items && order.items.length > 0 && /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsxs("h4", { className: "text-xs sm:text-sm font-bold mb-2 flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxs("h4", { className: "text-xs sm:text-sm font-bold mb-3 flex items-center gap-2", children: [
           "รายการสินค้า (",
           order.items.length,
           " รายการ)"
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "space-y-2 sm:space-y-3", children: order.items.map((item, idx) => {
+        /* @__PURE__ */ jsx(ItemGroup, { className: "space-y-3", children: order.items.map((item, idx) => {
           const category = getItemCategory(order, idx);
           const itemStatus = getItemStatus(order, idx);
-          return /* @__PURE__ */ jsx("div", { className: "bg-muted rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start mb-2 sm:mb-3 gap-3", children: [
-            /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
-              /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 mb-2", children: /* @__PURE__ */ jsxs("span", { className: "text-xs sm:text-sm font-medium", children: [
-                "รายการที่ ",
-                idx + 1,
-                ' : "',
-                item.description,
-                '"'
-              ] }) }),
-              /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2", children: [
-                /* @__PURE__ */ jsxs(Badge, { variant: "info", appearance: "light", className: "flex items-center gap-1 text-xs", children: [
-                  /* @__PURE__ */ jsx(Tag, { className: "w-2.5 h-2.5 sm:w-3 sm:h-3" }),
-                  "ประเภท: ",
-                  category
+          return /* @__PURE__ */ jsx(React__default.Fragment, { children: /* @__PURE__ */ jsxs(Item, { variant: "outline", size: "default", className: "bg-muted/30 border-border", children: [
+            /* @__PURE__ */ jsx(ItemMedia, { variant: "icon", children: /* @__PURE__ */ jsx("span", { className: "text-sm font-medium text-muted-foreground", children: idx + 1 }) }),
+            /* @__PURE__ */ jsxs(ItemContent, { children: [
+              /* @__PURE__ */ jsx(ItemTitle, { className: "text-base", children: item.description }),
+              /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-3", children: [
+                /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+                  /* @__PURE__ */ jsxs(Badge, { variant: "secondary", size: "sm", className: "flex items-center gap-1.5 bg-secondary/80 text-secondary-foreground border border-border", children: [
+                    /* @__PURE__ */ jsx(Tag, { className: "w-4 h-4" }),
+                    category
+                  ] }),
+                  /* @__PURE__ */ jsxs(
+                    Badge,
+                    {
+                      variant: itemStatus === "รอดำเนินการ" ? "outline" : "secondary",
+                      size: "sm",
+                      className: "flex items-center gap-1.5 bg-secondary/80 text-secondary-foreground border border-border",
+                      children: [
+                        "สถานะ : ",
+                        itemStatus
+                      ]
+                    }
+                  )
                 ] }),
-                /* @__PURE__ */ jsxs(Badge, { variant: "secondary", appearance: "light", className: "flex items-center gap-1 text-xs", children: [
-                  /* @__PURE__ */ jsx(Activity, { className: "w-2.5 h-2.5 sm:w-3 sm:h-3" }),
-                  "สถานะ: ",
-                  itemStatus
+                item.receivedDate && /* @__PURE__ */ jsxs("div", { className: "text-sm text-muted-foreground", children: [
+                  "ต้องการรับ: ",
+                  item.receivedDate
                 ] })
-              ] }),
-              item.receivedDate && /* @__PURE__ */ jsxs("div", { className: "text-xs text-muted-foreground mb-1", children: [
-                "ต้องการรับ: ",
-                item.receivedDate
               ] })
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "text-left sm:text-right w-full sm:min-w-[120px]", children: /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground space-y-0.5", children: [
+            /* @__PURE__ */ jsx(ItemActions, { children: /* @__PURE__ */ jsxs("div", { className: "text-right text-sm text-muted-foreground space-y-1.5", children: [
               /* @__PURE__ */ jsxs("div", { children: [
-                "จำนวน ",
+                "จำนวน: ",
                 item.quantity?.toLocaleString("th-TH")
               ] }),
               /* @__PURE__ */ jsxs("div", { children: [
-                "ราคาต่อหน่วย ",
+                "ราคา: ",
                 item.amount?.toLocaleString("th-TH"),
                 " บาท"
               ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                "รวม ",
+              /* @__PURE__ */ jsxs("div", { className: "font-medium text-foreground", children: [
+                "รวม: ",
                 item.lineTotal?.toLocaleString("th-TH"),
                 " บาท"
               ] })
@@ -716,7 +811,7 @@ function TrackingPage() {
             {
               variant: "outline",
               size: "sm",
-              className: "w-full sm:w-auto text-xs",
+              className: "w-full sm:w-auto text-xs border-border bg-background hover:bg-accent",
               onClick: () => window.open(`/orders/${order.id}`, "_blank"),
               children: [
                 /* @__PURE__ */ jsx(Eye, { className: "h-3 w-3 sm:h-4 sm:w-4 mr-1" }),
@@ -732,7 +827,7 @@ function TrackingPage() {
                 disabled: processingOrders.has(order.id),
                 size: "sm",
                 variant: "destructive",
-                className: "font-normal text-xs w-full sm:w-auto",
+                className: "font-normal text-xs w-full sm:w-auto border-border",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3 mr-1" }),
                   "ไม่อนุมัติ"
@@ -745,7 +840,7 @@ function TrackingPage() {
                 onClick: () => showApprovalModal(order.id, true, order.orderNo, order.requesterName),
                 disabled: processingOrders.has(order.id),
                 size: "sm",
-                className: "bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto",
+                className: "bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto border border-green-600",
                 children: [
                   processingOrders.has(order.id) ? /* @__PURE__ */ jsx(RefreshCw, { className: "w-3 h-3 mr-1 animate-spin" }) : /* @__PURE__ */ jsx(CheckCircle, { className: "w-3 h-3 mr-1" }),
                   "อนุมัติ"

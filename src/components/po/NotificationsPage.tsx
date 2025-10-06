@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNotifications } from '../../hooks/use-notifications';
+import type { Notification, UserRole } from '../../types';
+import { ROLE_DISPLAY_NAMES } from '../../lib/constants';
 import { 
   Bell, 
   ArrowRight,
@@ -21,19 +23,7 @@ import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 
-type Noti = {
-  id: string;
-  title: string;
-  message?: string;
-  orderId?: string;
-  orderNo?: number;
-  createdAt?: any;
-  read?: boolean;
-  toUserUid?: string;
-  fromUserName?: string;
-  kind?: 'approval_request' | 'approved' | 'rejected' | 'status_update';
-  forRole?: 'procurement' | 'supervisor' | 'buyer' | 'superadmin';
-};
+type Noti = Notification & { id: string };
 
 const fmt = (ts: any) => {
   if (!ts?.toDate) return '';
@@ -42,12 +32,7 @@ const fmt = (ts: any) => {
 };
 
 const getRoleDisplayName = (role: string) => {
-  switch (role) {
-    case 'buyer': return 'ผู้ขอซื้อ';
-    case 'supervisor': return 'หัวหน้างาน';
-    case 'procurement': return 'ฝ่ายจัดซื้อ';
-    default: return role;
-  }
+  return ROLE_DISPLAY_NAMES[role as keyof typeof ROLE_DISPLAY_NAMES] || role;
 };
 
 export default function NotificationsPage() {
@@ -88,10 +73,20 @@ export default function NotificationsPage() {
 
     return filtered;
   }, [notifications, searchTerm, filterType, sortBy]);
-  const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = filteredAndSortedItems.slice(startIndex, endIndex);
+  
+  const totalPages = useMemo(
+    () => Math.ceil(filteredAndSortedItems.length / itemsPerPage),
+    [filteredAndSortedItems.length, itemsPerPage]
+  );
+  
+  const paginatedItems = useMemo(
+    () => {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return filteredAndSortedItems.slice(startIndex, endIndex);
+    },
+    [filteredAndSortedItems, currentPage, itemsPerPage]
+  );
 
   const markReadAndGo = async (n: Noti) => {
     try {
@@ -124,6 +119,8 @@ export default function NotificationsPage() {
     setItemsPerPage(Number(newItemsPerPage));
     setCurrentPage(1);
   };
+
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterType, sortBy]);
@@ -421,7 +418,7 @@ export default function NotificationsPage() {
             </div>
 
             <div className="text-xs sm:text-sm text-muted-foreground">
-              {startIndex + 1} - {Math.min(endIndex, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length}
+              {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length}
             </div>
           </div>
 

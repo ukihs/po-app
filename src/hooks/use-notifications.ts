@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../firebase/client';
-import { subscribeAuthAndRole } from '../lib/auth';
+import { useAuth } from './useAuth';
 import {
   collection,
   query,
@@ -11,52 +11,37 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
-
-export type Notification = {
-  id: string;
-  title: string;
-  message?: string;
-  orderId?: string;
-  orderNo?: number;
-  createdAt?: any;
-  read?: boolean;
-  toUserUid?: string;
-  fromUserName?: string;
-  kind?: 'approval_request' | 'approved' | 'rejected' | 'status_update';
-  forRole?: 'procurement' | 'supervisor' | 'buyer' | 'superadmin';
-};
+import type { Notification } from '../types';
+import { COLLECTIONS } from '../lib/constants';
 
 export function useNotifications() {
+  const { user, role, isLoading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
   
   const stopSnap = useRef<Unsubscribe | null>(null);
-  const stopAuth = useRef<Unsubscribe | null>(null);
 
   useEffect(() => {
-    stopAuth.current = subscribeAuthAndRole((user, userRole) => {
-      if (stopSnap.current) {
-        stopSnap.current();
-        stopSnap.current = null;
-      }
+    if (stopSnap.current) {
+      stopSnap.current();
+      stopSnap.current = null;
+    }
 
-      if (!user) {
-        setNotifications([]);
-        setUnreadCount(0);
-        setLoading(false);
-        return;
-      }
+    if (!user || !role || authLoading) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setLoading(false);
+      return;
+    }
 
-      setRole(userRole);
-      setLoading(true);
-      setError('');
+    setLoading(true);
+    setError('');
 
-      if (userRole === 'buyer') {
+      if (role === 'buyer') {
         const q = query(
-          collection(db, 'notifications'),
+          collection(db, COLLECTIONS.NOTIFICATIONS),
           where('toUserUid', '==', user.uid),
           orderBy('createdAt', 'desc')
         );
@@ -77,15 +62,15 @@ export function useNotifications() {
             setLoading(false);
           }
         );
-      } else if (userRole === 'supervisor') {
+      } else if (role === 'supervisor') {
         const personalQ = query(
-          collection(db, 'notifications'),
+          collection(db, COLLECTIONS.NOTIFICATIONS),
           where('toUserUid', '==', user.uid),
           orderBy('createdAt', 'desc')
         );
 
         const roleQ = query(
-          collection(db, 'notifications'),
+          collection(db, COLLECTIONS.NOTIFICATIONS),
           where('forRole', '==', 'supervisor'),
           orderBy('createdAt', 'desc')
         );
@@ -136,15 +121,15 @@ export function useNotifications() {
           unsubPersonal();
           unsubRole();
         };
-      } else if (userRole === 'procurement') {
+      } else if (role === 'procurement') {
         const personalQ = query(
-          collection(db, 'notifications'),
+          collection(db, COLLECTIONS.NOTIFICATIONS),
           where('toUserUid', '==', user.uid),
           orderBy('createdAt', 'desc')
         );
 
         const roleQ = query(
-          collection(db, 'notifications'),
+          collection(db, COLLECTIONS.NOTIFICATIONS),
           where('forRole', '==', 'procurement'),
           orderBy('createdAt', 'desc')
         );
@@ -201,19 +186,11 @@ export function useNotifications() {
         setLoading(false);
         return;
       }
-    });
-
-    return () => {
-      if (stopSnap.current) stopSnap.current();
-      if (stopAuth.current) stopAuth.current();
-      stopSnap.current = null;
-      stopAuth.current = null;
-    };
-  }, []);
+  }, [user, role, authLoading]);
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await updateDoc(doc(db, 'notifications', notificationId), { 
+      await updateDoc(doc(db, COLLECTIONS.NOTIFICATIONS, notificationId), { 
         read: true,
         readAt: new Date()
       });
@@ -226,7 +203,7 @@ export function useNotifications() {
     try {
       const unreadNotifications = notifications.filter(n => !n.read);
       const promises = unreadNotifications.map(n => 
-        updateDoc(doc(db, 'notifications', n.id), { 
+        updateDoc(doc(db, COLLECTIONS.NOTIFICATIONS, n.id), { 
           read: true,
           readAt: new Date()
         })

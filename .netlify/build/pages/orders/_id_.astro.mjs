@@ -1,75 +1,78 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, j as CardContent, B as Badge, a as CardHeader, r as CardTitle, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
+import { u as useAuth, C as Card, p as CardContent, B as Badge, a as CardHeader, s as CardTitle, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
-import { s as subscribeAuthAndRole, d as db, B as Button, f as auth } from '../../chunks/auth_DhMUJu7S.mjs';
+import { B as Button, d as db, f as auth } from '../../chunks/auth_B6D8HlLm.mjs';
 import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_D95jMiPk.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
+import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function OrderDetailPage({ orderId }) {
+  const { user, role, isLoading: authLoading } = useAuth();
   const [order, setOrder] = useState(null);
-  const [role, setRole] = useState("buyer");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   useEffect(() => {
-    const off = subscribeAuthAndRole(async (authUser, r) => {
-      if (!authUser) {
-        window.location.href = "/login";
-        return;
-      }
+    if (!user || !role || authLoading) return;
+    const fetchOrder = async () => {
       try {
-        const snap = await getDoc(doc(db, "orders", orderId));
+        const snap = await getDoc(doc(db, COLLECTIONS.ORDERS, orderId));
         setOrder(snap.exists() ? { id: snap.id, ...snap.data() } : null);
-        let effective = r || "buyer";
-        if (!effective) {
-          try {
-            const prof = await getDoc(doc(db, "users", authUser.uid));
-            if (prof.exists()) {
-              effective = prof.data()?.role ?? "buyer";
-            }
-          } catch {
-          }
-        }
-        setRole(effective);
       } catch (e) {
         setErr(e.message || String(e));
       } finally {
         setLoading(false);
       }
-    });
-    return () => {
-      off?.();
     };
-  }, [orderId]);
+    fetchOrder();
+  }, [user, role, authLoading, orderId]);
   const approve = async () => {
     if (!order?.id || saving) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, "orders", order.id), {
+      await updateDoc(doc(db, COLLECTIONS.ORDERS, order.id), {
         status: "approved",
         approvedByUid: auth.currentUser?.uid || null,
         approvedAt: serverTimestamp()
       });
-      await addDoc(collection(db, "notifications"), {
-        toRole: "procurement",
+      await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
+        toUserUid: order.requesterUid,
         orderId: order.id,
         orderNo: order.orderNo,
-        title: "ใบสั่งซื้อได้รับอนุมัติ",
-        message: `#${order.orderNo} โดย ${order.requesterName}`,
+        title: "ใบสั่งซื้อได้รับการอนุมัติ",
+        message: `ใบสั่งซื้อ #${order.orderNo} ได้รับการอนุมัติแล้ว`,
         kind: "approved",
+        fromUserUid: auth.currentUser?.uid || "",
+        fromUserName: auth.currentUser?.displayName || "หัวหน้างาน",
         read: false,
         createdAt: serverTimestamp()
       });
-      alert("อนุมัติเรียบร้อย");
+      try {
+        const poApi = await import('../../chunks/poApi_BPDxzvB4.mjs');
+        await poApi.createNotification({
+          title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
+          message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
+          orderId: order.id,
+          orderNo: order.orderNo,
+          kind: "status_update",
+          forRole: "procurement",
+          fromUserName: auth.currentUser?.displayName || "หัวหน้างาน"
+        });
+      } catch (procurementNotifError) {
+        console.error("Failed to send procurement notification:", procurementNotifError);
+      }
+      toast.success("อนุมัติเรียบร้อย");
       window.location.href = "/orders/list";
     } catch (e) {
       console.error(e);
-      alert(e.message || "อนุมัติไม่สำเร็จ");
+      toast.error(e.message || "อนุมัติไม่สำเร็จ");
     } finally {
       setSaving(false);
     }
@@ -79,27 +82,29 @@ function OrderDetailPage({ orderId }) {
     const reason = prompt("เหตุผลการไม่อนุมัติ (ใส่หรือเว้นว่างก็ได้)") || "";
     setSaving(true);
     try {
-      await updateDoc(doc(db, "orders", order.id), {
+      await updateDoc(doc(db, COLLECTIONS.ORDERS, order.id), {
         status: "rejected",
         rejectedByUid: auth.currentUser?.uid || null,
         rejectedAt: serverTimestamp(),
         rejectReason: reason
       });
-      await addDoc(collection(db, "notifications"), {
-        toRole: "procurement",
+      await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
+        toUserUid: order.requesterUid,
         orderId: order.id,
         orderNo: order.orderNo,
-        title: "ใบสั่งซื้อไม่ได้รับอนุมัติ",
-        message: `#${order.orderNo} โดย ${order.requesterName}${reason ? ` (เหตุผล: ${reason})` : ""}`,
+        title: "ใบสั่งซื้อไม่ได้รับการอนุมัติ",
+        message: `ใบสั่งซื้อ #${order.orderNo} ไม่ได้รับการอนุมัติ${reason ? ` (เหตุผล: ${reason})` : ""}`,
         kind: "rejected",
+        fromUserUid: auth.currentUser?.uid || "",
+        fromUserName: auth.currentUser?.displayName || "หัวหน้างาน",
         read: false,
         createdAt: serverTimestamp()
       });
-      alert("ทำรายการไม่อนุมัติแล้ว");
+      toast.success("ทำรายการไม่อนุมัติแล้ว");
       window.location.href = "/orders/list";
     } catch (e) {
       console.error(e);
-      alert(e.message || "ไม่อนุมัติไม่สำเร็จ");
+      toast.error(e.message || "ไม่อนุมัติไม่สำเร็จ");
     } finally {
       setSaving(false);
     }
@@ -116,11 +121,14 @@ function OrderDetailPage({ orderId }) {
   };
   const isPending = order?.status === "pending";
   const canApprove = role === "supervisor" && isPending;
-  if (loading) {
+  if (authLoading || loading) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full py-10 text-center", children: [
       /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin mx-auto" }),
       /* @__PURE__ */ jsx("div", { className: "mt-3 text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
     ] });
+  }
+  if (!user || !role) {
+    return /* @__PURE__ */ jsx("div", { className: "w-full py-10 text-center", children: /* @__PURE__ */ jsx(Alert, { variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: "กรุณาเข้าสู่ระบบ" }) }) });
   }
   if (err) {
     return /* @__PURE__ */ jsx(Alert, { variant: "destructive", children: /* @__PURE__ */ jsxs(AlertDescription, { children: [
@@ -136,11 +144,15 @@ function OrderDetailPage({ orderId }) {
   }
   const statusInfo = getStatusInfo(String(order.status));
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
-      /* @__PURE__ */ jsx(FileText, { className: "h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" }),
-      "ใบสั่งซื้อ #",
-      order.orderNo
-    ] }) }),
+    /* @__PURE__ */ jsx(Toaster, {}),
+    /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
+      /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
+        /* @__PURE__ */ jsx(FileText, { className: "h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" }),
+        "ใบสั่งซื้อ #",
+        order.orderNo
+      ] }),
+      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: "รายละเอียดใบสั่งซื้อ" })
+    ] }),
     /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6", children: [
       /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(CardContent, { className: "p-3 sm:p-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2", children: [
@@ -162,7 +174,7 @@ function OrderDetailPage({ orderId }) {
           /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm font-medium", children: "ยอดรวม" })
         ] }),
         /* @__PURE__ */ jsxs("p", { className: "font-semibold text-sm sm:text-base", children: [
-          (order.totalAmount || order.grandTotal || 0).toLocaleString("th-TH"),
+          (order.totalAmount || order.total || 0).toLocaleString("th-TH"),
           " บาท"
         ] })
       ] }) }),

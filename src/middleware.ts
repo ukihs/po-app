@@ -1,23 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { validateServerSession } from './lib/server-session';
-
-const PROTECTED_ROUTES = [
-  '/orders/create',
-  '/orders/tracking', 
-  '/orders/notifications',
-  '/orders/list',
-  '/admin/users',
-  '/admin/orders'
-];
-
-const ROLE_PERMISSIONS = {
-  '/orders/create': ['buyer'],
-  '/orders/tracking': ['buyer', 'supervisor', 'procurement'],
-  '/orders/notifications': ['buyer', 'supervisor', 'procurement'],
-  '/orders/list': ['supervisor', 'procurement'],
-  '/admin/users': ['superadmin'],
-  '/admin/orders': ['superadmin']
-};
+import { PROTECTED_ROUTES, ROLE_PERMISSIONS, COOKIE_NAMES } from './lib/constants';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, redirect } = context;
@@ -29,7 +12,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  const sessionId = cookies.get('session-id')?.value;
+  const sessionId = cookies.get(COOKIE_NAMES.SESSION_ID)?.value;
   
   if (!sessionId) {
     return redirect('/login');
@@ -39,7 +22,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const user = validateServerSession(sessionId);
     
     if (!user) {
-      cookies.delete('session-id', { path: '/' });
+      cookies.delete(COOKIE_NAMES.SESSION_ID, { path: '/' });
       return redirect('/login');
     }
     
@@ -53,7 +36,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     
   } catch (error) {
     console.error(`[Auth] Session validation failed for ${pathname}:`, error);
-    cookies.delete('session-id', { path: '/' });
+    cookies.delete(COOKIE_NAMES.SESSION_ID, { path: '/' });
     return redirect('/login');
   }
 

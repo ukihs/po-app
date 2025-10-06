@@ -1,14 +1,8 @@
 import { serverAuth, serverDb } from '../firebase/server';
+import type { UserRole, AuthUser } from '../types';
+import { SESSION_TIMEOUT_MS, SESSION_CLEANUP_INTERVAL_MS } from './constants';
 
-export type UserRole = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
-
-export interface AuthUser {
-  uid: string;
-  email: string;
-  displayName: string;
-  role: UserRole;
-  emailVerified: boolean;
-}
+export type { UserRole, AuthUser };
 
 const sessionStore = new Map<string, {
   user: AuthUser;
@@ -35,7 +29,7 @@ export async function createServerSession(idToken: string): Promise<string> {
     };
 
     const sessionId = generateSessionId();
-    const expiresAt = Date.now() + (8 * 60 * 60 * 1000);
+    const expiresAt = Date.now() + SESSION_TIMEOUT_MS;
     
     sessionStore.set(sessionId, {
       user,
@@ -85,4 +79,4 @@ function generateSessionId(): string {
     .join('');
 }
 
-setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
+setInterval(cleanupExpiredSessions, SESSION_CLEANUP_INTERVAL_MS);

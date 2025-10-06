@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { auth, db } from '../../firebase/client';
-import { collection, onSnapshot, orderBy, query, where, doc, getDoc } from 'firebase/firestore';
-import { subscribeAuthAndRole } from '../../lib/auth';
+import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { useAuth } from '../../hooks/useAuth';
+import type { OrderStatus, OrderItem } from '../../types';
+import { COLLECTIONS } from '../../lib/constants';
 import { approveOrder, generateOrderNumber } from '../../lib/poApi';
 import { 
   FileText, 
@@ -15,7 +17,6 @@ import {
   XCircle,
   Truck,
   Tag,
-  Activity,
   RefreshCw,
   Search,
   Filter,
@@ -46,6 +47,15 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { 
+  Item, 
+  ItemGroup, 
+  ItemMedia, 
+  ItemContent, 
+  ItemTitle, 
+  ItemDescription, 
+  ItemActions
+} from '../ui/item';
+import { 
   Stepper, 
   StepperItem, 
   StepperTrigger, 
@@ -58,19 +68,6 @@ import {
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 import { cn } from '../../lib/utils';
 
-type Status = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
-
-interface OrderItem {
-  description?: string;
-  quantity?: number;
-  amount?: number;
-  lineTotal?: number;
-  receivedDate?: string;
-  category?: string;
-  itemStatus?: string;
-  itemType?: string;
-}
-
 interface OrderData {
   id: string;
   orderNo: number;
@@ -78,7 +75,7 @@ interface OrderData {
   requesterName: string;
   requesterUid: string;
   total: number;
-  status: Status;
+  status: OrderStatus;
   createdAt: any;
   items?: OrderItem[];
   itemsCategories?: Record<string, string>;
@@ -86,13 +83,12 @@ interface OrderData {
 }
 
 export default function TrackingPage() {
+  const { user, role, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<OrderData[]>([]);
   const [filteredRows, setFilteredRows] = useState<OrderData[]>([]);
   const [err, setErr] = useState('');
-  const [role, setRole] = useState<'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null>(null);
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
-  const [user, setUser] = useState<any>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState<{
     orderId: string;
@@ -107,94 +103,59 @@ export default function TrackingPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    let offOrders: any;
-    let offAuth: any;
+    if (!user || !role || authLoading) return;
 
-    offAuth = subscribeAuthAndRole((authUser, userRole) => {
-      if (!authUser) {
-        window.location.href = '/login';
-        return;
-      }
+    let q;
+    if (role === 'buyer') {
+      q = query(
+        collection(db, COLLECTIONS.ORDERS),
+        where('requesterUid', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+    } else if (role === 'supervisor' || role === 'procurement' || role === 'superadmin') {
+      q = query(
+        collection(db, COLLECTIONS.ORDERS),
+        orderBy('createdAt', 'desc')
+      );
+    } else {
+      setLoading(false);
+      setErr('ไม่พบ role ในระบบ');
+      return;
+    }
 
-      setUser(authUser);
-      
-      const detectRole = async () => {
-        let detectedRole = userRole;
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            orderNo: data.orderNo || 0,
+            date: data.date || '',
+            requesterName: data.requesterName || '',
+            requesterUid: data.requesterUid || '',
+            total: Number(data.total || 0),
+            status: (data.status || 'pending') as OrderStatus,
+            createdAt: data.createdAt,
+            items: data.items || [],
+            itemsCategories: data.itemsCategories || {},
+            itemsStatuses: data.itemsStatuses || {},
+          };
+        });
         
-        if (!userRole || (authUser.email?.includes('tanza') && userRole === 'buyer')) {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', authUser.uid));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              detectedRole = userData.role;
-            }
-          } catch (error) {
-            console.error('Error detecting role:', error);
-          }
-        }
+        setRows(list);
+        setFilteredRows(list);
+        setErr('');
+        setLoading(false);
+      },
+      (e) => {
+        setErr(String(e?.message || e));
+        setLoading(false);
+      }
+    );
 
-        setRole(detectedRole);
-        offOrders?.();
-
-        let q;
-        if (detectedRole === 'buyer') {
-          q = query(
-            collection(db, 'orders'),
-            where('requesterUid', '==', authUser.uid),
-            orderBy('createdAt', 'desc')
-          );
-        } else if (detectedRole === 'supervisor' || detectedRole === 'procurement') {
-          q = query(
-            collection(db, 'orders'),
-            orderBy('createdAt', 'desc')
-          );
-        } else {
-          setLoading(false);
-          setErr('ไม่พบ role ในระบบ กรุณาตรวจสอบการตั้งค่า role ใน Firestore');
-          return;
-        }
-
-        offOrders = onSnapshot(
-          q,
-          (snap) => {
-            const list = snap.docs.map((d) => {
-              const data = d.data() as any;
-              return {
-                id: d.id,
-                orderNo: data.orderNo || 0,
-                date: data.date || '',
-                requesterName: data.requesterName || '',
-                requesterUid: data.requesterUid || '',
-                total: Number(data.total || 0),
-                status: (data.status || 'pending') as Status,
-                createdAt: data.createdAt,
-                items: data.items || [],
-                itemsCategories: data.itemsCategories || {},
-                itemsStatuses: data.itemsStatuses || {},
-              };
-            });
-            
-            setRows(list);
-            setFilteredRows(list);
-            setErr('');
-            setLoading(false);
-          },
-          (e) => {
-            console.error('Orders query error:', e);
-            setErr(String(e?.message || e));
-            setLoading(false);
-          }
-        );
-      };
-
-      detectRole();
-    });
-
-    return () => {
-      offOrders?.();
-      offAuth?.();
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [user, role, authLoading]);
 
   useEffect(() => {
     let filtered = rows;
@@ -236,17 +197,11 @@ export default function TrackingPage() {
       setProcessingOrders(prev => new Set(prev).add(orderId));
       setShowConfirmModal(false);
       
-      console.log(`กำลัง${action}ใบขอซื้อ...`, orderId);
-      
       await approveOrder(orderId, approved);
-      
-      console.log(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
       
       toast.success(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
       
     } catch (error) {
-      console.error('Error approving order:', error);
-      
       const errorMessage = (error as any)?.message || '';
       const isPermissionError = errorMessage.includes('permission') || 
                                errorMessage.includes('insufficient') ||
@@ -254,8 +209,6 @@ export default function TrackingPage() {
                                errorMessage.includes('FirebaseError');
       
       if (isPermissionError) {
-        console.warn('Permission warning occurred, checking if operation succeeded');
-        
         setTimeout(() => {
           window.location.reload();
         }, 1000);
@@ -299,12 +252,19 @@ export default function TrackingPage() {
     return status;
   };
 
-  const paginatedRows = filteredRows.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+
+  const paginatedRows = useMemo(
+    () => filteredRows.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    ),
+    [filteredRows, currentPage, itemsPerPage]
   );
 
-  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredRows.length / itemsPerPage),
+    [filteredRows.length, itemsPerPage]
+  );
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -554,7 +514,7 @@ export default function TrackingPage() {
       ) : (
         <div className="space-y-4 sm:space-y-6">
           {paginatedRows.map((order) => (
-          <Card key={order.id} className="shadow-lg">
+          <Card key={order.id} className="shadow-lg bg-card border-border">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3">
                 <div className="flex-1 w-full">
@@ -592,57 +552,64 @@ export default function TrackingPage() {
 
               {order.items && order.items.length > 0 && (
                 <div>
-                  <h4 className="text-xs sm:text-sm font-bold mb-2 flex items-center gap-2">
+                  <h4 className="text-xs sm:text-sm font-bold mb-3 flex items-center gap-2">
                     รายการสินค้า ({order.items.length} รายการ)
                   </h4>
                   
-                  <div className="space-y-2 sm:space-y-3">
+                  <ItemGroup className="space-y-3">
                     {order.items.map((item: OrderItem, idx: number) => {
                       const category = getItemCategory(order, idx);
                       const itemStatus = getItemStatus(order, idx);
                       
                       return (
-                        <div key={idx} className="bg-muted rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 border">
-                          <div className="flex flex-col sm:flex-row justify-between items-start mb-2 sm:mb-3 gap-3">
-                            <div className="flex-1 w-full">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs sm:text-sm font-medium">
-                                  รายการที่ {idx + 1} : "{item.description}"
-                                </span>
-                              </div>
-                              
-                              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-                                <Badge variant="info" appearance="light" className="flex items-center gap-1 text-xs">
-                                  <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                  ประเภท: {category}
-                                </Badge>
-                                <Badge variant="secondary" appearance="light" className="flex items-center gap-1 text-xs">
-                                  <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                  สถานะ: {itemStatus}
-                                </Badge>
-                              </div>
-                              
-                              {item.receivedDate && (
-                                <div className="text-xs text-muted-foreground mb-1">
-                                  ต้องการรับ: {item.receivedDate}
-                                </div>
-                              )}
-                            </div>
+                        <React.Fragment key={idx}>
+                          <Item variant="outline" size="default" className="bg-muted/30 border-border">
+                            <ItemMedia variant="icon">
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {idx + 1}
+                              </span>
+                            </ItemMedia>
                             
-                            <div className="text-left sm:text-right w-full sm:min-w-[120px]">
-                              <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5">
-                                <div>จำนวน {item.quantity?.toLocaleString('th-TH')}</div>
-                                <div>ราคาต่อหน่วย {item.amount?.toLocaleString('th-TH')} บาท</div>
-                                <div>รวม {item.lineTotal?.toLocaleString('th-TH')} บาท
+                            <ItemContent>
+                              <ItemTitle className="text-base">
+                                {item.description}
+                              </ItemTitle>
+                              <div className="flex flex-col gap-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge variant="secondary" size="sm" className="flex items-center gap-1.5 bg-secondary/80 text-secondary-foreground border border-border">
+                                    <Tag className="w-4 h-4" />
+                                    {category}
+                                  </Badge>
+                                  <Badge 
+                                    variant={itemStatus === 'รอดำเนินการ' ? 'outline' : 'secondary'} 
+                                    size="sm" 
+                                    className="flex items-center gap-1.5 bg-secondary/80 text-secondary-foreground border border-border"
+                                  >
+                                    สถานะ : {itemStatus}
+                                  </Badge>
+                                </div>
+                                {item.receivedDate && (
+                                  <div className="text-sm text-muted-foreground">
+                                    ต้องการรับ: {item.receivedDate}
+                                  </div>
+                                )}
+                              </div>
+                            </ItemContent>
+                            
+                            <ItemActions>
+                              <div className="text-right text-sm text-muted-foreground space-y-1.5">
+                                <div>จำนวน: {item.quantity?.toLocaleString('th-TH')}</div>
+                                <div>ราคา: {item.amount?.toLocaleString('th-TH')} บาท</div>
+                                <div className="font-medium text-foreground">
+                                  รวม: {item.lineTotal?.toLocaleString('th-TH')} บาท
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                          
-                        </div>
+                            </ItemActions>
+                          </Item>
+                        </React.Fragment>
                       );
                     })}
-                  </div>
+                  </ItemGroup>
 
                   <Separator className="my-2 sm:my-3"/>
                    <h4 className="text-xs sm:text-sm font-bold mb-2 flex items-center gap-2">
@@ -665,7 +632,7 @@ export default function TrackingPage() {
                      <Button
                        variant="outline"
                        size="sm"
-                       className="w-full sm:w-auto text-xs"
+                       className="w-full sm:w-auto text-xs border-border bg-background hover:bg-accent"
                        onClick={() => window.open(`/orders/${order.id}`, '_blank')}
                      >
                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -679,7 +646,7 @@ export default function TrackingPage() {
                            disabled={processingOrders.has(order.id)}
                            size="sm"
                            variant="destructive"
-                           className="font-normal text-xs w-full sm:w-auto"
+                           className="font-normal text-xs w-full sm:w-auto border-border"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -692,7 +659,7 @@ export default function TrackingPage() {
                            onClick={() => showApprovalModal(order.id, true, order.orderNo, order.requesterName)}
                            disabled={processingOrders.has(order.id)}
                            size="sm"
-                           className="bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto"
+                           className="bg-green-600 hover:bg-green-700 text-white font-normal text-xs w-full sm:w-auto border border-green-600"
                          >
                            {processingOrders.has(order.id) ? (
                              <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
@@ -894,7 +861,7 @@ export default function TrackingPage() {
   );
 }
 
-function getStatusBadge(status: Status) {
+function getStatusBadge(status: OrderStatus) {
   switch (status) {
     case 'pending':
       return (
@@ -941,8 +908,8 @@ function getStatusBadge(status: Status) {
   }
 }
 
-function renderProgressFlow(status: Status) {
-  const getCurrentStep = (orderStatus: Status): number => {
+function renderProgressFlow(status: OrderStatus) {
+  const getCurrentStep = (orderStatus: OrderStatus): number => {
     switch (orderStatus) {
       case 'pending':
         return 2;
@@ -959,7 +926,7 @@ function renderProgressFlow(status: Status) {
     }
   };
 
-  const getStepStatus = (step: number, currentStep: number, orderStatus: Status) => {
+  const getStepStatus = (step: number, currentStep: number, orderStatus: OrderStatus) => {
     if (step < currentStep) return 'completed';
     if (step === currentStep) {
       if (orderStatus === 'rejected' && step === 2) return 'rejected';

@@ -10,100 +10,58 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { subscribeAuthAndRole } from '../../lib/auth';
-import { Loader2, FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { toast } from 'sonner';
 import { Toaster } from '../ui/sonner';
-import OrdersDataTable from './OrdersDataTable';
-
-type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin' | null;
-type OrderStatus = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
-
-type OrderItem = {
-  description?: string;
-  quantity?: number;
-  amount?: number;
-  lineTotal?: number;
-  category?: string;
-  itemStatus?: string;
-};
-
-type Order = {
-  id: string;
-  orderNo?: number;
-  date?: string;
-  requester?: string;
-  requesterName?: string;
-  requesterUid?: string;
-  total?: number;
-  totalAmount?: number;
-  status: OrderStatus;
-  createdAt?: any;
-  items?: OrderItem[];
-  itemsCategories?: Record<string, string>;
-  itemsStatuses?: Record<string, string>;
-};
+import type { Order } from '../../types';
+import OrdersManagementDataTable from './OrdersManagementDataTable';
 
 export default function OrdersManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [role, setRole] = useState<Role>(null);
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  const { user, role, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
-    let unsub: (() => void) | undefined;
+    if (authLoading) return;
 
-    const off = subscribeAuthAndRole(async (authUser, r) => {
-      if (!authUser) {
-        window.location.href = '/login';
-        return;
-      }
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
 
-      let effective: Role = (r as Role) || (localStorage.getItem('role') as Role) || null;
-      if (!effective) {
-        try {
-          const u = await doc(db, 'users', authUser.uid);
-          // Note: This needs to be fixed - should use getDoc
-        } catch { }
-      }
-      setRole(effective);
-      setUser(authUser);
+    if (role !== 'superadmin') {
+      setErr('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+      setLoading(false);
+      return;
+    }
 
-      // ตรวจสอบสิทธิ์ superadmin
-      if (effective !== 'superadmin') {
-        setErr('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+    const qRef = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(
+      qRef,
+      (snap) => {
+        const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as Order[];
+        setOrders(list);
+        setErr('');
         setLoading(false);
-        return;
+      },
+      (e) => {
+        setErr(String(e?.message || e));
+        setLoading(false);
       }
-
-      unsub?.();
-      const qRef = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      unsub = onSnapshot(
-        qRef,
-        (snap) => {
-          const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as Order[];
-          setOrders(list);
-          setErr('');
-          setLoading(false);
-        },
-        (e) => {
-          setErr(String(e?.message || e));
-          setLoading(false);
-        }
-      );
-    });
+    );
 
     return () => {
-      unsub?.();
-      off?.();
+      unsub();
     };
-  }, []);
+  }, [user, role, authLoading]);
 
   const handleViewOrder = (order: Order) => {
     window.open(`/orders/${order.id}`, '_blank');
@@ -171,23 +129,22 @@ export default function OrdersManagementPage() {
 
   return (
     <div className="w-full">
-      <Toaster />
-
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
-          <FileText className="w-8 h-8 text-[#2b9ccc]" />
+          <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
           จัดการใบขอซื้อ
         </h1>
       </div>
 
-      <OrdersDataTable 
+      <Toaster />
+
+      <OrdersManagementDataTable 
         data={orders}
         loading={loading}
         onViewOrder={handleViewOrder}
         onDeleteOrder={handleDeleteOrder}
       />
 
-      {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>

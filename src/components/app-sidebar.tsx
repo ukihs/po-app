@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState, useMemo, useCallback } from "react"
-import { subscribeAuthAndRole } from "@/lib/auth"
+import { useAuth } from "@/hooks/useAuth"
+import type { UserRole } from "@/types"
+import { ROLE_DISPLAY_NAMES } from "@/lib/constants"
 import {
   Plus,
   FileText,
@@ -31,12 +33,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-interface User {
-  uid: string;
-  email: string | null;
-  displayName?: string | null;
-}
-
 interface NavItem {
   title: string;
   url: string;
@@ -45,54 +41,9 @@ interface NavItem {
   badge?: React.ReactNode;
 }
 
-type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, role, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('');
-
-  useEffect(() => {
-    const savedRole = sessionStorage.getItem('po_user_role');
-    const savedUserData = sessionStorage.getItem('po_user_data');
-    
-    if (savedRole && savedUserData) {
-      try {
-        setUser(JSON.parse(savedUserData));
-        setRole(savedRole as Role);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Failed to parse saved user data:', error);
-      }
-    }
-
-    const off = subscribeAuthAndRole((u, r) => {
-      try {
-        setUser(u);
-        setRole(r);
-        setIsLoading(false);
-
-        if (r && u) {
-          sessionStorage.setItem('po_user_role', r);
-          sessionStorage.setItem('po_user_email', u.email || '');
-          sessionStorage.setItem('po_user_data', JSON.stringify(u));
-        } else {
-          sessionStorage.removeItem('po_user_role');
-          sessionStorage.removeItem('po_user_email');
-          sessionStorage.removeItem('po_user_data');
-        }
-
-        if (!u && !['/login', '/register'].includes(window.location.pathname)) {
-          window.location.href = '/login';
-        }
-      } catch (error) {
-        console.error('Auth state error:', error);
-        setIsLoading(false);
-      }
-    });
-    return off;
-  }, []);
 
   useEffect(() => {
     const updateActiveTab = () => {
@@ -127,17 +78,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, []);
 
   const getRoleDisplayName = useCallback(() => {
-    const roleNames: Record<Role, string> = {
-      buyer: 'ผู้ขอซื้อ',
-      supervisor: 'หัวหน้างาน',
-      procurement: 'ฝ่ายจัดซื้อ',
-      superadmin: 'ผู้ดูแลระบบ'
-    };
-    return roleNames[role as Role] || 'กำลังโหลด...';
+    return role ? ROLE_DISPLAY_NAMES[role] : 'กำลังโหลด...';
   }, [role]);
 
   const getNavMainItems = useMemo((): NavItem[] => {
-    const roleMenus: Record<Role, NavItem[]> = {
+    const roleMenus: Record<UserRole, NavItem[]> = {
       buyer: [
         { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
         { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' },
@@ -187,7 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ]
     };
 
-    return roleMenus[role as Role] || [];
+    return role ? (roleMenus[role] || []) : [];
   }, [role, activeTab]);
 
 

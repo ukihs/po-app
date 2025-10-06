@@ -8,8 +8,8 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
-
-type Role = 'buyer' | 'supervisor' | 'procurement' | 'superadmin';
+import type { UserRole } from '../types';
+import { COOKIE_NAMES } from './constants';
 
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
@@ -76,7 +76,7 @@ export async function createAuthCookie() {
 
 export async function signOutUser() {
   try {
-    const sessionId = getCookieValue('session-id');
+    const sessionId = getCookieValue(COOKIE_NAMES.SESSION_ID);
     if (sessionId) {
       await fetch('/api/auth/session', {
         method: 'DELETE',
@@ -93,7 +93,7 @@ export async function signOutUser() {
   await signOut(auth);
   
   if (typeof document !== 'undefined') {
-    document.cookie = 'session-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = `${COOKIE_NAMES.SESSION_ID}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   }
 }
 
@@ -109,7 +109,7 @@ function getCookieValue(name: string): string | null {
 }
 
 export function subscribeAuthAndRole(
-  cb: (user: User | null, role: Role | null) => void
+  cb: (user: User | null, role: UserRole | null) => void
 ) {
   let offUserDoc: (() => void) | null = null;
 
@@ -126,7 +126,7 @@ export function subscribeAuthAndRole(
     const ref = doc(db, 'users', user.uid);
     offUserDoc = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
-        const role = (snap.data()?.role ?? 'buyer') as Role;
+        const role = (snap.data()?.role ?? 'buyer') as UserRole;
         cb(user, role);
       } else {
         ensureUserDoc(user).then(() => {

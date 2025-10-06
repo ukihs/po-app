@@ -1,13 +1,13 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useNotifications, B as Badge, C as Card, j as CardContent, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
+import { r as useNotifications, B as Badge, C as Card, p as CardContent, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
-import { B as Button, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DTMsjQQh.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
+import { B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_D154Dyvp.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BwZ-J0fD.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const fmt = (ts) => {
@@ -43,10 +43,18 @@ function NotificationsPage() {
     });
     return filtered;
   }, [notifications, searchTerm, filterType, sortBy]);
-  const totalPages = Math.ceil(filteredAndSortedItems.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = filteredAndSortedItems.slice(startIndex, endIndex);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredAndSortedItems.length / itemsPerPage),
+    [filteredAndSortedItems.length, itemsPerPage]
+  );
+  const paginatedItems = useMemo(
+    () => {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return filteredAndSortedItems.slice(startIndex, endIndex);
+    },
+    [filteredAndSortedItems, currentPage, itemsPerPage]
+  );
   const markReadAndGo = async (n) => {
     try {
       if (!n.read) {
@@ -310,9 +318,9 @@ function NotificationsPage() {
           /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการ" })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
-          startIndex + 1,
+          (currentPage - 1) * itemsPerPage + 1,
           " - ",
-          Math.min(endIndex, filteredAndSortedItems.length),
+          Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length),
           " จาก ",
           filteredAndSortedItems.length
         ] })

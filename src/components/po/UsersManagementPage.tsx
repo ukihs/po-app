@@ -107,11 +107,9 @@ export default function UsersManagementPage() {
         );
         setSupervisors(supervisorList);
       } else {
-        console.error('Failed to fetch users:', data);
         showToast('Failed to fetch users', 'error');
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
       showToast('Error fetching users', 'error');
     } finally {
       setLoading(false);
@@ -211,7 +209,6 @@ export default function UsersManagementPage() {
         showToast(data.message || 'Failed to create user', 'error');
       }
     } catch (error) {
-      console.error('Error creating user:', error);
       showToast('Error creating user', 'error');
     }
   };
@@ -267,7 +264,6 @@ export default function UsersManagementPage() {
         showToast(data.message || 'Failed to update user', 'error');
       }
     } catch (error) {
-      console.error('Error updating user:', error);
       showToast('Error updating user', 'error');
     }
   };
@@ -291,7 +287,6 @@ export default function UsersManagementPage() {
         showToast(data.message || 'Failed to delete user', 'error');
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
       showToast('Error deleting user', 'error');
     }
   };
