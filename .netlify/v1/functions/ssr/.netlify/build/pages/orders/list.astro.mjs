@@ -1,13 +1,14 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
+import { $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { s as subscribeAuthAndRole, d as db } from '../../chunks/auth_DhMUJu7S.mjs';
 import { getDoc, doc, query, collection, onSnapshot } from 'firebase/firestore';
 import { Loader2, FileText } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
-import { O as OrdersDataTable } from '../../chunks/OrdersDataTable_BEkVtmZy.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_DTMsjQQh.mjs';
+import { O as OrdersDataTable } from '../../chunks/OrdersDataTable_Cv--COSW.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function OrdersListPage() {
@@ -71,11 +72,11 @@ function OrdersListPage() {
   if (orders.length === 0 && !loading) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
       err && /* @__PURE__ */ jsx(Alert, { className: "mb-4", variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: err }) }),
-      /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ยังไม่มีใบขอซื้อ" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto", children: "ขณะนี้ยังไม่มีใบขอซื้อใดๆ ในระบบ" })
-      ] })
+      /* @__PURE__ */ jsx(Empty, { children: /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+        /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6" }) }),
+        /* @__PURE__ */ jsx(EmptyTitle, { children: "ยังไม่มีใบขอซื้อ" }),
+        /* @__PURE__ */ jsx(EmptyDescription, { children: "ขณะนี้ยังไม่มีใบขอซื้อใดๆ ในระบบ" })
+      ] }) })
     ] });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [

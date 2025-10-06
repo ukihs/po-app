@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, j as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
+import { C as Card, j as CardContent, S as Separator, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
@@ -14,6 +14,7 @@ import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as Table
 import { L as Label } from '../../chunks/label_-TiFLeF9.mjs';
 import { getDefaultClassNames, DayPicker } from 'react-day-picker';
 import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_pllnwC04.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_DTMsjQQh.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function Calendar({
@@ -610,11 +611,11 @@ function CreateOrderPage() {
             ] }, idx);
           }) })
         ] }) }),
-        items.length === 0 && /* @__PURE__ */ jsxs("div", { className: "text-center py-12", children: [
-          /* @__PURE__ */ jsx("div", { className: "text-muted-foreground mb-4", children: /* @__PURE__ */ jsx(Package, { className: "mx-auto h-12 w-12" }) }),
-          /* @__PURE__ */ jsx("h3", { className: "text-lg font-medium mb-2", children: "ยังไม่มีรายการสินค้า" }),
-          /* @__PURE__ */ jsx("p", { className: "font-normal text-sm sm:text-base text-muted-foreground mb-4", children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
-        ] })
+        items.length === 0 && /* @__PURE__ */ jsx(Empty, { children: /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+          /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(Package, { className: "w-6 h-6" }) }),
+          /* @__PURE__ */ jsx(EmptyTitle, { children: "ยังไม่มีรายการสินค้า" }),
+          /* @__PURE__ */ jsx(EmptyDescription, { children: 'คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ' })
+        ] }) })
       ] }),
       /* @__PURE__ */ jsx(Separator, {}),
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4", children: [

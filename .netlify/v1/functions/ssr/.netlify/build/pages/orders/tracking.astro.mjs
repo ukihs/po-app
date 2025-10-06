@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { D as DropdownMenu, f as DropdownMenuTrigger, g as DropdownMenuContent, k as DropdownMenuLabel, i as DropdownMenuSeparator, h as DropdownMenuItem, C as Card, j as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
+import { D as DropdownMenu, f as DropdownMenuTrigger, g as DropdownMenuContent, k as DropdownMenuLabel, i as DropdownMenuSeparator, h as DropdownMenuItem, C as Card, j as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -15,6 +15,7 @@ import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.m
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dceolc6z.mjs';
 import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BVmw7K_-.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DTMsjQQh.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const StepperContext = createContext(void 0);
@@ -449,11 +450,13 @@ function TrackingPage() {
     ] }) });
   }
   if (rows.length === 0) {
-    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-      /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(FileText, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
-      /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
-      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6", children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" }),
-      role === "buyer" && /* @__PURE__ */ jsx(
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Empty, { children: [
+      /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+        /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6" }) }),
+        /* @__PURE__ */ jsx(EmptyTitle, { children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
+        /* @__PURE__ */ jsx(EmptyDescription, { children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" })
+      ] }),
+      role === "buyer" && /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsx(
         Button,
         {
           asChild: true,
@@ -461,7 +464,7 @@ function TrackingPage() {
           className: "w-full sm:w-auto",
           children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
         }
-      )
+      ) })
     ] }) });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
@@ -534,11 +537,11 @@ function TrackingPage() {
         ] })
       ] })
     ] }),
-    filteredRows.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-      /* @__PURE__ */ jsx("div", { className: "mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4", children: /* @__PURE__ */ jsx(FileText, { className: "w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" }) }),
-      /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold mb-2", children: "ไม่พบข้อมูล" }),
-      /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: searchTerm || statusFilter !== "all" ? "ลองปรับเงื่อนไขการค้นหาหรือกรอง" : "ยังไม่มีใบขอซื้อในระบบ" })
-    ] }) : viewMode === "table" ? /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
+    filteredRows.length === 0 ? /* @__PURE__ */ jsx(Empty, { children: /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+      /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6" }) }),
+      /* @__PURE__ */ jsx(EmptyTitle, { children: "ไม่พบข้อมูล" }),
+      /* @__PURE__ */ jsx(EmptyDescription, { children: searchTerm || statusFilter !== "all" ? "ลองปรับเงื่อนไขการค้นหาหรือกรอง" : "ยังไม่มีใบขอซื้อในระบบ" })
+    ] }) }) : viewMode === "table" ? /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
       /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px]", children: [
         /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
           /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "หมายเลขใบขอซื้อ" }),

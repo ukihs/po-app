@@ -1,12 +1,13 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useNotifications, B as Badge, C as Card, j as CardContent, $ as $$MainLayout } from '../../chunks/card_BD-Yq8HG.mjs';
+import { u as useNotifications, B as Badge, C as Card, j as CardContent, $ as $$MainLayout } from '../../chunks/card_B5xjbdkK.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_BOUC14Bs.mjs';
 import { B as Button, I as Input } from '../../chunks/auth_DhMUJu7S.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CKTJtRlq.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DTMsjQQh.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const fmt = (ts) => {
@@ -97,11 +98,11 @@ function NotificationsPage() {
     ] }) });
   }
   if (!notifications.length) {
-    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-      /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Bell, { className: "w-12 h-12 text-[#2b9ccc]" }) }),
-      /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ยังไม่มีการแจ้งเตือน" }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto", children: "การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่" })
-    ] }) });
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsx(Empty, { children: /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+      /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(Bell, { className: "w-6 h-6" }) }),
+      /* @__PURE__ */ jsx(EmptyTitle, { children: "ยังไม่มีการแจ้งเตือน" }),
+      /* @__PURE__ */ jsx(EmptyDescription, { children: "การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่" })
+    ] }) }) });
   }
   if (!filteredAndSortedItems.length && notifications.length > 0) {
     return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
@@ -166,11 +167,13 @@ function NotificationsPage() {
           ] })
         ] })
       ] }) }),
-      /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
-        /* @__PURE__ */ jsx("div", { className: "mx-auto w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mb-6", children: /* @__PURE__ */ jsx(Search, { className: "w-12 h-12 text-muted-foreground" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-3", children: "ไม่พบการแจ้งเตือนที่ตรงตามเงื่อนไข" }),
-        /* @__PURE__ */ jsx("p", { className: "text-muted-foreground max-w-md mx-auto mb-4", children: "ลองเปลี่ยนคำค้นหาหรือตัวกรองเพื่อดูการแจ้งเตือนอื่นๆ" }),
-        /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsxs(Empty, { children: [
+        /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+          /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(Search, { className: "w-6 h-6" }) }),
+          /* @__PURE__ */ jsx(EmptyTitle, { children: "ไม่พบการแจ้งเตือนที่ตรงตามเงื่อนไข" }),
+          /* @__PURE__ */ jsx(EmptyDescription, { children: "ลองเปลี่ยนคำค้นหาหรือตัวกรองเพื่อดูการแจ้งเตือนอื่นๆ" })
+        ] }),
+        /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsx(
           Button,
           {
             variant: "outline",
@@ -181,7 +184,7 @@ function NotificationsPage() {
             },
             children: "ล้างตัวกรอง"
           }
-        )
+        ) })
       ] })
     ] });
   }
