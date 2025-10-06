@@ -55,6 +55,7 @@ import {
   StepperDescription, 
   StepperNav 
 } from '../ui/stepper';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 import { cn } from '../../lib/utils';
 
 type Status = 'pending' | 'approved' | 'rejected' | 'in_progress' | 'delivered';
@@ -349,28 +350,32 @@ export default function TrackingPage() {
   if (rows.length === 0) {
     return (
       <div className="w-full">
-        <div className="text-center py-16">
-          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-            <FileText className="w-12 h-12 text-[#2b9ccc]" />
-          </div>
-          <h3 className="text-xl font-semibold mb-3">
-            {role === 'buyer' ? 'คุณยังไม่มีใบขอซื้อ' : 'ยังไม่มีใบขอซื้อในระบบ'}
-          </h3>
-          <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-            {role === 'buyer' ? 'เริ่มสร้างใบขอซื้อแรกได้เลย!' : 'รอใบขอซื้อจากผู้ใช้งาน'}
-          </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>
+              {role === 'buyer' ? 'คุณยังไม่มีใบขอซื้อ' : 'ยังไม่มีใบขอซื้อในระบบ'}
+            </EmptyTitle>
+            <EmptyDescription>
+              {role === 'buyer' ? 'เริ่มสร้างใบขอซื้อแรกได้เลย!' : 'รอใบขอซื้อจากผู้ใช้งาน'}
+            </EmptyDescription>
+          </EmptyHeader>
           {role === 'buyer' && (
-            <Button 
-              asChild
-              variant="primary"
-              className="w-full sm:w-auto"
-            >
-              <a href="/orders/create">
-                สร้างใบขอซื้อ
-              </a>
-            </Button>
+            <EmptyContent>
+              <Button 
+                asChild
+                variant="primary"
+                className="w-full sm:w-auto"
+              >
+                <a href="/orders/create">
+                  สร้างใบขอซื้อ
+                </a>
+              </Button>
+            </EmptyContent>
           )}
-        </div>
+        </Empty>
       </div>
     );
   }
@@ -453,17 +458,19 @@ export default function TrackingPage() {
       </div>
 
       {filteredRows.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-            <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
-          </div>
-          <h3 className="text-base sm:text-lg font-bold mb-2">ไม่พบข้อมูล</h3>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            {searchTerm || statusFilter !== 'all' 
-              ? 'ลองปรับเงื่อนไขการค้นหาหรือกรอง' 
-              : 'ยังไม่มีใบขอซื้อในระบบ'}
-          </p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ไม่พบข้อมูล</EmptyTitle>
+            <EmptyDescription>
+              {searchTerm || statusFilter !== 'all' 
+                ? 'ลองปรับเงื่อนไขการค้นหาหรือกรอง' 
+                : 'ยังไม่มีใบขอซื้อในระบบ'}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : viewMode === 'table' ? (
         <Card>
           <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">

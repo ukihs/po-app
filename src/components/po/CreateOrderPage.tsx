@@ -16,6 +16,7 @@ import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 import { cn } from '../../lib/utils';
 
 export default function CreateOrderPage() {
@@ -481,13 +482,17 @@ export default function CreateOrderPage() {
             </div>
               
               {items.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-muted-foreground mb-4">
-                    <Package className="mx-auto h-12 w-12" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">ยังไม่มีรายการสินค้า</h3>
-                  <p className="font-normal text-sm sm:text-base text-muted-foreground mb-4">คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ</p>
-                </div>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Package className="w-6 h-6" />
+                    </EmptyMedia>
+                    <EmptyTitle>ยังไม่มีรายการสินค้า</EmptyTitle>
+                    <EmptyDescription>
+                      คลิกปุ่ม "เพิ่มรายการ" เพื่อเพิ่มรายการสินค้าที่ต้องการขอซื้อ
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               )}
           </div>
 

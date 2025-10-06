@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 
 type Noti = {
   id: string;
@@ -161,15 +162,17 @@ export default function NotificationsPage() {
   if (!notifications.length) {
     return (
       <div className="w-full">        
-        <div className="text-center py-16">
-          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-            <Bell className="w-12 h-12 text-[#2b9ccc]" />
-          </div>
-          <h3 className="text-xl font-semibold mb-3">ยังไม่มีการแจ้งเตือน</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่
-          </p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Bell className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ยังไม่มีการแจ้งเตือน</EmptyTitle>
+            <EmptyDescription>
+              การแจ้งเตือนต่างๆ เกี่ยวกับการอนุมัติใบขอซื้อและอัปเดตสถานะจะแสดงที่นี่
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }
@@ -242,25 +245,29 @@ export default function NotificationsPage() {
           </div>
         </div>
         
-        <div className="text-center py-16">
-          <div className="mx-auto w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mb-6">
-            <Search className="w-12 h-12 text-muted-foreground" />
-          </div>
-          <h3 className="text-xl font-semibold mb-3">ไม่พบการแจ้งเตือนที่ตรงตามเงื่อนไข</h3>
-          <p className="text-muted-foreground max-w-md mx-auto mb-4">
-            ลองเปลี่ยนคำค้นหาหรือตัวกรองเพื่อดูการแจ้งเตือนอื่นๆ
-          </p>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setSearchTerm('');
-              setFilterType('all');
-              setSortBy('newest');
-            }}
-          >
-            ล้างตัวกรอง
-          </Button>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Search className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ไม่พบการแจ้งเตือนที่ตรงตามเงื่อนไข</EmptyTitle>
+            <EmptyDescription>
+              ลองเปลี่ยนคำค้นหาหรือตัวกรองเพื่อดูการแจ้งเตือนอื่นๆ
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm('');
+                setFilterType('all');
+                setSortBy('newest');
+              }}
+            >
+              ล้างตัวกรอง
+            </Button>
+          </EmptyContent>
+        </Empty>
       </div>
     );
   }

@@ -12,6 +12,8 @@ import {
 import { subscribeAuthAndRole } from '../../lib/auth';
 import { Loader2, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
+import { Button } from '../ui/button';
 import OrdersDataTable from './OrdersDataTable';
 
 type Role = 'buyer' | 'supervisor' | 'procurement' | null;
@@ -188,15 +190,17 @@ export default function OrdersListPage(){
           </Alert>
         )}
 
-        <div className="text-center py-16">
-          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-            <FileText className="w-12 h-12 text-[#2b9ccc]" />
-          </div>
-          <h3 className="text-xl font-semibold mb-3">ยังไม่มีใบขอซื้อ</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            ขณะนี้ยังไม่มีใบขอซื้อใดๆ ในระบบ
-          </p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ยังไม่มีใบขอซื้อ</EmptyTitle>
+            <EmptyDescription>
+              ขณะนี้ยังไม่มีใบขอซื้อใดๆ ในระบบ
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }
