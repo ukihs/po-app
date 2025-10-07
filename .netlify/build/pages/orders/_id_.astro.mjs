@@ -1,16 +1,16 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
+import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_DgVOOfOo.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState } from 'react';
-import { B as Button, d as db, f as auth } from '../../chunks/auth_B6D8HlLm.mjs';
+import { B as Button, d as db, f as auth } from '../../chunks/auth_CQuH6Ht7.mjs';
 import { updateDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_D95jMiPk.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_C_IzjayC.mjs';
+import { A as Alert, a as AlertDescription } from '../../chunks/alert_tUBehQy8.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
-import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
+import { C as COLLECTIONS } from '../../chunks/constants_uc-g81Q4.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function OrderDetailPage({ orderId }) {
@@ -43,7 +43,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_gIBNPYkU.mjs');
+        const poApi = await import('../../chunks/poApi_BXBswGgh.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,

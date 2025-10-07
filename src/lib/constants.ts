@@ -154,13 +154,10 @@ export const SESSION_STORAGE_KEYS = {
 } as const;
 
 export const COOKIE_NAMES = {
-  SESSION_ID: 'session-id'
+  FIREBASE_ID_TOKEN: 'firebase-id-token'
 } as const;
 
 export const API_ENDPOINTS = {
-  AUTH: {
-    SESSION: '/api/auth/session'
-  },
   USERS: {
     LIST: '/api/users',
     CREATE: '/api/users/create',

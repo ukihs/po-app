@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { subscribeAuthAndRole } from '../lib/auth';
+import { subscribeAuthAndRole, setAuthCookie } from '../lib/auth';
 import type { User } from 'firebase/auth';
 import type { UserRole } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       }
 
-      const newUnsubscribe = subscribeAuthAndRole((authUser, userRole) => {
+      const newUnsubscribe = subscribeAuthAndRole(async (authUser, userRole) => {
         try {
           set({
             user: authUser,
@@ -94,6 +94,7 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           if (userRole && authUser) {
+            await setAuthCookie();
             sessionStorage.setItem(STORAGE_KEYS.USER_ROLE, userRole);
             sessionStorage.setItem(STORAGE_KEYS.USER_EMAIL, authUser.email || '');
             sessionStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(authUser));

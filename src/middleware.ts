@@ -1,9 +1,9 @@
 import { defineMiddleware } from 'astro:middleware';
-import { validateServerSession } from './lib/server-session';
-import { PROTECTED_ROUTES, ROLE_PERMISSIONS, COOKIE_NAMES } from './lib/constants';
+import { verifyFirebaseToken, extractIdTokenFromHeader, extractIdTokenFromCookie } from './lib/firebase-auth';
+import { PROTECTED_ROUTES, ROLE_PERMISSIONS } from './lib/constants';
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, cookies, redirect } = context;
+  const { url, request, redirect } = context;
   const pathname = url.pathname;
 
   const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
@@ -12,17 +12,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  const sessionId = cookies.get(COOKIE_NAMES.SESSION_ID)?.value;
+  const authHeader = request.headers.get('Authorization');
+  const cookieHeader = request.headers.get('Cookie');
+  const idToken = extractIdTokenFromHeader(authHeader) || extractIdTokenFromCookie(cookieHeader);
   
-  if (!sessionId) {
+  if (!idToken) {
     return redirect('/login');
   }
 
   try {
-    const user = validateServerSession(sessionId);
+    const user = await verifyFirebaseToken(idToken);
     
     if (!user) {
-      cookies.delete(COOKIE_NAMES.SESSION_ID, { path: '/' });
       return redirect('/login');
     }
     
@@ -35,8 +36,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     (context.locals as any).user = user;
     
   } catch (error) {
-    console.error(`[Auth] Session validation failed for ${pathname}:`, error);
-    cookies.delete(COOKIE_NAMES.SESSION_ID, { path: '/' });
+    console.error(`[Auth] Token verification failed for ${pathname}:`, error);
     return redirect('/login');
   }
 

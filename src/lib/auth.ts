@@ -9,7 +9,6 @@ import {
 import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import type { UserRole } from '../types';
-import { COOKIE_NAMES } from './constants';
 
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
@@ -61,7 +60,7 @@ export async function signIn(email: string, password: string) {
   return user;
 }
 
-export async function createAuthCookie() {
+export async function getIdToken(): Promise<string | null> {
   const user = auth.currentUser;
   if (!user) return null;
   
@@ -74,39 +73,23 @@ export async function createAuthCookie() {
   }
 }
 
-export async function signOutUser() {
-  try {
-    const sessionId = getCookieValue(COOKIE_NAMES.SESSION_ID);
-    if (sessionId) {
-      await fetch('/api/auth/session', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId }),
-      });
-    }
-  } catch (error) {
-    console.error('Failed to destroy server session:', error);
-  }
-  
-  await signOut(auth);
+export async function setAuthCookie() {
+  const idToken = await getIdToken();
+  if (!idToken) return;
   
   if (typeof document !== 'undefined') {
-    document.cookie = `${COOKIE_NAMES.SESSION_ID}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    document.cookie = `firebase-id-token=${idToken}; path=/; max-age=3600; secure; samesite=strict`;
   }
 }
 
-function getCookieValue(name: string): string | null {
-  if (typeof document === 'undefined') return null;
+export async function signOutUser() {
+  await signOut(auth);
   
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
+  if (typeof document !== 'undefined') {
+    document.cookie = `firebase-id-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
   }
-  return null;
 }
+
 
 export function subscribeAuthAndRole(
   cb: (user: User | null, role: UserRole | null) => void

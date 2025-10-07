@@ -1,23 +1,16 @@
-import type { APIRoute } from 'astro';
-import { validateServerSession, type AuthUser } from './server-session';
+import { verifyFirebaseToken, extractIdTokenFromHeader, extractIdTokenFromCookie, type AuthUser } from './firebase-auth';
 
 export async function verifyApiAuth(request: Request): Promise<AuthUser | null> {
   try {
+    const authHeader = request.headers.get('Authorization');
     const cookieHeader = request.headers.get('Cookie');
+    const idToken = extractIdTokenFromHeader(authHeader) || extractIdTokenFromCookie(cookieHeader);
     
-    if (!cookieHeader) {
+    if (!idToken) {
       return null;
     }
 
-    const sessionIdMatch = cookieHeader.match(/session-id=([^;]+)/);
-    if (!sessionIdMatch) {
-      return null;
-    }
-
-    const sessionId = sessionIdMatch[1];
-    const user = validateServerSession(sessionId);
-    
-    return user;
+    return await verifyFirebaseToken(idToken);
   } catch (error) {
     console.error('API Auth verification failed:', error);
     return null;

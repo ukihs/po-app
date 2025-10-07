@@ -2,18 +2,19 @@ import { d as createComponent, e as createAstro } from '../chunks/astro/server_7
 import 'kleur/colors';
 import 'clsx';
 /* empty css                                  */
-import { v as validateServerSession } from '../chunks/server-session_BHsHKFG5.mjs';
+import { a as extractIdTokenFromCookie, v as verifyFirebaseToken } from '../chunks/firebase-auth_BdqKHzkG.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro();
-const $$Index = createComponent(($$result, $$props, $$slots) => {
+const $$Index = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Index;
-  const sessionId = Astro2.cookies.get("session-id")?.value;
+  const cookieHeader = Astro2.request.headers.get("Cookie");
+  const idToken = extractIdTokenFromCookie(cookieHeader);
   let redirectUrl = "/login";
-  if (sessionId) {
+  if (idToken) {
     try {
-      const user = validateServerSession(sessionId);
+      const user = await verifyFirebaseToken(idToken);
       if (user) {
         if (user.role === "buyer") {
           redirectUrl = "/orders/create";
@@ -26,7 +27,7 @@ const $$Index = createComponent(($$result, $$props, $$slots) => {
         }
       }
     } catch (error) {
-      console.error("Session validation failed:", error);
+      console.error("Token verification failed:", error);
       redirectUrl = "/login";
     }
   }

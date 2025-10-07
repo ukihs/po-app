@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { signIn, subscribeAuthAndRole, createAuthCookie } from "../../../lib/auth";
+import { signIn, subscribeAuthAndRole, setAuthCookie } from "../../../lib/auth";
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -41,25 +41,10 @@ export default function LoginPage() {
       if (!user || !role) return;
       
       try {
-        const idToken = await createAuthCookie();
-        if (idToken) {
-          const response = await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ idToken }),
-          });
-          
-          if (response.ok) {
-            const { sessionId } = await response.json();
-            document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
-          }
-        }
-        
+        await setAuthCookie();
         window.location.href = getRedirectUrl(role);
       } catch (error) {
-        console.error('Failed to create session:', error);
+        console.error('Failed to set auth cookie:', error);
       }
     });
     return off;

@@ -2,10 +2,10 @@ import { d as createComponent, j as renderHead, k as renderComponent, r as rende
 import 'kleur/colors';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect, useCallback } from 'react';
-import { s as subscribeAuthAndRole, a as createAuthCookie, B as Button, I as Input, b as signIn } from '../chunks/auth_B6D8HlLm.mjs';
+import { s as subscribeAuthAndRole, a as setAuthCookie, B as Button, I as Input, b as signIn } from '../chunks/auth_CQuH6Ht7.mjs';
 import { Info, AlertCircle, AlertTriangle, CheckCircle, X, Loader2 } from 'lucide-react';
-import { L as Label } from '../chunks/label_CE0DOuoI.mjs';
-import { A as Alert, a as AlertDescription } from '../chunks/alert_X172b6ty.mjs';
+import { L as Label } from '../chunks/label_BuqhuRA9.mjs';
+import { A as Alert, a as AlertDescription } from '../chunks/alert_tUBehQy8.mjs';
 /* empty css                                  */
 export { renderers } from '../renderers.mjs';
 
@@ -31,23 +31,10 @@ function LoginPage() {
     const off = subscribeAuthAndRole(async (user, role) => {
       if (!user || !role) return;
       try {
-        const idToken = await createAuthCookie();
-        if (idToken) {
-          const response = await fetch("/api/auth/session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ idToken })
-          });
-          if (response.ok) {
-            const { sessionId } = await response.json();
-            document.cookie = `session-id=${sessionId}; path=/; max-age=28800; secure; samesite=strict`;
-          }
-        }
+        await setAuthCookie();
         window.location.href = getRedirectUrl(role);
       } catch (error) {
-        console.error("Failed to create session:", error);
+        console.error("Failed to set auth cookie:", error);
       }
     });
     return off;
