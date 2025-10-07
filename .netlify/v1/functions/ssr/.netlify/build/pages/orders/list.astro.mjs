@@ -1,17 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardHeader, b as CardHeading, i as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useAuth, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
+import { C as Card, a as CardHeader, b as CardHeading, k as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useAuth, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import React__default, { useState, useMemo, useEffect } from 'react';
-import { I as Input, B as Button, d as db } from '../../chunks/auth_B6D8HlLm.mjs';
+import { B as Button, I as Input, d as db } from '../../chunks/auth_B6D8HlLm.mjs';
 import { query, collection, orderBy, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { Loader2, Search, ChevronDown, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
+import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
 import { toast } from 'sonner';
 import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_D154Dyvp.mjs';
 import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_5IwvD082.mjs';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_D95jMiPk.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BwZ-J0fD.mjs';
+import { g as getDisplayOrderNumber } from '../../chunks/order-utils_AlbEnbgm.mjs';
 import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
 export { renderers } from '../../renderers.mjs';
 
@@ -83,6 +85,13 @@ function OrdersDataTable({
     const endIndex = startIndex + itemsPerPage;
     return filteredData.slice(startIndex, endIndex);
   }, [filteredData, currentPage, itemsPerPage]);
+  const orderNumbers = useMemo(() => {
+    const numbers = {};
+    paginatedData.forEach((order) => {
+      numbers[order.id] = getDisplayOrderNumber(order);
+    });
+    return numbers;
+  }, [paginatedData]);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -101,10 +110,28 @@ function OrdersDataTable({
     ] });
   }
   if (data.length === 0) {
-    return /* @__PURE__ */ jsxs("div", { className: "text-center p-12", children: [
-      /* @__PURE__ */ jsx("h3", { className: "text-xl font-semibold mb-2", children: "ไม่พบข้อมูลใบสั่งซื้อ" }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground mb-4", children: "ยังไม่มีใบสั่งซื้อในระบบ" })
-    ] });
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Empty, { children: [
+      /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+        /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "h-12 w-12 text-muted-foreground" }) }),
+        /* @__PURE__ */ jsx(EmptyTitle, { children: "ไม่พบข้อมูลใบสั่งซื้อ" }),
+        /* @__PURE__ */ jsx(EmptyDescription, { children: "ยังไม่มีใบสั่งซื้อในระบบ หรือไม่มีข้อมูลที่ตรงตามเงื่อนไขการค้นหา" })
+      ] }),
+      /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsxs(
+        Button,
+        {
+          variant: "outline",
+          onClick: () => {
+            setSearchTerm("");
+            setStatusFilter("all");
+          },
+          className: "mt-4",
+          children: [
+            /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 mr-2" }),
+            "ล้างการค้นหา"
+          ]
+        }
+      ) })
+    ] }) });
   }
   return /* @__PURE__ */ jsxs(Card, { children: [
     /* @__PURE__ */ jsxs(CardHeader, { className: "border-b", children: [
@@ -138,7 +165,7 @@ function OrdersDataTable({
     /* @__PURE__ */ jsx(CardTable, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
       /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px]", children: [
         /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
-          /* @__PURE__ */ jsx(TableHead, { className: "w-[100px] sm:w-[120px] text-xs sm:text-sm", children: "รายการที่" }),
+          /* @__PURE__ */ jsx(TableHead, { className: "w-[100px] sm:w-[120px] text-xs sm:text-sm", children: "เลขที่ใบขอซื้อ" }),
           /* @__PURE__ */ jsx(TableHead, { className: "w-[120px] sm:w-[140px] text-xs sm:text-sm", children: "วันที่" }),
           /* @__PURE__ */ jsx(TableHead, { className: "w-[140px] sm:w-[180px] text-xs sm:text-sm", children: "ผู้ขอซื้อ" }),
           /* @__PURE__ */ jsx(TableHead, { className: "w-[120px] sm:w-[140px] text-xs sm:text-sm", children: "ยอดรวม" }),
@@ -158,8 +185,7 @@ function OrdersDataTable({
                   onClick: () => onToggleExpanded(order.id),
                   children: [
                     isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }),
-                    "#",
-                    order.orderNo ?? "-"
+                    orderNumbers[order.id] || "PR000"
                   ]
                 }
               ) }),
@@ -186,8 +212,8 @@ function OrdersDataTable({
                 processingKeys.has(order.id) && /* @__PURE__ */ jsx(Loader2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" })
               ] }) : /* @__PURE__ */ jsx("span", { className: "text-muted-foreground text-xs sm:text-sm", children: "—" }) })
             ] }),
-            isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: 6, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/50 p-2 sm:p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-background overflow-hidden", children: [
-              /* @__PURE__ */ jsx("div", { className: "px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b", children: "รายการสินค้า" }),
+            isOpen && /* @__PURE__ */ jsx(TableRow, { children: /* @__PURE__ */ jsx(TableCell, { colSpan: 6, className: "p-0", children: /* @__PURE__ */ jsx("div", { className: "bg-muted/30 p-2 sm:p-4", children: /* @__PURE__ */ jsxs("div", { className: "rounded-md border bg-card overflow-hidden", children: [
+              /* @__PURE__ */ jsx("div", { className: "px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b bg-muted/50", children: "รายการสินค้า" }),
               /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs(Table, { className: "min-w-[600px]", children: [
                 /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
                   /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "รายละเอียด" }),
@@ -510,7 +536,7 @@ function OrdersListPage() {
         /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-primary" }),
         "รายการใบขอซื้อ"
       ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "procurement" ? "สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ" : role === "supervisor" ? "สำหรับหัวหน้างาน – ดูรายการใบขอซื้อทั้งหมด" : "รายการใบขอซื้อทั้งหมด" })
+      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "procurement" ? "เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ" : role === "supervisor" ? "ดูรายการใบขอซื้อทั้งหมด" : "รายการใบขอซื้อทั้งหมด" })
     ] }),
     /* @__PURE__ */ jsx(
       OrdersDataTable,

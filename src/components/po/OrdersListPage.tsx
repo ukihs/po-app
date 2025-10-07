@@ -169,8 +169,8 @@ export default function OrdersListPage(){
           รายการใบขอซื้อ
         </h1>
         <p className="text-muted-foreground">
-          {role === 'procurement' ? 'สำหรับฝ่ายจัดซื้อ – เปลี่ยนสถานะใบ + จัดประเภท/สถานะของแต่ละรายการ' : 
-           role === 'supervisor' ? 'สำหรับหัวหน้างาน – ดูรายการใบขอซื้อทั้งหมด' :
+          {role === 'procurement' ? 'เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ' : 
+           role === 'supervisor' ? 'ดูรายการใบขอซื้อทั้งหมด' :
            'รายการใบขอซื้อทั้งหมด'}
         </p>
       </div>  

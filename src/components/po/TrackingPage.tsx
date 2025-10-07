@@ -6,7 +6,8 @@ import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestor
 import { useAuth } from '../../hooks/useAuth';
 import type { OrderStatus, OrderItem } from '../../types';
 import { COLLECTIONS } from '../../lib/constants';
-import { approveOrder, generateOrderNumber } from '../../lib/poApi';
+import { approveOrder } from '../../lib/poApi';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 import { 
   FileText, 
   CheckCircle, 
@@ -449,7 +450,7 @@ export default function TrackingPage() {
                 {paginatedRows.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium text-xs sm:text-sm">
-                      {generateOrderNumber(order.orderNo, order.date)}
+                      {getDisplayOrderNumber(order)}
                     </TableCell>
                     <TableCell className="text-xs sm:text-sm">{order.requesterName}</TableCell>
                     <TableCell className="text-xs sm:text-sm">{order.date}</TableCell>
@@ -519,7 +520,7 @@ export default function TrackingPage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3">
                 <div className="flex-1 w-full">
                   <h3 className="text-base sm:text-lg font-bold">
-                    {generateOrderNumber(order.orderNo, order.date)}
+                    {getDisplayOrderNumber(order)}
                   </h3>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
@@ -834,14 +835,14 @@ export default function TrackingPage() {
               ยกเลิก
             </Button>
             <Button 
-              variant={
-                confirmData?.approved 
-                  ? 'primary' 
-                  : 'destructive'
-              }
+              variant="destructive"
               onClick={handleApproval}
               disabled={processingOrders.has(confirmData?.orderId || '')}
-              className="w-full sm:w-auto text-sm"
+              className={`w-full sm:w-auto text-sm ${
+                confirmData?.approved 
+                  ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' 
+                  : ''
+              }`}
             >
               {processingOrders.has(confirmData?.orderId || '') ? (
                 <>
@@ -918,7 +919,7 @@ function renderProgressFlow(status: OrderStatus) {
       case 'in_progress':
         return 4;
       case 'delivered':
-        return 4;
+        return 5;
       case 'rejected':
         return 2;
       default:

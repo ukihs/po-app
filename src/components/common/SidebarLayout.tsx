@@ -1,7 +1,7 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '../ui/sidebar';
 import { Separator } from '../ui/separator';
-import { AppSidebar } from '../app-sidebar';
+import { AppSidebar } from './app-sidebar';
 import AppBreadcrumb from './AppBreadcrumb';
 
 interface SidebarLayoutProps {

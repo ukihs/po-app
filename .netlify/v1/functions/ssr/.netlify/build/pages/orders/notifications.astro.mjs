@@ -1,8 +1,9 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { r as useNotifications, B as Badge, C as Card, p as CardContent, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
+import { s as useNotifications, B as Badge, C as Card, q as CardContent, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
+import { g as getDisplayOrderNumber } from '../../chunks/order-utils_AlbEnbgm.mjs';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
 import { B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
@@ -24,7 +25,7 @@ function NotificationsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const filteredAndSortedItems = useMemo(() => {
     let filtered = notifications.filter((item) => {
-      const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.message?.toLowerCase().includes(searchTerm.toLowerCase()) || item.orderNo?.toString().includes(searchTerm) || item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.message?.toLowerCase().includes(searchTerm.toLowerCase()) || (item.orderNo ? getDisplayOrderNumber({ orderNo: item.orderNo, date: item.createdAt?.toDate?.()?.toISOString().split("T")[0] || "" }) : "").includes(searchTerm) || item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === "all" || item.kind === filterType;
       return matchesSearch && matchesType;
     });
@@ -288,7 +289,7 @@ function NotificationsPage() {
             ] }),
             /* @__PURE__ */ jsx("div", { className: "text-xs text-muted-foreground/70 font-normal", children: fmt(n.createdAt) })
           ] }),
-          /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title }),
+          /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split("T")[0] || "" })})` : n.title }),
           /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
             "จากคุณ ",
             n.fromUserName || "ระบบ"
@@ -297,46 +298,46 @@ function NotificationsPage() {
       },
       n.id
     )) }),
-    filteredAndSortedItems.length > 0 && /* @__PURE__ */ jsxs("div", { className: "mt-6 flex flex-col gap-4", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "แสดง" }),
-          /* @__PURE__ */ jsxs(
-            "select",
-            {
-              value: itemsPerPage,
-              onChange: (e) => handleItemsPerPageChange(e.target.value),
-              className: "border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm",
-              children: [
-                /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
-                /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
-                /* @__PURE__ */ jsx("option", { value: 20, children: "20" }),
-                /* @__PURE__ */ jsx("option", { value: 50, children: "50" })
-              ]
-            }
-          ),
-          /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการ" })
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
-          (currentPage - 1) * itemsPerPage + 1,
-          " - ",
-          Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length),
-          " จาก ",
-          filteredAndSortedItems.length
-        ] })
+    filteredAndSortedItems.length > 0 && /* @__PURE__ */ jsx("div", { className: "mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start", children: [
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "แสดง" }),
+        /* @__PURE__ */ jsxs(
+          "select",
+          {
+            value: itemsPerPage,
+            onChange: (e) => handleItemsPerPageChange(e.target.value),
+            className: "border border-input bg-background rounded-md px-2 py-1 text-xs sm:text-sm",
+            children: [
+              /* @__PURE__ */ jsx("option", { value: 5, children: "5" }),
+              /* @__PURE__ */ jsx("option", { value: 10, children: "10" }),
+              /* @__PURE__ */ jsx("option", { value: 20, children: "20" }),
+              /* @__PURE__ */ jsx("option", { value: 50, children: "50" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsx("span", { className: "text-xs sm:text-sm text-muted-foreground", children: "รายการต่อหน้า" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center gap-1 sm:gap-2", children: [
+      /* @__PURE__ */ jsxs("div", { className: "text-xs sm:text-sm text-muted-foreground", children: [
+        "แสดง ",
+        (currentPage - 1) * itemsPerPage + 1,
+        " - ",
+        Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length),
+        " จาก ",
+        filteredAndSortedItems.length,
+        " รายการ"
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-center", children: [
         /* @__PURE__ */ jsxs(
           Button,
           {
             variant: "outline",
             size: "sm",
+            className: "text-xs h-7 sm:h-8",
             onClick: () => handlePageChange(currentPage - 1),
             disabled: currentPage === 1,
-            className: "px-2 sm:px-3",
             children: [
-              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" }),
-              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline ml-1", children: "ก่อนหน้า" })
+              /* @__PURE__ */ jsx(ChevronLeft, { className: "w-3 h-3 sm:w-4 sm:h-4" }),
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ก่อนหน้า" })
             ]
           }
         ),
@@ -410,17 +411,17 @@ function NotificationsPage() {
           {
             variant: "outline",
             size: "sm",
+            className: "text-xs h-7 sm:h-8",
             onClick: () => handlePageChange(currentPage + 1),
             disabled: currentPage === totalPages,
-            className: "px-2 sm:px-3",
             children: [
-              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline mr-1", children: "ถัดไป" }),
-              /* @__PURE__ */ jsx(ChevronRight, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4" })
+              /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ถัดไป" }),
+              /* @__PURE__ */ jsx(ChevronRight, { className: "w-3 h-3 sm:w-4 sm:h-4" })
             ]
           }
         )
       ] })
-    ] })
+    ] }) })
   ] });
 }
 

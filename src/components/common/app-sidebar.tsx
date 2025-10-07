@@ -17,10 +17,10 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react"
-import NotificationBadge from "./NotificationBadge"
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import NotificationBadge from "../common/NotificationBadge"
+import { NavMain } from "@/components/common/nav-main"
+import { NavUser } from "@/components/common/nav-user"
+import { TeamSwitcher } from "@/components/common/team-switcher"
 import {
   Sidebar,
   SidebarContent,

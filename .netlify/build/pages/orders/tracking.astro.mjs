@@ -1,13 +1,14 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useAuth, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, j as DropdownMenuLabel, h as DropdownMenuSeparator, g as DropdownMenuItem, C as Card, p as CardContent, B as Badge, q as Separator, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
+import { u as useAuth, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, q as CardContent, B as Badge, r as Separator, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { c as cn, d as db, B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
 import { query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
-import { generateOrderNumber, approveOrder } from '../../chunks/poApi_BPDxzvB4.mjs';
+import { approveOrder } from '../../chunks/poApi_gIBNPYkU.mjs';
+import { g as getDisplayOrderNumber } from '../../chunks/order-utils_AlbEnbgm.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import 'next-themes';
@@ -644,7 +645,7 @@ function TrackingPage() {
           /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "การดำเนินการ" })
         ] }) }),
         /* @__PURE__ */ jsx(TableBody, { children: paginatedRows.map((order) => /* @__PURE__ */ jsxs(TableRow, { children: [
-          /* @__PURE__ */ jsx(TableCell, { className: "font-medium text-xs sm:text-sm", children: generateOrderNumber(order.orderNo, order.date) }),
+          /* @__PURE__ */ jsx(TableCell, { className: "font-medium text-xs sm:text-sm", children: getDisplayOrderNumber(order) }),
           /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.requesterName }),
           /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.date }),
           /* @__PURE__ */ jsxs(TableCell, { className: "tabular-nums text-xs sm:text-sm", children: [
@@ -703,7 +704,7 @@ function TrackingPage() {
     ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg bg-card border-border", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
-          /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold", children: generateOrderNumber(order.orderNo, order.date) }),
+          /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold", children: getDisplayOrderNumber(order) }),
           /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1", children: [
             /* @__PURE__ */ jsxs("span", { className: "flex items-center gap-1", children: [
               "ชื่อผู้ขอ: ",
@@ -1004,10 +1005,10 @@ function TrackingPage() {
         /* @__PURE__ */ jsx(
           Button,
           {
-            variant: confirmData?.approved ? "primary" : "destructive",
+            variant: "destructive",
             onClick: handleApproval,
             disabled: processingOrders.has(confirmData?.orderId || ""),
-            className: "w-full sm:w-auto text-sm",
+            className: `w-full sm:w-auto text-sm ${confirmData?.approved ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : ""}`,
             children: processingOrders.has(confirmData?.orderId || "") ? /* @__PURE__ */ jsxs(Fragment, { children: [
               /* @__PURE__ */ jsx(RefreshCw, { className: "w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" }),
               /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "กำลังดำเนินการ..." }),
@@ -1063,7 +1064,7 @@ function renderProgressFlow(status) {
       case "in_progress":
         return 4;
       case "delivered":
-        return 4;
+        return 5;
       case "rejected":
         return 2;
       default:

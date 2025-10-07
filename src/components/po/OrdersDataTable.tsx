@@ -6,7 +6,8 @@ import {
   ChevronRight, 
   Loader2,
   Search,
-  ChevronLeft
+  ChevronLeft,
+  FileText
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -16,8 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardHeader, CardHeading, CardToolbar, CardTable, CardFooter } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 
-import type { Order, OrderStatus, OrderItem, UserRole } from '../../types';
+import type { Order, OrderStatus, UserRole } from '../../types';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 
 const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software/Hardware', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
 
@@ -94,7 +97,6 @@ export default function OrdersDataTable({
   const filteredData = useMemo(() => {
     let filtered = data;
     
-    // Filter by search term
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(order => 
@@ -105,7 +107,6 @@ export default function OrdersDataTable({
       );
     }
     
-    // Filter by status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
@@ -119,6 +120,15 @@ export default function OrdersDataTable({
     return filteredData.slice(startIndex, endIndex);
   }, [filteredData, currentPage, itemsPerPage]);
 
+  // Memoize order numbers for better performance
+  const orderNumbers = useMemo(() => {
+    const numbers: Record<string, string> = {};
+    paginatedData.forEach(order => {
+      numbers[order.id] = getDisplayOrderNumber(order);
+    });
+    return numbers;
+  }, [paginatedData]);
+
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const handlePageChange = (page: number) => {
@@ -127,10 +137,9 @@ export default function OrdersDataTable({
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
-  // Reset to first page when search term or status filter changes
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
@@ -146,11 +155,31 @@ export default function OrdersDataTable({
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-12">
-        <h3 className="text-xl font-semibold mb-2">ไม่พบข้อมูลใบสั่งซื้อ</h3>
-        <p className="text-muted-foreground mb-4">
-          ยังไม่มีใบสั่งซื้อในระบบ
-        </p>
+      <div className="w-full">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="h-12 w-12 text-muted-foreground" />
+            </EmptyMedia>
+            <EmptyTitle>ไม่พบข้อมูลใบสั่งซื้อ</EmptyTitle>
+            <EmptyDescription>
+              ยังไม่มีใบสั่งซื้อในระบบ หรือไม่มีข้อมูลที่ตรงตามเงื่อนไขการค้นหา
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+              className="mt-4"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              ล้างการค้นหา
+            </Button>
+          </EmptyContent>
+        </Empty>
       </div>
     );
   }
@@ -192,7 +221,7 @@ export default function OrdersDataTable({
           <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px] sm:w-[120px] text-xs sm:text-sm">รายการที่</TableHead>
+                  <TableHead className="w-[100px] sm:w-[120px] text-xs sm:text-sm">เลขที่ใบขอซื้อ</TableHead>
                   <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">วันที่</TableHead>
                   <TableHead className="w-[140px] sm:w-[180px] text-xs sm:text-sm">ผู้ขอซื้อ</TableHead>
                   <TableHead className="w-[120px] sm:w-[140px] text-xs sm:text-sm">ยอดรวม</TableHead>
@@ -215,7 +244,7 @@ export default function OrdersDataTable({
                           onClick={() => onToggleExpanded(order.id)}
                         >
                           {isOpen ? <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                          #{order.orderNo ?? '-'}
+                          {orderNumbers[order.id] || 'PR000'}
                         </Button>
                       </TableCell>
                       <TableCell>
@@ -266,9 +295,9 @@ export default function OrdersDataTable({
                     {isOpen && (
                       <TableRow>
                         <TableCell colSpan={6} className="p-0">
-                          <div className="bg-muted/50 p-2 sm:p-4">
-                            <div className="rounded-md border bg-background overflow-hidden">
-                              <div className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b">รายการสินค้า</div>
+                          <div className="bg-muted/30 p-2 sm:p-4">
+                            <div className="rounded-md border bg-card overflow-hidden">
+                              <div className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold border-b bg-muted/50">รายการสินค้า</div>
                               <div className="overflow-x-auto">
                                 <Table className="min-w-[600px]">
                                   <TableHeader>

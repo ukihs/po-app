@@ -1,6 +1,6 @@
 "use client";
 
-import { useNotifications } from '../hooks/use-notifications';
+import { useNotifications } from '../../hooks/use-notifications';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 

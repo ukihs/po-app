@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNotifications } from '../../hooks/use-notifications';
 import type { Notification, UserRole } from '../../types';
 import { ROLE_DISPLAY_NAMES } from '../../lib/constants';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 import { 
   Bell, 
   ArrowRight,
@@ -49,7 +50,7 @@ export default function NotificationsPage() {
       const matchesSearch = !searchTerm || 
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.orderNo?.toString().includes(searchTerm) ||
+        (item.orderNo ? getDisplayOrderNumber({ orderNo: item.orderNo, date: item.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' }) : '').includes(searchTerm) ||
         item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesType = filterType === 'all' || item.kind === filterType;
@@ -386,7 +387,7 @@ export default function NotificationsPage() {
                   </div>
                   
                   <h3 className={`text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    {n.orderNo ? `#${n.orderNo} - ${n.title}` : n.title}
+                    {n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' })})` : n.title}
                   </h3>
 
                   <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap">
@@ -400,9 +401,9 @@ export default function NotificationsPage() {
       </div>
 
       {filteredAndSortedItems.length > 0 && (
-        <div className="mt-6 flex flex-col gap-4">
+        <div className="mt-4 sm:mt-6 flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
               <span className="text-xs sm:text-sm text-muted-foreground">แสดง</span>
               <select
                 value={itemsPerPage}
@@ -414,107 +415,107 @@ export default function NotificationsPage() {
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
-              <span className="text-xs sm:text-sm text-muted-foreground">รายการ</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">รายการต่อหน้า</span>
             </div>
 
             <div className="text-xs sm:text-sm text-muted-foreground">
-              {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-1 sm:gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-2 sm:px-3"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline ml-1">ก่อนหน้า</span>
-            </Button>
-
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              {(() => {
-                const pages = [];
-                const maxVisiblePages = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
-
-                if (startPage > 1) {
-                  pages.push(
-                    <Button
-                      key={1}
-                      variant={currentPage === 1 ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(1)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
-                    >
-                      1
-                    </Button>
-                  );
-                  if (startPage > 2) {
-                    pages.push(
-                      <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                }
-
-                for (let i = startPage; i <= endPage; i++) {
-                  pages.push(
-                    <Button
-                      key={i}
-                      variant={currentPage === i ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(i)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
-                    >
-                      {i}
-                    </Button>
-                  );
-                }
-
-                if (endPage < totalPages) {
-                  if (endPage < totalPages - 1) {
-                    pages.push(
-                      <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  pages.push(
-                    <Button
-                      key={totalPages}
-                      variant={currentPage === totalPages ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(totalPages)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
-                    >
-                      {totalPages}
-                    </Button>
-                  );
-                }
-
-                return pages;
-              })()}
+              แสดง {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredAndSortedItems.length)} จาก {filteredAndSortedItems.length} รายการ
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-2 sm:px-3"
-            >
-              <span className="hidden sm:inline mr-1">ถัดไป</span>
-              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </Button>
+            <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 sm:h-8"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">ก่อนหน้า</span>
+              </Button>
+
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                {(() => {
+                  const pages = [];
+                  const maxVisiblePages = 5;
+                  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                  if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                  }
+
+                  if (startPage > 1) {
+                    pages.push(
+                      <Button
+                        key={1}
+                        variant={currentPage === 1 ? "primary" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(1)}
+                        className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
+                      >
+                        1
+                      </Button>
+                    );
+                    if (startPage > 2) {
+                      pages.push(
+                        <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
+                          ...
+                        </span>
+                      );
+                    }
+                  }
+
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={currentPage === i ? "primary" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(i)}
+                        className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
+                      >
+                        {i}
+                      </Button>
+                    );
+                  }
+
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(
+                        <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
+                          ...
+                        </span>
+                      );
+                    }
+                    pages.push(
+                      <Button
+                        key={totalPages}
+                        variant={currentPage === totalPages ? "primary" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(totalPages)}
+                        className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
+                      >
+                        {totalPages}
+                      </Button>
+                    );
+                  }
+
+                  return pages;
+                })()}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 sm:h-8"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <span className="hidden sm:inline">ถัดไป</span>
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

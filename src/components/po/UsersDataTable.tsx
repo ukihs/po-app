@@ -14,7 +14,7 @@ import {
 import type {
   ColumnDef,
 } from "@tanstack/react-table";
-import { Edit, Trash2, Shield, ShoppingCart, UserCheck, Package, Crown, Ellipsis, Search, X, Filter, UserRoundPlus } from 'lucide-react';
+import { Edit, Trash2, Shield, ShoppingCart, UserCheck, Package, Crown, Ellipsis, Search, X, Filter, UserRoundPlus, Copy } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -22,7 +22,9 @@ import { Badge } from '../ui/badge';
 import { 
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
@@ -117,18 +119,23 @@ function ActionsCell({ row, onEditUser, onDeleteUser }: {
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end">
-        <DropdownMenuItem onClick={() => onEditUser(row.original)}>
-          <Edit className="mr-2 h-4 w-4" />
-          แก้ไขข้อมูล
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCopyId}>
-          คัดลอก User ID
-        </DropdownMenuItem>
+      <DropdownMenuContent side="bottom" align="end" className="w-64">
+        <DropdownMenuLabel>จัดการผู้ใช้</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onEditUser(row.original)}>
+            <Edit className="mr-2 h-4 w-4" />
+            <span>แก้ไขข้อมูล</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopyId}>
+            <Copy className="mr-2 h-4 w-4" />
+            <span>คัดลอกไอดีผู้ใช้</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => onDeleteUser(row.original)}>
           <Trash2 className="mr-2 h-4 w-4" />
-          ลบผู้ใช้
+          <span>ลบผู้ใช้</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,6 +1,6 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useAuth, C as Card, p as CardContent, B as Badge, a as CardHeader, s as CardTitle, $ as $$MainLayout } from '../../chunks/card_Dq4rWcpQ.mjs';
+import { u as useAuth, C as Card, q as CardContent, B as Badge, a as CardHeader, t as CardTitle, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useEffect } from 'react';
 import { B as Button, d as db, f as auth } from '../../chunks/auth_B6D8HlLm.mjs';
@@ -55,7 +55,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_BPDxzvB4.mjs');
+        const poApi = await import('../../chunks/poApi_gIBNPYkU.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,

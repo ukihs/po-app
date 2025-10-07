@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { Loader2, CheckCircle, XCircle, FileText, User, Calendar, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
-import type { Order, OrderStatus, UserRole } from "../../types";
+import type { Order } from "../../types";
 import { COLLECTIONS } from "../../lib/constants";
 
 export default function OrderDetailPage({ orderId }: { orderId: string }) {
@@ -50,7 +50,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         approvedByUid: auth.currentUser?.uid || null,
         approvedAt: serverTimestamp(),
       });
-      // ส่งแจ้งเตือนไปยังผู้ขอซื้อ
       await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
         toUserUid: order.requesterUid,
         orderId: order.id,
@@ -64,7 +63,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         createdAt: serverTimestamp(),
       });
 
-      // ส่งแจ้งเตือนไปยังฝ่ายจัดซื้อ (ใช้ poApi แทน)
       try {
         const poApi = await import('../../lib/poApi');
         await poApi.createNotification({
@@ -78,7 +76,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         });
       } catch (procurementNotifError) {
         console.error('Failed to send procurement notification:', procurementNotifError);
-        // ไม่ throw error เพื่อไม่ให้การอนุมัติล้มเหลว
       }
       toast.success("อนุมัติเรียบร้อย");
       window.location.href = "/orders/list";
@@ -101,7 +98,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         rejectedAt: serverTimestamp(),
         rejectReason: reason,
       });
-      // ส่งแจ้งเตือนไปยังผู้ขอซื้อเท่านั้น (ไม่ส่งไปยังฝ่ายจัดซื้อ)
       await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
         toUserUid: order.requesterUid,
         orderId: order.id,

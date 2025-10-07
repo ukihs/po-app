@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import { Toaster } from '../ui/sonner';
 import type { Order } from '../../types';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 import OrdersManagementDataTable from './OrdersManagementDataTable';
 
 export default function OrdersManagementPage() {
@@ -159,7 +160,7 @@ export default function OrdersManagementPage() {
           
           <div className="py-3 sm:py-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              ใบขอซื้อ: #{selectedOrder?.orderNo || selectedOrder?.id?.slice(-8)} - {selectedOrder?.requesterName || selectedOrder?.requester}
+              ใบขอซื้อ: {selectedOrder ? getDisplayOrderNumber(selectedOrder) : 'N/A'} - {selectedOrder?.requesterName || selectedOrder?.requester}
             </p>
           </div>
 

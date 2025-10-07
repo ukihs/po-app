@@ -405,16 +405,11 @@ export default function UsersManagementPage() {
                 <Input 
                   id="firstName"
                   type="text" 
-                  className={`text-sm ${validationErrors.firstName ? 'border-destructive' : ''}`}
+                  className="text-sm"
                   placeholder="กรอกชื่อ"
                   value={newUser.firstName}
                   onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
-                  minLength={2}
-                  required
                 />
-                {validationErrors.firstName && (
-                  <p className="text-xs text-destructive">ชื่อต้องมีอย่างน้อย 2 ตัวอักษร</p>
-                )}
               </div>
 
               <div className="space-y-1.5 sm:space-y-2">
@@ -424,16 +419,11 @@ export default function UsersManagementPage() {
                 <Input 
                   id="lastName"
                   type="text" 
-                  className={`text-sm ${validationErrors.lastName ? 'border-destructive' : ''}`}
+                  className="text-sm"
                   placeholder="กรอกนามสกุล"
                   value={newUser.lastName}
                   onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
-                  minLength={2}
-                  required
                 />
-                {validationErrors.lastName && (
-                  <p className="text-xs text-destructive">นามสกุลต้องมีอย่างน้อย 2 ตัวอักษร</p>
-                )}
               </div>
             </div>
 
@@ -444,16 +434,11 @@ export default function UsersManagementPage() {
               <Input 
                 id="email"
                 type="email" 
-                className={`text-sm ${validationErrors.email ? 'border-destructive' : ''}`}
+                className="text-sm"
                 placeholder="กรอกอีเมล"
                 value={newUser.email}
                 onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                required
-                pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
               />
-              {validationErrors.email && (
-                <p className="text-xs text-destructive">กรุณากรอกอีเมลที่ถูกต้อง</p>
-              )}
             </div>
 
             <div className="space-y-1.5 sm:space-y-2">
@@ -463,16 +448,11 @@ export default function UsersManagementPage() {
               <Input 
                 id="password"
                 type="password" 
-                className={`text-sm ${validationErrors.password ? 'border-destructive' : ''}`}
+                className="text-sm"
                 placeholder="กรอกรหัสผ่าน"
                 value={newUser.password}
                 onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                minLength={6}
-                required
               />
-              {validationErrors.password && (
-                <p className="text-xs text-destructive">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</p>
-              )}
             </div>
 
             <div className="space-y-1.5 sm:space-y-2">
@@ -567,7 +547,7 @@ export default function UsersManagementPage() {
                 value={newUser.role}
                 onValueChange={(value) => setNewUser({...newUser, role: value})}
               >
-                <SelectTrigger className={`text-sm ${validationErrors.role ? 'border-destructive' : ''}`}>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="เลือกบทบาท" />
                 </SelectTrigger>
                 <SelectContent>
@@ -577,9 +557,6 @@ export default function UsersManagementPage() {
                   <SelectItem value="superadmin" className="text-sm">ผู้ดูแลระบบ</SelectItem>
                 </SelectContent>
               </Select>
-              {validationErrors.role && (
-                <p className="text-xs text-destructive">กรุณาเลือกบทบาท</p>
-              )}
             </div>
 
             <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">

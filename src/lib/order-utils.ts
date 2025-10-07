@@ -36,7 +36,17 @@ export const formatCurrencyShort = (amount: number): string => {
 };
 
 export const generateOrderNumber = (orderNo: number, date: string): string => {
+  if (!orderNo || !date) {
+    return `PR${orderNo?.toString().padStart(3, '0') ?? '000'}`;
+  }
+  
   const orderDate = new Date(date);
+  
+  if (isNaN(orderDate.getTime())) {
+    console.warn('Invalid date provided to generateOrderNumber:', date);
+    return `PR${orderNo.toString().padStart(3, '0')}`;
+  }
+  
   const year = orderDate.getFullYear();
   const month = (orderDate.getMonth() + 1).toString().padStart(2, '0');
   const number = orderNo.toString().padStart(3, '0');
@@ -47,6 +57,17 @@ export const generateOrderNumber = (orderNo: number, date: string): string => {
 export const formatOrderNumber = (orderNo: number | string): string => {
   if (typeof orderNo === 'string') return orderNo;
   return `#${orderNo}`;
+};
+
+// Helper function for displaying order number with better performance
+export const getDisplayOrderNumber = (order: { orderNo?: number; date?: string }): string => {
+  if (!order.orderNo) return 'PR000';
+  
+  if (order.date) {
+    return generateOrderNumber(order.orderNo, order.date);
+  }
+  
+  return `PR${order.orderNo.toString().padStart(3, '0')}`;
 };
 
 export const getStatusLabel = (status: OrderStatus): string => {

@@ -8,7 +8,8 @@ import {
   Search,
   Filter,
   X,
-  Ellipsis
+  Ellipsis,
+  Copy
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -26,7 +27,9 @@ import { Label } from '../ui/label';
 import { 
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
@@ -46,6 +49,7 @@ import type {
 } from '@tanstack/react-table';
 
 import type { Order, OrderStatus } from '../../types';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 
 const STATUS_TH: Record<OrderStatus, string> = {
   pending: 'รออนุมัติ',
@@ -88,9 +92,10 @@ function ActionsCell({ row, onViewOrder, onDeleteOrder }: {
   onViewOrder: (order: Order) => void;
   onDeleteOrder: (order: Order) => void;
 }) {
-  const handleCopyOrderId = () => {
-    navigator.clipboard.writeText(row.original.id);
-    toast.success(`Order ID คัดลอกแล้ว: ${row.original.id}`);
+  const handleCopyOrderNumber = () => {
+    const orderNumber = getDisplayOrderNumber(row.original);
+    navigator.clipboard.writeText(orderNumber);
+    toast.success(`เลขที่ใบขอซื้อคัดลอกแล้ว: ${orderNumber}`);
   };
 
   return (
@@ -100,18 +105,23 @@ function ActionsCell({ row, onViewOrder, onDeleteOrder }: {
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end">
-        <DropdownMenuItem onClick={() => onViewOrder(row.original)}>
-          <Eye className="mr-2 h-4 w-4" />
-          ดูรายละเอียด
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCopyOrderId}>
-          คัดลอก Order ID
-        </DropdownMenuItem>
+      <DropdownMenuContent side="bottom" align="end" className="w-64">
+        <DropdownMenuLabel>จัดการใบขอซื้อ</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onViewOrder(row.original)}>
+            <Eye className="mr-2 h-4 w-4" />
+            <span>ดูรายละเอียด</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopyOrderNumber}>
+            <Copy className="mr-2 h-4 w-4" />
+            <span>คัดลอกเลขที่ใบขอซื้อ</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => onDeleteOrder(row.original)}>
           <Trash2 className="mr-2 h-4 w-4" />
-          ลบใบขอซื้อ
+          <span>ลบใบขอซื้อ</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -177,12 +187,12 @@ export default function OrdersManagementDataTable({
       {
         accessorKey: 'orderNo',
         id: 'orderNo',
-        header: ({ column }) => <DataGridColumnHeader title="รายการที่" column={column} />,
+        header: ({ column }) => <DataGridColumnHeader title="เลขที่ใบขอซื้อ" column={column} />,
         cell: ({ row }) => {
-          const orderNo = row.getValue('orderNo') as number;
+          const order = row.original;
           return (
             <div className="font-medium">
-              #{orderNo || row.original.id?.slice(-8) || '-'}
+              {getDisplayOrderNumber(order)}
             </div>
           );
         },
