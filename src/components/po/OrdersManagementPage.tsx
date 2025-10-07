@@ -10,7 +10,7 @@ import {
   where,
   getDocs,
 } from 'firebase/firestore';
-import { useAuth } from '../../hooks/useAuth';
+import { useUser, useRole, useIsLoading } from '../../stores';
 import { FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
@@ -28,7 +28,9 @@ export default function OrdersManagementPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
-  const { user, role, isLoading: authLoading } = useAuth();
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
 
   useEffect(() => {
     if (authLoading) return;

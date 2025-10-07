@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNotifications } from '../../hooks/use-notifications';
+import { useNotifications, useUnreadCount, useNotificationsLoading, useNotificationsError, useNotificationsStore, useRole } from '../../stores';
 import type { Notification, UserRole } from '../../types';
 import { ROLE_DISPLAY_NAMES } from '../../lib/constants';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
@@ -37,7 +37,12 @@ const getRoleDisplayName = (role: string) => {
 };
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, loading, error, role, markAsRead, markAllAsRead } = useNotifications();
+  const notifications = useNotifications();
+  const unreadCount = useUnreadCount();
+  const loading = useNotificationsLoading();
+  const error = useNotificationsError();
+  const { markAsRead, markAllAsRead } = useNotificationsStore();
+  const role = useRole();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo, useCallback } from "react"
-import { useAuth } from "@/hooks/useAuth"
+import { useUser, useRole, useIsLoading } from "@/stores"
 import type { UserRole } from "@/types"
 import { ROLE_DISPLAY_NAMES } from "@/lib/constants"
 import {
@@ -42,7 +42,9 @@ interface NavItem {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, role, isLoading } = useAuth();
+  const user = useUser();
+  const role = useRole();
+  const isLoading = useIsLoading();
   const [activeTab, setActiveTab] = useState('');
 
   useEffect(() => {

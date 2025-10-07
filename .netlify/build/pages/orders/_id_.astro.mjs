@@ -1,10 +1,10 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useAuth, C as Card, q as CardContent, B as Badge, a as CardHeader, t as CardTitle, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
+import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { B as Button, d as db, f as auth } from '../../chunks/auth_B6D8HlLm.mjs';
-import { getDoc, doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { updateDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
 import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_D95jMiPk.mjs';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
@@ -14,25 +14,13 @@ import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function OrderDetailPage({ orderId }) {
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
+  const order = useOrderById(orderId);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-    const fetchOrder = async () => {
-      try {
-        const snap = await getDoc(doc(db, COLLECTIONS.ORDERS, orderId));
-        setOrder(snap.exists() ? { id: snap.id, ...snap.data() } : null);
-      } catch (e) {
-        setErr(e.message || String(e));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrder();
-  }, [user, role, authLoading, orderId]);
+  const loading = authLoading || !order;
   const approve = async () => {
     if (!order?.id || saving) return;
     setSaving(true);

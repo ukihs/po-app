@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { auth, db } from '../../firebase/client';
-import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
-import { useAuth } from '../../hooks/useAuth';
+import { auth } from '../../firebase/client';
+import { useUser, useRole, useIsLoading, useOrders, useOrdersLoading, useOrdersError } from '../../stores';
 import type { OrderStatus, OrderItem } from '../../types';
 import { COLLECTIONS } from '../../lib/constants';
 import { approveOrder } from '../../lib/poApi';
@@ -84,11 +83,13 @@ interface OrderData {
 }
 
 export default function TrackingPage() {
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState<OrderData[]>([]);
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
+  const orders = useOrders();
+  const loading = useOrdersLoading();
+  const err = useOrdersError();
   const [filteredRows, setFilteredRows] = useState<OrderData[]>([]);
-  const [err, setErr] = useState('');
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState<{
@@ -103,60 +104,21 @@ export default function TrackingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-
-    let q;
-    if (role === 'buyer') {
-      q = query(
-        collection(db, COLLECTIONS.ORDERS),
-        where('requesterUid', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      );
-    } else if (role === 'supervisor' || role === 'procurement' || role === 'superadmin') {
-      q = query(
-        collection(db, COLLECTIONS.ORDERS),
-        orderBy('createdAt', 'desc')
-      );
-    } else {
-      setLoading(false);
-      setErr('ไม่พบ role ในระบบ');
-      return;
-    }
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            orderNo: data.orderNo || 0,
-            date: data.date || '',
-            requesterName: data.requesterName || '',
-            requesterUid: data.requesterUid || '',
-            total: Number(data.total || 0),
-            status: (data.status || 'pending') as OrderStatus,
-            createdAt: data.createdAt,
-            items: data.items || [],
-            itemsCategories: data.itemsCategories || {},
-            itemsStatuses: data.itemsStatuses || {},
-          };
-        });
-        
-        setRows(list);
-        setFilteredRows(list);
-        setErr('');
-        setLoading(false);
-      },
-      (e) => {
-        setErr(String(e?.message || e));
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user, role, authLoading]);
+  const rows = useMemo(() => {
+    return orders.map(order => ({
+      id: order.id,
+      orderNo: order.orderNo,
+      date: order.date,
+      requesterName: order.requesterName || '',
+      requesterUid: order.requesterUid,
+      total: order.totalAmount,
+      status: order.status,
+      createdAt: order.createdAt,
+      items: order.items || [],
+      itemsCategories: order.itemsCategories || {},
+      itemsStatuses: order.itemsStatuses || {},
+    }));
+  }, [orders]);
 
   useEffect(() => {
     let filtered = rows;

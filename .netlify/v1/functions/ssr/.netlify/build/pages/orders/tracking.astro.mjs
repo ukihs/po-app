@@ -1,12 +1,10 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { u as useAuth, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, q as CardContent, B as Badge, r as Separator, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
+import { u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, s as CardContent, B as Badge, t as Separator, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
-import React__default, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { c as cn, d as db, B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
-import { query, collection, where, orderBy, onSnapshot } from 'firebase/firestore';
-import { a as COLLECTIONS } from '../../chunks/constants_DBA-19QZ.mjs';
+import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { c as cn, B as Button, I as Input } from '../../chunks/auth_B6D8HlLm.mjs';
 import { approveOrder } from '../../chunks/poApi_gIBNPYkU.mjs';
 import { g as getDisplayOrderNumber } from '../../chunks/order-utils_AlbEnbgm.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
@@ -373,11 +371,13 @@ function StepperNav({ children, className }) {
 }
 
 function TrackingPage() {
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState([]);
+  useUser();
+  const role = useRole();
+  useIsLoading();
+  const orders = useOrders();
+  const loading = useOrdersLoading();
+  const err = useOrdersError();
   const [filteredRows, setFilteredRows] = useState([]);
-  const [err, setErr] = useState("");
   const [processingOrders, setProcessingOrders] = useState(/* @__PURE__ */ new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
@@ -386,56 +386,21 @@ function TrackingPage() {
   const [viewMode, setViewMode] = useState("card");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-    let q;
-    if (role === "buyer") {
-      q = query(
-        collection(db, COLLECTIONS.ORDERS),
-        where("requesterUid", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
-    } else if (role === "supervisor" || role === "procurement" || role === "superadmin") {
-      q = query(
-        collection(db, COLLECTIONS.ORDERS),
-        orderBy("createdAt", "desc")
-      );
-    } else {
-      setLoading(false);
-      setErr("ไม่พบ role ในระบบ");
-      return;
-    }
-    const unsubscribe = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            orderNo: data.orderNo || 0,
-            date: data.date || "",
-            requesterName: data.requesterName || "",
-            requesterUid: data.requesterUid || "",
-            total: Number(data.total || 0),
-            status: data.status || "pending",
-            createdAt: data.createdAt,
-            items: data.items || [],
-            itemsCategories: data.itemsCategories || {},
-            itemsStatuses: data.itemsStatuses || {}
-          };
-        });
-        setRows(list);
-        setFilteredRows(list);
-        setErr("");
-        setLoading(false);
-      },
-      (e) => {
-        setErr(String(e?.message || e));
-        setLoading(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [user, role, authLoading]);
+  const rows = useMemo(() => {
+    return orders.map((order) => ({
+      id: order.id,
+      orderNo: order.orderNo,
+      date: order.date,
+      requesterName: order.requesterName || "",
+      requesterUid: order.requesterUid,
+      total: order.totalAmount,
+      status: order.status,
+      createdAt: order.createdAt,
+      items: order.items || [],
+      itemsCategories: order.itemsCategories || {},
+      itemsStatuses: order.itemsStatuses || {}
+    }));
+  }, [orders]);
   useEffect(() => {
     let filtered = rows;
     if (searchTerm) {

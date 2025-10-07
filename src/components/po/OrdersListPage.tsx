@@ -3,16 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../firebase/client';
 import {
-  collection,
-  onSnapshot,
-  query,
   doc,
   getDoc,
   updateDoc,
   serverTimestamp,
-  orderBy,
 } from 'firebase/firestore';
-import { useAuth } from '../../hooks/useAuth';
+import { useUser, useRole, useIsLoading, useOrders, useOrdersLoading, useOrdersError } from '../../stores';
 import { Loader2, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { toast } from 'sonner';
@@ -24,34 +20,16 @@ import { COLLECTIONS } from '../../lib/constants';
 type Drafts = Record<string, Record<number, {category?:string; itemStatus?:string}>>;
 
 export default function OrdersListPage(){
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState('');
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
+  const orders = useOrders();
+  const loading = useOrdersLoading();
+  const err = useOrdersError();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set());
   const [drafts, setDrafts] = useState<Drafts>({});
 
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-
-    const qRef = query(collection(db, COLLECTIONS.ORDERS), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(
-      qRef,
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as Order[];
-        setOrders(list);
-        setErr('');
-        setLoading(false);
-      },
-      (e) => { 
-        setErr(String(e?.message || e)); 
-        setLoading(false); 
-      }
-    );
-
-    return () => unsub();
-  }, [user, role, authLoading]);
 
   const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
 

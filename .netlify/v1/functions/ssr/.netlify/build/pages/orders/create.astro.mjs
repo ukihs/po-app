@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, q as CardContent, r as Separator, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
+import { C as Card, s as CardContent, t as Separator, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { useState, useEffect } from 'react';

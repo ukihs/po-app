@@ -1,6 +1,6 @@
 "use client";
 
-import { useNotifications } from '../../hooks/use-notifications';
+import { useUnreadCount, useNotificationsLoading } from '../../stores';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -9,7 +9,8 @@ interface NotificationBadgeProps {
 }
 
 export default function NotificationBadge({ className = "" }: NotificationBadgeProps) {
-  const { unreadCount, loading } = useNotifications();
+  const unreadCount = useUnreadCount();
+  const loading = useNotificationsLoading();
 
   if (loading) {
     return (

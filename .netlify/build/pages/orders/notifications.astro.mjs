@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { s as useNotifications, B as Badge, C as Card, q as CardContent, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
+import { y as useNotifications, z as useUnreadCount, A as useNotificationsLoading, E as useNotificationsError, F as useNotificationsStore, k as useRole, B as Badge, C as Card, s as CardContent, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { g as getDisplayOrderNumber } from '../../chunks/order-utils_AlbEnbgm.mjs';
@@ -17,7 +17,12 @@ const fmt = (ts) => {
   return d.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
 };
 function NotificationsPage() {
-  const { notifications, unreadCount, loading, error, role, markAsRead, markAllAsRead } = useNotifications();
+  const notifications = useNotifications();
+  const unreadCount = useUnreadCount();
+  const loading = useNotificationsLoading();
+  const error = useNotificationsError();
+  const { markAsRead, markAllAsRead } = useNotificationsStore();
+  const role = useRole();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");

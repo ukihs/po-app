@@ -1,10 +1,10 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_7uJhlR4f.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardHeader, b as CardHeading, k as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useAuth, $ as $$MainLayout } from '../../chunks/card_CWIk3thL.mjs';
+import { C as Card, a as CardHeader, b as CardHeading, m as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, $ as $$MainLayout } from '../../chunks/card_BWHBmFIp.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
-import React__default, { useState, useMemo, useEffect } from 'react';
+import React__default, { useState, useMemo } from 'react';
 import { B as Button, I as Input, d as db } from '../../chunks/auth_B6D8HlLm.mjs';
-import { query, collection, orderBy, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { A as Alert, a as AlertDescription } from '../../chunks/alert_X172b6ty.mjs';
 import { toast } from 'sonner';
@@ -415,31 +415,15 @@ function OrdersDataTable({
 }
 
 function OrdersListPage() {
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
+  const orders = useOrders();
+  const loading = useOrdersLoading();
+  const err = useOrdersError();
   const [expanded, setExpanded] = useState({});
   const [processingKeys, setProcessingKeys] = useState(/* @__PURE__ */ new Set());
   const [drafts, setDrafts] = useState({});
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-    const qRef = query(collection(db, COLLECTIONS.ORDERS), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(
-      qRef,
-      (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setOrders(list);
-        setErr("");
-        setLoading(false);
-      },
-      (e) => {
-        setErr(String(e?.message || e));
-        setLoading(false);
-      }
-    );
-    return () => unsub();
-  }, [user, role, authLoading]);
   const toggle = (id) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   const getItemValue = (o, idx) => {
     const d = drafts[o.id]?.[idx] || {};

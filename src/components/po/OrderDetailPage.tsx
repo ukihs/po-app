@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../../firebase/client";
 import {
-  doc, getDoc, updateDoc, collection, addDoc, serverTimestamp
+  doc, updateDoc, collection, addDoc, serverTimestamp
 } from "firebase/firestore";
-import { useAuth } from "../../hooks/useAuth";
+import { useUser, useRole, useIsLoading, useOrderById } from "../../stores";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -18,28 +18,14 @@ import type { Order } from "../../types";
 import { COLLECTIONS } from "../../lib/constants";
 
 export default function OrderDetailPage({ orderId }: { orderId: string }) {
-  const { user, role, isLoading: authLoading } = useAuth();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
+  const order = useOrderById(orderId);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string>("");
-
-  useEffect(() => {
-    if (!user || !role || authLoading) return;
-
-    const fetchOrder = async () => {
-      try {
-        const snap = await getDoc(doc(db, COLLECTIONS.ORDERS, orderId));
-        setOrder(snap.exists() ? ({ id: snap.id, ...(snap.data() as any) }) : null);
-      } catch (e: any) {
-        setErr(e.message || String(e));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrder();
-  }, [user, role, authLoading, orderId]);
+  
+  const loading = authLoading || !order;
 
   const approve = async () => {
     if (!order?.id || saving) return;
