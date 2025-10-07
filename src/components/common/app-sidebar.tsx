@@ -14,7 +14,6 @@ import {
   Building2,
   ShoppingCart,
   Package,
-  Settings,
   type LucideIcon,
 } from "lucide-react"
 import NotificationBadge from "../common/NotificationBadge"

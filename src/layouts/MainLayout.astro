@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import SidebarLayout from '../components/common/SidebarLayout';
 import '../styles/global.css';
 const title = Astro.props.title ?? 'ระบบใบสั่งซื้อ';
@@ -28,10 +29,11 @@ const title = Astro.props.title ?? 'ระบบใบสั่งซื้อ';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    <ClientRouter />
   </head>
 
   <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 text-slate-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:text-slate-100">
-    <SidebarLayout client:load>
+    <SidebarLayout client:visible>
       <slot />
     </SidebarLayout>
   </body>

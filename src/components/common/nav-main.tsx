@@ -24,7 +24,9 @@ export function NavMain({ items }: { items: NavItem[] }) {
     if (typeof window !== 'undefined') {
       import('astro:transitions/client')
         .then(({ navigate }) => navigate(url))
-        .catch(() => { window.location.href = url; });
+        .catch(() => {
+          window.location.href = url;
+        });
     }
   }, []);
 

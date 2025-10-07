@@ -21,6 +21,18 @@ export default function AppBreadcrumb() {
   useEffect(() => {
     setIsClient(true);
     setPathname(window.location.pathname);
+    
+    const handleNavigation = () => {
+      setPathname(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('astro:page-load', handleNavigation);
+    
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('astro:page-load', handleNavigation);
+    };
   }, []);
   
   const getBreadcrumbItems = (): BreadcrumbItem[] => {
