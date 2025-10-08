@@ -52,8 +52,15 @@ export function NavUser({
   };
 
   React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "light");
+    // อ่าน theme จาก localStorage เมื่อ component mount
+    const savedTheme = localStorage.getItem('theme') as "light" | "dark" | "system" | null;
+    if (savedTheme) {
+      setThemeState(savedTheme);
+    } else {
+      // ถ้าไม่มีใน localStorage ให้อ่านจาก DOM
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setThemeState(isDarkMode ? "dark" : "light");
+    }
   }, []);
 
   React.useEffect(() => {
@@ -62,6 +69,10 @@ export function NavUser({
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+    
+    // Save to both localStorage AND cookie
+    localStorage.setItem('theme', theme);
+    document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
   }, [theme]);
 
   return (

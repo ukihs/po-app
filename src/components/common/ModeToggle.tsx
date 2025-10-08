@@ -17,8 +17,13 @@ export function ModeToggle() {
   >("light");
 
   React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "light");
+    const savedTheme = localStorage.getItem('theme') as "light" | "dark" | "system" | null;
+    if (savedTheme) {
+      setThemeState(savedTheme);
+    } else {
+      const isDarkMode = document.documentElement.classList.contains("dark");
+      setThemeState(isDarkMode ? "dark" : "light");
+    }
   }, []);
 
   React.useEffect(() => {
@@ -27,6 +32,9 @@ export function ModeToggle() {
       (theme === "system" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+    
+    localStorage.setItem('theme', theme);
+    document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
   }, [theme]);
 
   return (

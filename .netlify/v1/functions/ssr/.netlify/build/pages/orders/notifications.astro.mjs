@@ -1,6 +1,6 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { y as useNotifications, z as useUnreadCount, A as useNotificationsLoading, E as useNotificationsError, F as useNotificationsStore, k as useRole, B as Badge, C as Card, s as CardContent, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
+import { y as useNotifications, z as useUnreadCount, A as useNotificationsLoading, E as useNotificationsError, F as useNotificationsStore, k as useRole, B as Badge, C as Card, s as CardContent, $ as $$MainLayout } from '../../chunks/card_Gv3zSa2O.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
 import { g as getDisplayOrderNumber } from '../../chunks/order-utils_7Vk_wX4U.mjs';

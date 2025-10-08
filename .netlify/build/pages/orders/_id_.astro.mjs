@@ -1,6 +1,6 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
+import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_Gv3zSa2O.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState } from 'react';
 import { A as Alert, a as AlertDescription, B as Button, d as db, i as auth } from '../../chunks/alert_CCNrb8k2.mjs';
