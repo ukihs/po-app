@@ -1,21 +1,20 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, s as CardContent, B as Badge, t as Separator, $ as $$MainLayout } from '../../chunks/card_Gv3zSa2O.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, g as getDisplayOrderNumber, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_CCNrb8k2.mjs';
-import { approveOrder } from '../../chunks/poApi_Dar5iW5v.mjs';
-import { g as getDisplayOrderNumber } from '../../chunks/order-utils_7Vk_wX4U.mjs';
+import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
+import { approveOrder } from '../../chunks/poApi_BLXRS2fj.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_JJhAOVcq.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_-euMlkTZ.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_DD-KqQrc.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_pBYIHlJJ.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BEOk_MK8.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BWpHMM2C.mjs';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_CNFPOshg.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function ItemGroup({ className, ...props }) {
@@ -684,7 +683,11 @@ function TrackingPage() {
                 variant: "outline",
                 size: "sm",
                 className: "text-xs w-full sm:w-auto",
-                onClick: () => window.open(`/orders/${order.id}`, "_blank"),
+                onClick: () => {
+                  import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(`/orders/${order.id}`)).catch(() => {
+                    window.location.href = `/orders/${order.id}`;
+                  });
+                },
                 children: [
                   /* @__PURE__ */ jsx(Eye, { className: "h-3 w-3 sm:h-4 sm:w-4 mr-1" }),
                   /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: "ดูรายละเอียด" }),
@@ -837,7 +840,11 @@ function TrackingPage() {
               variant: "outline",
               size: "sm",
               className: "w-full sm:w-auto text-xs border-border bg-background hover:bg-accent",
-              onClick: () => window.open(`/orders/${order.id}`, "_blank"),
+              onClick: () => {
+                import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(`/orders/${order.id}`)).catch(() => {
+                  window.location.href = `/orders/${order.id}`;
+                });
+              },
               children: [
                 /* @__PURE__ */ jsx(Eye, { className: "h-3 w-3 sm:h-4 sm:w-4 mr-1" }),
                 "ดูรายละเอียด"

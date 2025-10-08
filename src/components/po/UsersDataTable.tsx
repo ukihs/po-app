@@ -39,7 +39,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { toast } from 'sonner';
 
 interface User {
   uid: string;
@@ -59,6 +58,7 @@ interface UsersDataTableProps {
   onDeleteUser: (user: User) => void;
   onAddUser: () => void;
   isCurrentUser: (user: User) => boolean;
+  onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
 }
 
 const getRoleBadge = (role?: string) => {
@@ -103,15 +103,18 @@ const getRoleBadge = (role?: string) => {
   );
 };
 
-function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser }: { 
+function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser, onShowAlert }: { 
   row: Row<User>; 
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
   isCurrentUser: (user: User) => boolean;
+  onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
 }) {
   const handleCopyId = () => {
     navigator.clipboard.writeText(row.original.uid);
-    toast.success(`User ID คัดลอกแล้ว: ${row.original.uid}`);
+    if (onShowAlert) {
+      onShowAlert(`คัดลอกไอดีผู้ใช้แล้ว`, 'success');
+    }
   };
 
   return (
@@ -152,7 +155,7 @@ function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser }: {
 }
 
 
-const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void, isCurrentUser: (user: User) => boolean): ColumnDef<User>[] => [
+const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void, isCurrentUser: (user: User) => boolean, onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void): ColumnDef<User>[] => [
   {
     accessorKey: "displayName",
     id: "displayName",
@@ -221,7 +224,7 @@ const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: Us
   {
     id: "actions",
     header: '',
-    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} isCurrentUser={isCurrentUser} />,
+    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} isCurrentUser={isCurrentUser} onShowAlert={onShowAlert} />,
     size: 60,
     enableSorting: false,
     enableHiding: false,
@@ -235,7 +238,8 @@ export default function UsersDataTable({
   onEditUser, 
   onDeleteUser,
   onAddUser,
-  isCurrentUser
+  isCurrentUser,
+  onShowAlert
 }: UsersDataTableProps) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -245,7 +249,7 @@ export default function UsersDataTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, isCurrentUser), [onEditUser, onDeleteUser, isCurrentUser]);
+  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, isCurrentUser, onShowAlert), [onEditUser, onDeleteUser, isCurrentUser, onShowAlert]);
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {

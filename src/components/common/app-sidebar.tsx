@@ -49,32 +49,46 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   useEffect(() => {
     const updateActiveTab = () => {
       const path = window.location.pathname;
-      const tabMap: Record<string, string> = {
-        '/create': 'create',
-        '/tracking': 'tracking',
-        '/notifications': 'notifications',
-        '/list': 'list',
-        '/users': 'users',
-        '/admin/users': 'admin-users',
-        '/admin/orders': 'admin-orders'
-      };
       
-      const activeTab = Object.entries(tabMap).find(([key]) => path.includes(key))?.[1] || '';
-      setActiveTab(activeTab);
+      const routes = [
+        { path: '/admin/users', tab: 'admin-users' },
+        { path: '/admin/orders', tab: 'admin-orders' },
+        { path: '/orders/create', tab: 'create' },
+        { path: '/orders/tracking', tab: 'tracking' },
+        { path: '/orders/notifications', tab: 'notifications' },
+        { path: '/orders/list', tab: 'list' },
+        { path: '/orders/', tab: 'tracking' },
+      ];
+      
+      const matchedRoute = routes.find(route => path.startsWith(route.path));
+      const newTab = matchedRoute?.tab || '';
+      
+      setActiveTab(newTab);
     };
 
     updateActiveTab();
 
     const handleNavigation = () => {
-      setTimeout(updateActiveTab, 100);
+      requestAnimationFrame(updateActiveTab);
     };
 
     window.addEventListener('popstate', handleNavigation);
     window.addEventListener('astro:page-load', handleNavigation);
+    window.addEventListener('astro:after-swap', handleNavigation);
+    
+    const handleClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-sidebar="menu-button"]')) {
+        requestAnimationFrame(updateActiveTab);
+      }
+    };
+    document.addEventListener('click', handleClick);
 
     return () => {
       window.removeEventListener('popstate', handleNavigation);
       window.removeEventListener('astro:page-load', handleNavigation);
+      window.removeEventListener('astro:after-swap', handleNavigation);
+      document.removeEventListener('click', handleClick);
     };
   }, []);
 

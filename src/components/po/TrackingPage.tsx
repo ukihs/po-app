@@ -507,7 +507,13 @@ export default function TrackingPage() {
                           variant="outline"
                           size="sm"
                           className="text-xs w-full sm:w-auto"
-                          onClick={() => window.open(`/orders/${order.id}`, '_blank')}
+                          onClick={() => {
+                            import('astro:transitions/client')
+                              .then(({ navigate }) => navigate(`/orders/${order.id}`))
+                              .catch(() => {
+                                window.location.href = `/orders/${order.id}`;
+                              });
+                          }}
                         >
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           <span className="hidden sm:inline">ดูรายละเอียด</span>
@@ -675,7 +681,13 @@ export default function TrackingPage() {
                        variant="outline"
                        size="sm"
                        className="w-full sm:w-auto text-xs border-border bg-background hover:bg-accent"
-                       onClick={() => window.open(`/orders/${order.id}`, '_blank')}
+                       onClick={() => {
+                         import('astro:transitions/client')
+                           .then(({ navigate }) => navigate(`/orders/${order.id}`))
+                           .catch(() => {
+                             window.location.href = `/orders/${order.id}`;
+                           });
+                       }}
                      >
                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                        ดูรายละเอียด

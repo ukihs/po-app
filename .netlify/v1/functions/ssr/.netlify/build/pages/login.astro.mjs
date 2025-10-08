@@ -2,10 +2,10 @@ import { d as createComponent, j as renderHead, k as renderComponent, r as rende
 import 'kleur/colors';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import React__default, { useState, useEffect, useCallback } from 'react';
-import { s as subscribeAuthAndRole, f as setAuthCookie, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input, B as Button, g as signIn } from '../chunks/alert_CCNrb8k2.mjs';
+import { s as subscribeAuthAndRole, f as setAuthCookie, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input, B as Button, g as signIn } from '../chunks/alert_D5APrsLH.mjs';
 import { Loader2 } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { L as Label } from '../chunks/label_bBtVeYLE.mjs';
+import { L as Label } from '../chunks/label_CI3iRGQI.mjs';
 /* empty css                                  */
 export { renderers } from '../renderers.mjs';
 
@@ -33,7 +33,10 @@ function LoginPage() {
       if (!user || !role) return;
       try {
         await setAuthCookie();
-        window.location.href = getRedirectUrl(role);
+        const redirectUrl = getRedirectUrl(role);
+        import('../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(redirectUrl)).catch(() => {
+          window.location.href = redirectUrl;
+        });
       } catch (error) {
         console.error("Failed to set auth cookie:", error);
       }

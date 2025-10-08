@@ -1,36 +1,15 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_Gv3zSa2O.mjs';
-import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { useState } from 'react';
-import { A as Alert, a as AlertDescription, B as Button, d as db, i as auth } from '../../chunks/alert_CCNrb8k2.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, I as useOrderById, g as getDisplayOrderNumber, C as Card, t as CardContent, B as Badge, a as CardHeader, J as CardTitle, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import React__default, { useState } from 'react';
+import { A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, B as Button, d as db, i as auth } from '../../chunks/alert_D5APrsLH.mjs';
 import { updateDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BEOk_MK8.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
-import { Toaster as Toaster$1, toast } from 'sonner';
-import { useTheme } from 'next-themes';
+import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
 import { C as COLLECTIONS } from '../../chunks/constants_uc-g81Q4.mjs';
 export { renderers } from '../../renderers.mjs';
-
-const Toaster = ({ ...props }) => {
-  const { theme = "system" } = useTheme();
-  return /* @__PURE__ */ jsx(
-    Toaster$1,
-    {
-      theme,
-      className: "group toaster [&_[data-type=success]>[data-icon]]:text-success [&_[data-type=success]_[data-title]]:text-success [&_[data-type=info]_[data-title]]:text-info [&_[data-type=error]>[data-icon]]:text-destructive [&_[data-type=error]_[data-title]]:text-destructive",
-      toastOptions: {
-        classNames: {
-          toast: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground! group-[.toaster]:border-border group-[.toaster]:shadow-lg has-[[role=alert]]:border-0! has-[[role=alert]]:shadow-none! has-[[role=alert]]:bg-transparent!",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:rounded-md! group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:rounded-md! group-[.toast]:bg-secondary group-[.toast]:text-secondary-foreground!"
-        }
-      },
-      ...props
-    }
-  );
-};
 
 function OrderDetailPage({ orderId }) {
   const user = useUser();
@@ -39,7 +18,54 @@ function OrderDetailPage({ orderId }) {
   const order = useOrderById(orderId);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [alertState, setAlertState] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    description: ""
+  });
   const loading = authLoading || !order;
+  const showAlert = (message, type = "info", description) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+    const duration = type === "error" ? 5e3 : 4e3;
+    setTimeout(() => {
+      setAlertState((prev) => ({ ...prev, show: false }));
+    }, duration);
+  };
+  const getAlertConfig = (type) => {
+    switch (type) {
+      case "success":
+        return {
+          variant: "success",
+          appearance: "light",
+          IconComponent: RiCheckboxCircleFill
+        };
+      case "error":
+        return {
+          variant: "destructive",
+          appearance: "light",
+          IconComponent: RiErrorWarningFill
+        };
+      case "warning":
+        return {
+          variant: "warning",
+          appearance: "light",
+          IconComponent: RiSpam3Fill
+        };
+      case "info":
+      default:
+        return {
+          variant: "info",
+          appearance: "light",
+          IconComponent: RiInformationFill
+        };
+    }
+  };
   const approve = async () => {
     if (!order?.id || saving) return;
     setSaving(true);
@@ -62,7 +88,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_Dar5iW5v.mjs');
+        const poApi = await import('../../chunks/poApi_BLXRS2fj.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
@@ -75,11 +101,13 @@ function OrderDetailPage({ orderId }) {
       } catch (procurementNotifError) {
         console.error("Failed to send procurement notification:", procurementNotifError);
       }
-      toast.success("อนุมัติเรียบร้อย");
-      window.location.href = "/orders/list";
+      showAlert("อนุมัติเรียบร้อย", "success");
+      import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate("/orders/list")).catch(() => {
+        window.location.href = "/orders/list";
+      });
     } catch (e) {
       console.error(e);
-      toast.error(e.message || "อนุมัติไม่สำเร็จ");
+      showAlert("อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -107,11 +135,13 @@ function OrderDetailPage({ orderId }) {
         read: false,
         createdAt: serverTimestamp()
       });
-      toast.success("ทำรายการไม่อนุมัติแล้ว");
-      window.location.href = "/orders/list";
+      showAlert("ดำเนินการไม่อนุมัติสำเร็จ", "success");
+      import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate("/orders/list")).catch(() => {
+        window.location.href = "/orders/list";
+      });
     } catch (e) {
       console.error(e);
-      toast.error(e.message || "ไม่อนุมัติไม่สำเร็จ");
+      showAlert("ดำเนินการไม่อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -151,12 +181,25 @@ function OrderDetailPage({ orderId }) {
   }
   const statusInfo = getStatusInfo(String(order.status));
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsx(Toaster, {}),
+    alertState.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(
+      Alert,
+      {
+        variant: getAlertConfig(alertState.type).variant,
+        appearance: getAlertConfig(alertState.type).appearance,
+        close: true,
+        onClose: () => setAlertState((prev) => ({ ...prev, show: false })),
+        children: [
+          /* @__PURE__ */ jsx(AlertIcon, { children: React__default.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx(AlertTitle, { children: alertState.title }),
+          alertState.description && /* @__PURE__ */ jsx(AlertDescription, { children: alertState.description })
+        ]
+      }
+    ) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6", children: [
       /* @__PURE__ */ jsxs("h1", { className: "text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
         /* @__PURE__ */ jsx(FileText, { className: "h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" }),
-        "ใบสั่งซื้อ #",
-        order.orderNo
+        "ใบขอซื้อ ",
+        getDisplayOrderNumber(order)
       ] }),
       /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base text-muted-foreground", children: "รายละเอียดใบสั่งซื้อ" })
     ] }),
@@ -218,7 +261,7 @@ function OrderDetailPage({ orderId }) {
         ] }, item.no ?? index)) })
       ] }) }) })
     ] }) : null,
-    canApprove ? /* @__PURE__ */ jsxs("div", { className: "mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4", children: [
+    canApprove && /* @__PURE__ */ jsxs("div", { className: "mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4", children: [
       /* @__PURE__ */ jsx(
         Button,
         {
@@ -252,7 +295,7 @@ function OrderDetailPage({ orderId }) {
           ] })
         }
       )
-    ] }) : /* @__PURE__ */ jsx("div", { className: "mt-4 sm:mt-6", children: /* @__PURE__ */ jsx(Alert, { children: /* @__PURE__ */ jsx(AlertDescription, { className: "text-xs sm:text-sm", children: "หน้านี้เป็นมุมมองอ่านอย่างเดียวสำหรับสิทธิ์ของคุณ" }) }) })
+    ] })
   ] });
 }
 

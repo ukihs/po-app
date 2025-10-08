@@ -1,4 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../../firebase/client';
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  where,
+  doc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { 
   UserPlus, 
   Users,
@@ -25,7 +38,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Alert, AlertIcon, AlertTitle, AlertDescription } from '../ui/alert';
 import UsersDataTable from './UsersDataTable';
 import { cn } from '../../lib/utils';
-import { useUser } from '../../stores';
+import { useUser, useRole, useIsLoading } from '../../stores';
+import { COLLECTIONS } from '../../lib/constants';
 
 interface User {
   uid: string;
@@ -41,8 +55,11 @@ interface User {
 
 export default function UsersManagementPage() {
   const currentUser = useUser();
+  const role = useRole();
+  const authLoading = useIsLoading();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -96,12 +113,10 @@ export default function UsersManagementPage() {
   const [editSupervisorOpen, setEditSupervisorOpen] = useState(false);
   const [editSupervisorValue, setEditSupervisorValue] = useState('');
 
-  // Helper function to check if user is current user
   const isCurrentUser = (user: User) => {
     return currentUser?.uid === user.uid;
   };
 
-  // Alert state management
   const [alertState, setAlertState] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -114,33 +129,59 @@ export default function UsersManagementPage() {
     description: ''
   });
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: '1',
-        limit: '100',
-        sort: 'desc'
-      });
+  useEffect(() => {
+    if (authLoading) return;
 
-      const response = await fetch(`/api/users?${params}`);
-      const data = await response.json();
+    if (!currentUser) {
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate('/login'))
+        .catch(() => {
+          window.location.href = '/login';
+        });
+      return;
+    }
 
-      if (response.ok) {
-        setUsers(data.users);
-        const supervisorList = data.users.filter((user: User) => 
+    if (role !== 'superadmin') {
+      setErr('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+      setLoading(false);
+      return;
+    }
+
+    const qRef = query(
+      collection(db, COLLECTIONS.USERS), 
+      orderBy('createdAt', 'desc')
+    );
+    
+    const unsub = onSnapshot(
+      qRef,
+      (snap) => {
+        const userList = snap.docs.map(d => ({ 
+          uid: d.id, 
+          ...(d.data() as any) 
+        })) as User[];
+        
+        setUsers(userList);
+        
+        const supervisorList = userList.filter((user: User) => 
           user.role === 'supervisor'
         );
         setSupervisors(supervisorList);
-      } else {
-        showAlert('ไม่สามารถโหลดข้อมูลผู้ใช้', 'error', 'กรุณาลองใหม่อีกครั้ง');
+        
+        setErr('');
+        setLoading(false);
+      },
+      (e) => {
+        console.error('Error fetching users:', e);
+        setErr(String(e?.message || e));
+        setLoading(false);
+        showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้');
       }
-    } catch (error) {
-      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
+
+    return () => {
+      unsub();
+    };
+  }, [currentUser, role, authLoading]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -194,45 +235,26 @@ export default function UsersManagementPage() {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         displayName: `${newUser.firstName} ${newUser.lastName}`.trim(),
-        password: newUser.password,
         role: newUser.role,
-        supervisorName: newUser.supervisorName || '',
-        supervisorUid: newUser.supervisorUid || '',
-        department: newUser.department || ''
+        supervisorName: newUser.supervisorName || null,
+        supervisorUid: newUser.supervisorUid || null,
+        department: newUser.department || null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
-      
-      console.log('Creating user with data:', { ...userData, password: '***' });
       
       const response = await fetch('/api/users/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+        body: JSON.stringify({
+          ...userData,
+          password: newUser.password
+        })
       });
 
       const data = await response.json();
       
-      console.log('API Response:', { status: response.status, data });
-
       if (response.ok) {
-        const userName = `${newUser.firstName} ${newUser.lastName}`.trim();
-        
-        const newUserData: User = {
-          uid: data.user.uid,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          displayName: userName,
-          role: newUser.role,
-          supervisorName: newUser.supervisorName || undefined,
-          supervisorUid: newUser.supervisorUid || undefined,
-        };
-        
-        setUsers(prevUsers => [newUserData, ...prevUsers]);
-        
-        if (newUser.role === 'supervisor') {
-          setSupervisors(prevSupervisors => [newUserData, ...prevSupervisors]);
-        }
-        
         setShowCreateModal(false);
         setNewUser({
           email: '',
@@ -256,6 +278,7 @@ export default function UsersManagementPage() {
         setFormValid(false);
         setSupervisorValue('');
         
+        const userName = `${newUser.firstName} ${newUser.lastName}`.trim();
         showAlert(`เพิ่มผู้ใช้ "${userName}" สำเร็จแล้ว`, 'success');
       } else {
         console.error('Failed to create user:', data);
@@ -299,68 +322,18 @@ export default function UsersManagementPage() {
         displayName: `${editUser.firstName} ${editUser.lastName}`.trim(),
         role: editUser.role,
         supervisorName: editUser.supervisorName || null,
-        supervisorUid: editUser.supervisorUid || null
+        supervisorUid: editUser.supervisorUid || null,
+        updatedAt: serverTimestamp()
       };
       
-      const response = await fetch(`/api/users/${selectedUser.uid}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const userName = `${editUser.firstName} ${editUser.lastName}`.trim();
-        
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.uid === selectedUser!.uid
-              ? {
-                  ...user,
-                  email: editUser.email,
-                  firstName: editUser.firstName,
-                  lastName: editUser.lastName,
-                  displayName: userName,
-                  role: editUser.role,
-                  supervisorName: editUser.supervisorName || undefined,
-                  supervisorUid: editUser.supervisorUid || undefined,
-                }
-              : user
-          )
-        );
-        
-        if (editUser.role === 'supervisor') {
-          setSupervisors(prevSupervisors => {
-            const exists = prevSupervisors.some(s => s.uid === selectedUser!.uid);
-            if (exists) {
-              return prevSupervisors.map(s => 
-                s.uid === selectedUser!.uid 
-                  ? { ...s, displayName: userName, email: editUser.email }
-                  : s
-              );
-            } else {
-              return [{
-                uid: selectedUser!.uid,
-                email: editUser.email,
-                displayName: userName,
-                role: 'supervisor'
-              }, ...prevSupervisors];
-            }
-          });
-        } else {
-          setSupervisors(prevSupervisors => 
-            prevSupervisors.filter(s => s.uid !== selectedUser!.uid)
-          );
-        }
-        
-        setShowEditModal(false);
-        
-        showAlert(`อัปเดตข้อมูลผู้ใช้ "${userName}" สำเร็จ`, 'success');
-      } else {
-        showAlert('ไม่สามารถอัปเดตข้อมูลของผู้ใช้ได้', 'error', data.message || 'กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง');
-      }
+      await updateDoc(doc(db, COLLECTIONS.USERS, selectedUser.uid), userData);
+      
+      setShowEditModal(false);
+      
+      const userName = `${editUser.firstName} ${editUser.lastName}`.trim();
+      showAlert(`อัปเดตข้อมูลผู้ใช้ "${userName}" สำเร็จ`, 'success');
     } catch (error) {
+      console.error('Error updating user:', error);
       showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถอัปเดตข้อมูลของผู้ใช้ได้');
     }
   };
@@ -381,22 +354,16 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        const userName = selectedUser.displayName || selectedUser.email;
-        
-        setUsers(prevUsers => prevUsers.filter(user => user.uid !== selectedUser.uid));
-        
-        setSupervisors(prevSupervisors => 
-          prevSupervisors.filter(s => s.uid !== selectedUser.uid)
-        );
-        
         setShowDeleteModal(false);
         setSelectedUser(null);
         
+        const userName = selectedUser.displayName || selectedUser.email;
         showAlert(`ลบบัญชีผู้ใช้ "${userName}" สำเร็จ`, 'success');
       } else {
         showAlert('ไม่สามารถลบบัญชีของผู้ใช้ได้', 'error', data.message || 'กรุณาลองใหม่อีกครั้ง');
       }
     } catch (error) {
+      console.error('Error deleting user:', error);
       showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถลบบัญชีของผู้ใช้ได้');
     }
   };
@@ -482,11 +449,6 @@ export default function UsersManagementPage() {
     setShowDeleteModal(true);
   };
 
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   useEffect(() => {
     validateForm();
   }, [newUser]);
@@ -504,6 +466,17 @@ export default function UsersManagementPage() {
           </div>
           <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูลผู้ใช้งาน...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="w-full">
+        <Alert className="mb-4" variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{err}</AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -543,6 +516,7 @@ export default function UsersManagementPage() {
         onDeleteUser={handleDeleteUser}
         onAddUser={() => setShowCreateModal(true)}
         isCurrentUser={isCurrentUser}
+        onShowAlert={showAlert}
       />
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>

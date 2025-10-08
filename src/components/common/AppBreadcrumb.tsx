@@ -9,6 +9,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '../ui/breadcrumb';
+import { useOrderById } from '../../stores';
+import { getDisplayOrderNumber } from '../../lib/order-utils';
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -17,6 +19,15 @@ interface BreadcrumbItem {
 export default function AppBreadcrumb() {
   const [isClient, setIsClient] = useState(false);
   const [pathname, setPathname] = useState('');
+  
+  const orderId = pathname.startsWith('/orders/') && pathname !== '/orders/create' && 
+                  pathname !== '/orders/tracking' && pathname !== '/orders/notifications' && 
+                  pathname !== '/orders/list' 
+                  ? pathname.split('/').pop() 
+                  : null;
+  
+  const order = useOrderById(orderId || '');
+  
 
   useEffect(() => {
     setIsClient(true);
@@ -51,9 +62,8 @@ export default function AppBreadcrumb() {
     } else if (pathname.startsWith('/orders/list')) {
       items.push({ label: 'รายการใบขอซื้อ' });
     } else if (pathname.startsWith('/orders/')) {
-      const orderId = pathname.split('/').pop();
-      items.push({ label: 'รายการใบขอซื้อ', href: '/orders/list' });
-      items.push({ label: `ใบสั่งซื้อ #${orderId}` });
+      const displayOrderNo = order ? getDisplayOrderNumber(order) : 'กำลังโหลด...';
+      items.push({ label: `ใบขอซื้อ ${displayOrderNo}` });
     } else if (pathname.startsWith('/admin/users')) {
       items.push({ label: 'จัดการผู้ใช้งาน' });
     } else if (pathname.startsWith('/admin/orders')) {

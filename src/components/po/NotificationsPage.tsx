@@ -100,20 +100,20 @@ export default function NotificationsPage() {
         await markAsRead(n.id);
       }
       
-      if (role === 'buyer') {
-        window.location.href = '/orders/tracking';
-      } else if (role === 'supervisor') {
-        window.location.href = '/orders/tracking';
-      } else if (role === 'procurement') {
-        window.location.href = '/orders/list';
-      }
+      const navigateTo = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate(navigateTo))
+        .catch(() => {
+          window.location.href = navigateTo;
+        });
     } catch (e) {
       console.error(e);
-      if (role === 'buyer') {
-        window.location.href = '/orders/tracking';
-      } else {
-        window.location.href = '/orders/list';
-      }
+      const navigateTo = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate(navigateTo))
+        .catch(() => {
+          window.location.href = navigateTo;
+        });
     }
   };
 

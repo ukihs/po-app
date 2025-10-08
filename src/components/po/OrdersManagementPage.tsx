@@ -52,7 +52,12 @@ export default function OrdersManagementPage() {
     if (authLoading) return;
 
     if (!user) {
-      window.location.href = '/login';
+      // ใช้ Astro Transitions แทน window.location.href
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate('/login'))
+        .catch(() => {
+          window.location.href = '/login';
+        });
       return;
     }
 
@@ -83,7 +88,11 @@ export default function OrdersManagementPage() {
   }, [user, role, authLoading]);
 
   const handleViewOrder = (order: Order) => {
-    window.open(`/orders/${order.id}`, '_blank');
+    import('astro:transitions/client')
+      .then(({ navigate }) => navigate(`/orders/${order.id}`))
+      .catch(() => {
+        window.location.href = `/orders/${order.id}`;
+      });
   };
 
   const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {

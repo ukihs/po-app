@@ -10,12 +10,17 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Alert, AlertDescription } from "../ui/alert";
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from "../ui/alert";
 import { Loader2, CheckCircle, XCircle, FileText, User, Calendar, DollarSign } from "lucide-react";
-import { toast } from "sonner";
-import { Toaster } from "../ui/sonner";
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import type { Order } from "../../types";
 import { COLLECTIONS } from "../../lib/constants";
+import { getDisplayOrderNumber } from "../../lib/order-utils";
 
 export default function OrderDetailPage({ orderId }: { orderId: string }) {
   const user = useUser();
@@ -24,8 +29,64 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
   const order = useOrderById(orderId);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string>("");
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
   
   const loading = authLoading || !order;
+
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    // Auto-hide after duration
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
 
   const approve = async () => {
     if (!order?.id || saving) return;
@@ -63,11 +124,15 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
       } catch (procurementNotifError) {
         console.error('Failed to send procurement notification:', procurementNotifError);
       }
-      toast.success("อนุมัติเรียบร้อย");
-      window.location.href = "/orders/list";
+      showAlert("อนุมัติเรียบร้อย", "success");
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate("/orders/list"))
+        .catch(() => {
+          window.location.href = "/orders/list";
+        });
     } catch (e: any) {
       console.error(e);
-      toast.error(e.message || "อนุมัติไม่สำเร็จ");
+      showAlert("อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -96,11 +161,15 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         read: false,
         createdAt: serverTimestamp(),
       });
-      toast.success("ทำรายการไม่อนุมัติแล้ว");
-      window.location.href = "/orders/list";
+      showAlert("ดำเนินการไม่อนุมัติสำเร็จ", "success");
+      import('astro:transitions/client')
+        .then(({ navigate }) => navigate("/orders/list"))
+        .catch(() => {
+          window.location.href = "/orders/list";
+        });
     } catch (e: any) {
       console.error(e);
-      toast.error(e.message || "ไม่อนุมัติไม่สำเร็จ");
+      showAlert("ดำเนินการไม่อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -160,12 +229,29 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
 
   return (
     <div className="w-full">
-      <Toaster />
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
       
       <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
-          ใบสั่งซื้อ #{order.orderNo}
+          ใบขอซื้อ {getDisplayOrderNumber(order)}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">
           รายละเอียดใบสั่งซื้อ
@@ -256,7 +342,7 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         </Card>
       ) : null}
 
-      {canApprove ? (
+      {canApprove && (
         <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button 
             onClick={approve} 
@@ -295,14 +381,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
               </>
             )}
           </Button>
-        </div>
-      ) : (
-        <div className="mt-4 sm:mt-6">
-          <Alert>
-            <AlertDescription className="text-xs sm:text-sm">
-              หน้านี้เป็นมุมมองอ่านอย่างเดียวสำหรับสิทธิ์ของคุณ
-            </AlertDescription>
-          </Alert>
         </div>
       )}
     </div>

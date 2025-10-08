@@ -50,7 +50,12 @@ export default function LoginPage() {
       
       try {
         await setAuthCookie();
-        window.location.href = getRedirectUrl(role);
+        const redirectUrl = getRedirectUrl(role);
+        import('astro:transitions/client')
+          .then(({ navigate }) => navigate(redirectUrl))
+          .catch(() => {
+            window.location.href = redirectUrl;
+          });
       } catch (error) {
         console.error('Failed to set auth cookie:', error);
       }

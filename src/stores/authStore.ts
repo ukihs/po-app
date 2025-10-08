@@ -105,7 +105,12 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           if (!authUser && !['/login'].includes(window.location.pathname)) {
-            window.location.href = '/login';
+            // ใช้ Astro Transitions แทน window.location.href
+            import('astro:transitions/client')
+              .then(({ navigate }) => navigate('/login'))
+              .catch(() => {
+                window.location.href = '/login';
+              });
           }
         } catch (error) {
           console.error('Auth state error:', error);

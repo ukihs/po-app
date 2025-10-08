@@ -87,7 +87,11 @@ export async function signOutUser() {
   
   if (typeof document !== 'undefined') {
     document.cookie = `firebase-id-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-    window.location.href = '/login';
+    import('astro:transitions/client')
+      .then(({ navigate }) => navigate('/login'))
+      .catch(() => {
+        window.location.href = '/login';
+      });
   }
 }
 

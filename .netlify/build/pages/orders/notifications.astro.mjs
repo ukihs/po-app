@@ -1,13 +1,12 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { y as useNotifications, z as useUnreadCount, A as useNotificationsLoading, E as useNotificationsError, F as useNotificationsStore, k as useRole, B as Badge, C as Card, s as CardContent, $ as $$MainLayout } from '../../chunks/card_Gv3zSa2O.mjs';
+import { A as useNotifications, E as useUnreadCount, F as useNotificationsLoading, G as useNotificationsError, H as useNotificationsStore, l as useRole, g as getDisplayOrderNumber, B as Badge, C as Card, t as CardContent, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import { useState, useMemo, useEffect } from 'react';
-import { g as getDisplayOrderNumber } from '../../chunks/order-utils_7Vk_wX4U.mjs';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { A as Alert, a as AlertDescription, B as Button, I as Input } from '../../chunks/alert_CCNrb8k2.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_-euMlkTZ.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_CNFPOshg.mjs';
+import { A as Alert, a as AlertDescription, B as Button, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const fmt = (ts) => {
@@ -65,20 +64,16 @@ function NotificationsPage() {
       if (!n.read) {
         await markAsRead(n.id);
       }
-      if (role === "buyer") {
-        window.location.href = "/orders/tracking";
-      } else if (role === "supervisor") {
-        window.location.href = "/orders/tracking";
-      } else if (role === "procurement") {
-        window.location.href = "/orders/list";
-      }
+      const navigateTo = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(navigateTo)).catch(() => {
+        window.location.href = navigateTo;
+      });
     } catch (e) {
       console.error(e);
-      if (role === "buyer") {
-        window.location.href = "/orders/tracking";
-      } else {
-        window.location.href = "/orders/list";
-      }
+      const navigateTo = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(navigateTo)).catch(() => {
+        window.location.href = navigateTo;
+      });
     }
   };
   const handlePageChange = (page) => {
