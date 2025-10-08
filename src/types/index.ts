@@ -88,6 +88,12 @@ export type NotificationKind =
   | 'rejected'
   | 'status_update';
 
+// Notification Recipient Type
+export interface NotificationRecipient {
+  type: 'user' | 'role';
+  id: string;  // userUid for 'user', role name for 'role'
+}
+
 export interface Notification {
   id: string;
   title: string;
@@ -95,14 +101,18 @@ export interface Notification {
   orderId: string;
   orderNo: number;
   kind: NotificationKind;
-  toUserUid?: string | null;
-  forRole?: UserRole | null;
+  
+  // ✨ Optimized structure: array of recipients
+  recipients: NotificationRecipient[];
+  
+  // ✨ Optimized structure: array of userUids who read this
+  readBy: string[];
+  
   fromUserUid: string;
   fromUserName: string;
-  read: boolean;
-  readAt?: any;
   createdAt: any;
   updatedAt?: any;
+  expiresAt?: any;  // ✨ Optional expiry date (default 30 days)
 }
 
 export interface StatusBadgeConfig {

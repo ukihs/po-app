@@ -7,12 +7,16 @@ import {
   orderBy, 
   onSnapshot, 
   doc, 
-  updateDoc
+  updateDoc,
+  arrayUnion,
+  writeBatch,
+  limit,
+  Timestamp
 } from 'firebase/firestore';
 type Unsubscribe = () => void;
 import { db } from '../firebase/client';
 import { COLLECTIONS } from '../lib/constants';
-import type { Notification, NotificationKind, UserRole } from '../types';
+import type { Notification, NotificationKind, UserRole, NotificationRecipient } from '../types';
 
 interface NotificationsState {
   notifications: Notification[];
@@ -28,11 +32,11 @@ interface NotificationsActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   fetchNotifications: (userUid: string, role: UserRole) => void;
-  markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
+  markAsRead: (notificationId: string, userUid: string) => Promise<void>;
+  markAllAsRead: (userUid: string) => Promise<void>;
   cleanup: () => void;
   getNotificationsByKind: (kind: NotificationKind) => Notification[];
-  getUnreadNotifications: () => Notification[];
+  getUnreadNotifications: (userUid: string) => Notification[];
 }
 
 type NotificationsStore = NotificationsState & NotificationsActions;
@@ -46,10 +50,9 @@ export const useNotificationsStore = create<NotificationsStore>()(
     lastFetch: null,
     unsubscribe: null,
     setNotifications: (notifications) => {
-      const unreadCount = notifications.filter(n => !n.read).length;
       set({ 
         notifications, 
-        unreadCount,
+        unreadCount: 0,
         lastFetch: Date.now(),
         error: null 
       });
@@ -68,126 +71,94 @@ export const useNotificationsStore = create<NotificationsStore>()(
 
       set({ loading: true, error: null });
 
-      if (role === 'buyer') {
-        const q = query(
-          collection(db, COLLECTIONS.NOTIFICATIONS),
-          where('toUserUid', '==', userUid),
-          orderBy('createdAt', 'desc')
-        );
+      const userRecipient: NotificationRecipient = { type: 'user', id: userUid };
+      const roleRecipient: NotificationRecipient = { type: 'role', id: role };
 
-        const newUnsubscribe = onSnapshot(
-          q,
-          (snapshot) => {
-            const notifications = snapshot.docs.map((doc) => ({
+      const q = query(
+        collection(db, COLLECTIONS.NOTIFICATIONS),
+        where('recipients', 'array-contains', userRecipient),
+        orderBy('createdAt', 'desc'),
+        limit(100)
+      );
+
+      const newUnsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          let notifications = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
               id: doc.id,
-              ...doc.data()
-            })) as Notification[];
-            
-            get().setNotifications(notifications);
-            set({ loading: false });
-          },
-          (error) => {
-            console.error('Notifications fetch error:', error);
-            set({ 
-              error: String(error?.message || error), 
-              loading: false,
-              notifications: [],
-              unreadCount: 0
-            });
-          }
-        );
+              ...data,
+              readBy: data.readBy || [],
+              recipients: data.recipients || []
+            };
+          }) as Notification[];
 
-        set({ unsubscribe: newUnsubscribe });
-      } else if (role === 'supervisor' || role === 'procurement') {
-        const personalQ = query(
-          collection(db, COLLECTIONS.NOTIFICATIONS),
-          where('toUserUid', '==', userUid),
-          orderBy('createdAt', 'desc')
-        );
-
-        const roleQ = query(
-          collection(db, COLLECTIONS.NOTIFICATIONS),
-          where('forRole', '==', role),
-          orderBy('createdAt', 'desc')
-        );
-
-        let personalNotifications: Notification[] = [];
-        let roleNotifications: Notification[] = [];
-        let loadedCount = 0;
-
-        const combineAndSetNotifications = () => {
-          if (loadedCount < 2) return;
-          
-          const allNotifications = [...personalNotifications, ...roleNotifications];
-          const uniqueNotifications = allNotifications.filter((notification, index, arr) => 
-            arr.findIndex(n => n.id === notification.id) === index
+          const roleQ = query(
+            collection(db, COLLECTIONS.NOTIFICATIONS),
+            where('recipients', 'array-contains', roleRecipient),
+            orderBy('createdAt', 'desc'),
+            limit(100)
           );
-          
-          uniqueNotifications.sort((a, b) => {
-            if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
-            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+
+          onSnapshot(roleQ, (roleSnapshot) => {
+            const roleNotifications = roleSnapshot.docs.map((doc) => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                ...data,
+                readBy: data.readBy || [],
+                recipients: data.recipients || []
+              };
+            }) as Notification[];
+
+            const allNotifications = [...notifications, ...roleNotifications];
+            const uniqueNotifications = allNotifications.filter((notification, index, arr) => 
+              arr.findIndex(n => n.id === notification.id) === index
+            );
+
+            uniqueNotifications.sort((a, b) => {
+              if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
+              return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+            });
+
+            const now = new Date();
+            const activeNotifications = uniqueNotifications.filter(n => {
+              if (!n.expiresAt) return true;
+              const expiresAt = n.expiresAt.toDate ? n.expiresAt.toDate() : new Date(n.expiresAt);
+              return expiresAt > now;
+            });
+
+            get().setNotifications(activeNotifications);
+            set({ loading: false });
           });
-
-          get().setNotifications(uniqueNotifications);
-          set({ loading: false });
-        };
-
-        const unsubPersonal = onSnapshot(personalQ, (snapshot) => {
-          personalNotifications = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          })) as Notification[];
-          loadedCount = Math.max(loadedCount, 1);
-          combineAndSetNotifications();
-        }, (error) => {
-          console.error('Personal notifications error:', error);
+        },
+        (error) => {
+          console.error('Notifications fetch error:', error);
           set({ 
             error: String(error?.message || error), 
-            loading: false 
+            loading: false,
+            notifications: [],
+            unreadCount: 0
           });
-        });
+        }
+      );
 
-        const unsubRole = onSnapshot(roleQ, (snapshot) => {
-          roleNotifications = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data()
-          })) as Notification[];
-          loadedCount = Math.max(loadedCount, 2);
-          combineAndSetNotifications();
-        }, (error) => {
-          console.error('Role notifications error:', error);
-          set({ 
-            error: String(error?.message || error), 
-            loading: false 
-          });
-        });
-
-        const newUnsubscribe = () => {
-          unsubPersonal();
-          unsubRole();
-        };
-
-        set({ unsubscribe: newUnsubscribe });
-      } else {
-        set({ 
-          loading: false, 
-          error: 'ไม่พบ role ในระบบ',
-          notifications: [],
-          unreadCount: 0
-        });
-      }
+      set({ unsubscribe: newUnsubscribe });
     },
 
-    markAsRead: async (notificationId: string) => {
+    markAsRead: async (notificationId: string, userUid: string) => {
       try {
         await updateDoc(doc(db, COLLECTIONS.NOTIFICATIONS, notificationId), { 
-          read: true,
-          readAt: new Date()
+          readBy: arrayUnion(userUid),
+          updatedAt: new Date()
         });
         
         set((state) => ({
           notifications: state.notifications.map(n => 
-            n.id === notificationId ? { ...n, read: true, readAt: new Date() } : n
+            n.id === notificationId 
+              ? { ...n, readBy: [...(n.readBy || []), userUid] } 
+              : n
           ),
           unreadCount: Math.max(0, state.unreadCount - 1)
         }));
@@ -197,25 +168,32 @@ export const useNotificationsStore = create<NotificationsStore>()(
       }
     },
 
-    markAllAsRead: async () => {
+    markAllAsRead: async (userUid: string) => {
       const { notifications } = get();
-      const unreadNotifications = notifications.filter(n => !n.read);
+      const unreadNotifications = notifications.filter(n => 
+        !n.readBy?.includes(userUid)
+      );
       
       if (unreadNotifications.length === 0) return;
 
       try {
-        const promises = unreadNotifications.map(n => 
-          updateDoc(doc(db, COLLECTIONS.NOTIFICATIONS, n.id), { 
-            read: true,
-            readAt: new Date()
-          })
-        );
+        const batch = writeBatch(db);
         
-        await Promise.all(promises);
+        unreadNotifications.forEach(n => {
+          const notifRef = doc(db, COLLECTIONS.NOTIFICATIONS, n.id);
+          batch.update(notifRef, {
+            readBy: arrayUnion(userUid),
+            updatedAt: new Date()
+          });
+        });
+        
+        await batch.commit();
         
         set((state) => ({
           notifications: state.notifications.map(n => 
-            !n.read ? { ...n, read: true, readAt: new Date() } : n
+            !n.readBy?.includes(userUid)
+              ? { ...n, readBy: [...(n.readBy || []), userUid] }
+              : n
           ),
           unreadCount: 0
         }));
@@ -238,31 +216,35 @@ export const useNotificationsStore = create<NotificationsStore>()(
       return notifications.filter(n => n.kind === kind);
     },
 
-    getUnreadNotifications: () => {
+    getUnreadNotifications: (userUid: string) => {
       const { notifications } = get();
-      return notifications.filter(n => !n.read);
+      return notifications.filter(n => !n.readBy?.includes(userUid));
     }
   }))
 );
 
 export const useNotifications = () => useNotificationsStore((state) => state.notifications);
-export const useUnreadCount = () => useNotificationsStore((state) => state.unreadCount);
+export const useUnreadCount = (userUid?: string) => 
+  useNotificationsStore((state) => {
+    if (!userUid) return 0;
+    return state.notifications.filter(n => !n.readBy?.includes(userUid)).length;
+  });
 export const useNotificationsLoading = () => useNotificationsStore((state) => state.loading);
 export const useNotificationsError = () => useNotificationsStore((state) => state.error);
 
 export const useNotificationsByKind = (kind: NotificationKind) => 
   useNotificationsStore((state) => state.getNotificationsByKind(kind));
 
-export const useUnreadNotifications = () => 
-  useNotificationsStore((state) => state.getUnreadNotifications());
+export const useUnreadNotifications = (userUid: string) => 
+  useNotificationsStore((state) => state.getUnreadNotifications(userUid));
 
 export const useNotificationStats = () => 
   useNotificationsStore((state) => {
     const notifications = state.notifications;
     return {
       total: notifications.length,
-      unread: notifications.filter(n => !n.read).length,
-      read: notifications.filter(n => n.read).length,
+      unread: notifications.length,
+      read: 0,
       approvalRequests: notifications.filter(n => n.kind === 'approval_request').length,
       approved: notifications.filter(n => n.kind === 'approved').length,
       rejected: notifications.filter(n => n.kind === 'rejected').length,

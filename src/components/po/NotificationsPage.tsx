@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNotifications, useUnreadCount, useNotificationsLoading, useNotificationsError, useNotificationsStore, useRole } from '../../stores';
+import { useNotifications, useUnreadCount, useNotificationsLoading, useNotificationsError, useNotificationsStore, useRole, useUser } from '../../stores';
 import type { Notification, UserRole } from '../../types';
 import { ROLE_DISPLAY_NAMES } from '../../lib/constants';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
@@ -26,23 +26,109 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyCont
 
 type Noti = Notification & { id: string };
 
-const fmt = (ts: any) => {
-  if (!ts?.toDate) return '';
-  const d = ts.toDate();
-  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' });
-};
+const formatDate = (() => {
+  const cache = new Map<string, string>();
+  
+  return (ts: any): string => {
+    if (!ts?.toDate) return '';
+    
+    const timestamp = ts.toDate().getTime();
+    const cacheKey = timestamp.toString();
+    
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey)!;
+    }
+    
+    const formatted = ts.toDate().toLocaleString('th-TH', { 
+      dateStyle: 'short', 
+      timeStyle: 'medium' 
+    });
+    
+    cache.set(cacheKey, formatted);
+    setTimeout(() => cache.delete(cacheKey), 5 * 60 * 1000);
+    
+    return formatted;
+  };
+})();
 
 const getRoleDisplayName = (role: string) => {
   return ROLE_DISPLAY_NAMES[role as keyof typeof ROLE_DISPLAY_NAMES] || role;
 };
 
+const NotificationCard = React.memo(({ 
+  notification, 
+  onMarkReadAndGo, 
+  formatDate,
+  currentUserUid
+}: { 
+  notification: Noti; 
+  onMarkReadAndGo: (n: Noti) => void;
+  formatDate: (ts: any) => string;
+  currentUserUid?: string;
+}) => {
+  const n = notification;
+  const isUnread = currentUserUid ? !n.readBy?.includes(currentUserUid) : false;
+  
+  return (
+    <Card
+      className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
+        isUnread ? 'bg-primary/5' : 'bg-background'
+      }`}
+      onClick={() => onMarkReadAndGo(n)}
+    >
+      <CardContent className="px-3 sm:px-4 py-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                {isUnread && (
+                  <Badge variant="primary" appearance="light" className="text-xs px-1.5 sm:px-2 py-0.5">
+                    ใหม่
+                  </Badge>
+                )}
+                <Badge 
+                  variant={
+                    n.kind === 'approved' ? 'success' :
+                    n.kind === 'rejected' ? 'destructive' :
+                    n.kind === 'status_update' ? 'info' :
+                    'warning'
+                  } 
+                  appearance="light" 
+                  className="text-xs px-1.5 sm:px-2 py-0.5"
+                >
+                  {n.kind === 'approved' ? 'อนุมัติแล้ว' :
+                   n.kind === 'rejected' ? 'ไม่อนุมัติ' :
+                   n.kind === 'status_update' ? 'อัปเดตสถานะ' :
+                   'ขออนุมัติ'}
+                </Badge>
+              </div>
+              <div className="text-xs text-muted-foreground/70 font-normal">
+                {formatDate(n.createdAt)}
+              </div>
+            </div>
+            
+            <h3 className={`text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${isUnread ? 'text-foreground' : 'text-muted-foreground'}`}>
+              {n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' })})` : n.title}
+            </h3>
+
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap">
+              <span className="font-medium">จากคุณ {n.fromUserName || 'ระบบ'}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 export default function NotificationsPage() {
   const notifications = useNotifications();
-  const unreadCount = useUnreadCount();
   const loading = useNotificationsLoading();
   const error = useNotificationsError();
   const { markAsRead, markAllAsRead } = useNotificationsStore();
   const role = useRole();
+  const user = useUser();
+  const unreadCount = useUnreadCount(user?.uid);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -50,18 +136,39 @@ export default function NotificationsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
 
+  const searchTerms = useMemo(() => {
+    if (!searchTerm) return null;
+    return searchTerm.toLowerCase().trim();
+  }, [searchTerm]);
+
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = notifications.filter(item => {
-      const matchesSearch = !searchTerm || 
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.orderNo ? getDisplayOrderNumber({ orderNo: item.orderNo, date: item.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' }) : '').includes(searchTerm) ||
-        item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!notifications.length) return [];
 
-      const matchesType = filterType === 'all' || item.kind === filterType;
+    let filtered = notifications;
 
-      return matchesSearch && matchesType;
-    });
+    if (filterType !== 'all') {
+      filtered = filtered.filter(item => item.kind === filterType);
+    }
+
+    if (searchTerms) {
+      filtered = filtered.filter(item => {
+        const title = item.title.toLowerCase();
+        const message = item.message?.toLowerCase() || '';
+        const fromUser = item.fromUserName?.toLowerCase() || '';
+        
+        const orderNumber = item.orderNo ? 
+          getDisplayOrderNumber({ 
+            orderNo: item.orderNo, 
+            date: item.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' 
+          }).toLowerCase() : '';
+        
+        return title.includes(searchTerms) ||
+               message.includes(searchTerms) ||
+               fromUser.includes(searchTerms) ||
+               orderNumber.includes(searchTerms);
+      });
+    }
+
     filtered.sort((a, b) => {
       const timeA = a.createdAt?.toDate?.()?.getTime() || 0;
       const timeB = b.createdAt?.toDate?.()?.getTime() || 0;
@@ -71,14 +178,16 @@ export default function NotificationsPage() {
       } else if (sortBy === 'oldest') {
         return timeA - timeB;
       } else if (sortBy === 'unread') {
-        if (a.read === b.read) return timeB - timeA;
-        return a.read ? 1 : -1;
+        const aRead = user?.uid ? a.readBy?.includes(user.uid) : false;
+        const bRead = user?.uid ? b.readBy?.includes(user.uid) : false;
+        if (aRead === bRead) return timeB - timeA;
+        return aRead ? 1 : -1;
       }
       return timeB - timeA;
     });
 
     return filtered;
-  }, [notifications, searchTerm, filterType, sortBy]);
+  }, [notifications, searchTerms, filterType, sortBy]);
   
   const totalPages = useMemo(
     () => Math.ceil(filteredAndSortedItems.length / itemsPerPage),
@@ -96,11 +205,13 @@ export default function NotificationsPage() {
 
   const markReadAndGo = async (n: Noti) => {
     try {
-      if (!n.read) {
-        await markAsRead(n.id);
+      if (user?.uid && !n.readBy?.includes(user.uid)) {
+        await markAsRead(n.id, user.uid);
       }
       
-      const navigateTo = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      const basePath = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      const navigateTo = n.orderId ? `${basePath}#order-${n.orderId}` : basePath;
+      
       import('astro:transitions/client')
         .then(({ navigate }) => navigate(navigateTo))
         .catch(() => {
@@ -108,7 +219,9 @@ export default function NotificationsPage() {
         });
     } catch (e) {
       console.error(e);
-      const navigateTo = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      const basePath = role === 'procurement' ? '/orders/list' : '/orders/tracking';
+      const navigateTo = n.orderId ? `${basePath}#order-${n.orderId}` : basePath;
+      
       import('astro:transitions/client')
         .then(({ navigate }) => navigate(navigateTo))
         .catch(() => {
@@ -199,7 +312,11 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <Button 
                 variant="outline" 
-                onClick={markAllAsRead}
+                onClick={() => {
+                  if (user?.uid) {
+                    markAllAsRead(user.uid);
+                  }
+                }}
                 className="w-full sm:w-auto"
                 size="sm"
               >
@@ -294,7 +411,11 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <Button 
               variant="outline" 
-              onClick={markAllAsRead}
+              onClick={() => {
+                if (user?.uid) {
+                  markAllAsRead(user.uid);
+                }
+              }}
               className="w-full sm:w-auto"
               size="sm"
             >
@@ -353,55 +474,13 @@ export default function NotificationsPage() {
 
       <div className="space-y-4">
         {paginatedItems.map((n) => (
-          <Card
-            key={n.id}
-            className={`cursor-pointer hover:shadow-lg transition-all duration-200 ${
-              !n.read ? 'bg-primary/5' : 'bg-background'
-            }`}
-            onClick={() => markReadAndGo(n)}
-          >
-            <CardContent className="px-3 sm:px-4 py-3">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3">
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                      {!n.read && (
-                        <Badge variant="primary" appearance="light" className="text-xs px-1.5 sm:px-2 py-0.5">
-                          ใหม่
-                        </Badge>
-                      )}
-                      <Badge 
-                        variant={
-                          n.kind === 'approved' ? 'success' :
-                          n.kind === 'rejected' ? 'destructive' :
-                          n.kind === 'status_update' ? 'info' :
-                          'warning'
-                        } 
-                        appearance="light" 
-                        className="text-xs px-1.5 sm:px-2 py-0.5"
-                      >
-                        {n.kind === 'approved' ? 'อนุมัติแล้ว' :
-                         n.kind === 'rejected' ? 'ไม่อนุมัติ' :
-                         n.kind === 'status_update' ? 'อัปเดตสถานะ' :
-                         'ขออนุมัติ'}
-                      </Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground/70 font-normal">
-                      {fmt(n.createdAt)}
-                    </div>
-                  </div>
-                  
-                  <h3 className={`text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    {n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' })})` : n.title}
-                  </h3>
-
-                  <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap">
-                    <span className="font-medium">จากคุณ {n.fromUserName || 'ระบบ'}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <NotificationCard 
+            key={n.id} 
+            notification={n} 
+            onMarkReadAndGo={markReadAndGo}
+            formatDate={formatDate}
+            currentUserUid={user?.uid}
+          />
         ))}
       </div>
 

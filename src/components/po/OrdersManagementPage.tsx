@@ -15,6 +15,7 @@ import { FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '../ui/empty';
 import { 
   RiCheckboxCircleFill, 
   RiErrorWarningFill, 
@@ -52,7 +53,6 @@ export default function OrdersManagementPage() {
     if (authLoading) return;
 
     if (!user) {
-      // ใช้ Astro Transitions แทน window.location.href
       import('astro:transitions/client')
         .then(({ navigate }) => navigate('/login'))
         .catch(() => {
@@ -103,7 +103,6 @@ export default function OrdersManagementPage() {
       description
     });
 
-    // Auto-hide after duration
     const duration = type === 'error' ? 5000 : 4000;
     setTimeout(() => {
       setAlertState(prev => ({ ...prev, show: false }));
@@ -163,7 +162,6 @@ export default function OrdersManagementPage() {
       
       if (deletePromises.length > 0) {
         await Promise.all(deletePromises);
-        console.log(`Deleted ${deletePromises.length} notifications for order ${selectedOrder.id}`);
       }
       
       showAlert('ลบใบขอซื้อและการแจ้งเตือนที่เกี่ยวข้องสำเร็จ', 'success');
@@ -171,7 +169,9 @@ export default function OrdersManagementPage() {
       setSelectedOrder(null);
     } catch (error: any) {
       console.error('Error deleting order:', error);
-      showAlert('ไม่สามารถลบใบขอซื้อได้', 'error', error?.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
+      
+      const errorMessage = error?.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
+      showAlert('ไม่สามารถลบใบขอซื้อได้', 'error', errorMessage);
     }
   };
 
@@ -196,6 +196,24 @@ export default function OrdersManagementPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{err}</AlertDescription>
         </Alert>
+      </div>
+    );
+  }
+
+  if (!orders.length && !loading) {
+    return (
+      <div className="w-full">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ยังไม่มีใบขอซื้อในระบบ</EmptyTitle>
+            <EmptyDescription>
+              รอใบขอซื้อจากผู้ใช้งาน
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }

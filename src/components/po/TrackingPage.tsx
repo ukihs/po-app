@@ -137,6 +137,33 @@ export default function TrackingPage() {
   }, [orders]);
 
   useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#order-')) {
+      const orderId = hash.replace('#order-', '');
+      
+      if (!loading && filteredRows.length > 0) {
+        setTimeout(() => {
+          const element = document.getElementById(`order-${orderId}`);
+          if (element) {
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            element.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'transition-all', 'duration-300');
+            
+            setTimeout(() => {
+              element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+            }, 3000);
+            
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 500);
+      }
+    }
+  }, [loading, filteredRows]);
+
+  useEffect(() => {
     let filtered = rows;
 
     if (searchTerm) {
@@ -489,7 +516,7 @@ export default function TrackingPage() {
               </TableHeader>
               <TableBody>
                 {paginatedRows.map((order) => (
-                  <TableRow key={order.id}>
+                  <TableRow key={order.id} id={`order-${order.id}`}>
                     <TableCell className="font-medium text-xs sm:text-sm">
                       {getDisplayOrderNumber(order)}
                     </TableCell>
@@ -562,7 +589,7 @@ export default function TrackingPage() {
       ) : (
         <div className="space-y-4 sm:space-y-6">
           {paginatedRows.map((order) => (
-          <Card key={order.id} className="shadow-lg bg-card border-border">
+          <Card key={order.id} id={`order-${order.id}`} className="shadow-lg bg-card border-border">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3">
                 <div className="flex-1 w-full">

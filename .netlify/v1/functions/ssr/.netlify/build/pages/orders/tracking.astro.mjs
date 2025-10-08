@@ -1,11 +1,11 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, g as getDisplayOrderNumber, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, g as getDisplayOrderNumber, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
-import { approveOrder } from '../../chunks/poApi_BLXRS2fj.mjs';
+import { approveOrder } from '../../chunks/poApi_KBCH0lOO.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
 import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_pBYIHlJJ.mjs';
@@ -405,6 +405,28 @@ function TrackingPage() {
     }));
   }, [orders]);
   useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith("#order-")) {
+      const orderId = hash.replace("#order-", "");
+      if (!loading && filteredRows.length > 0) {
+        setTimeout(() => {
+          const element = document.getElementById(`order-${orderId}`);
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+            element.classList.add("ring-2", "ring-primary", "ring-offset-2", "transition-all", "duration-300");
+            setTimeout(() => {
+              element.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+            }, 3e3);
+            window.history.replaceState(null, "", window.location.pathname);
+          }
+        }, 500);
+      }
+    }
+  }, [loading, filteredRows]);
+  useEffect(() => {
     let filtered = rows;
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -667,7 +689,7 @@ function TrackingPage() {
           /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "สถานะ" }),
           /* @__PURE__ */ jsx(TableHead, { className: "text-xs sm:text-sm", children: "การดำเนินการ" })
         ] }) }),
-        /* @__PURE__ */ jsx(TableBody, { children: paginatedRows.map((order) => /* @__PURE__ */ jsxs(TableRow, { children: [
+        /* @__PURE__ */ jsx(TableBody, { children: paginatedRows.map((order) => /* @__PURE__ */ jsxs(TableRow, { id: `order-${order.id}`, children: [
           /* @__PURE__ */ jsx(TableCell, { className: "font-medium text-xs sm:text-sm", children: getDisplayOrderNumber(order) }),
           /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.requesterName }),
           /* @__PURE__ */ jsx(TableCell, { className: "text-xs sm:text-sm", children: order.date }),
@@ -728,7 +750,7 @@ function TrackingPage() {
         ] }, order.id)) })
       ] }),
       /* @__PURE__ */ jsx(ScrollBar, { orientation: "horizontal" })
-    ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { className: "shadow-lg bg-card border-border", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
+    ] }) }) : /* @__PURE__ */ jsx("div", { className: "space-y-4 sm:space-y-6", children: paginatedRows.map((order) => /* @__PURE__ */ jsx(Card, { id: `order-${order.id}`, className: "shadow-lg bg-card border-border", children: /* @__PURE__ */ jsxs(CardContent, { className: "p-4 sm:p-6", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-3", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex-1 w-full", children: [
           /* @__PURE__ */ jsx("h3", { className: "text-base sm:text-lg font-bold", children: getDisplayOrderNumber(order) }),

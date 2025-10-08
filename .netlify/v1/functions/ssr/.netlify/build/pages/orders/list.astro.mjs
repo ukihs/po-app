@@ -1,8 +1,8 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { g as getDisplayOrderNumber, C as Card, a as CardHeader, b as CardHeading, n as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
+import { g as getDisplayOrderNumber, C as Card, a as CardHeader, b as CardHeading, n as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
-import React__default, { useState, useMemo } from 'react';
+import React__default, { useState, useMemo, useEffect } from 'react';
 import { B as Button, I as Input, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_D5APrsLH.mjs';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -469,6 +469,29 @@ function OrdersListPage() {
     }
   };
   const toggle = (id) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith("#order-")) {
+      const orderId = hash.replace("#order-", "");
+      if (!loading && orders.length > 0) {
+        setTimeout(() => {
+          const element = document.getElementById(`order-${orderId}`);
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+            element.classList.add("ring-2", "ring-primary", "ring-offset-2", "transition-all", "duration-300");
+            setExpanded((prev) => ({ ...prev, [orderId]: true }));
+            setTimeout(() => {
+              element.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+            }, 3e3);
+            window.history.replaceState(null, "", window.location.pathname);
+          }
+        }, 500);
+      }
+    }
+  }, [loading, orders]);
   const getItemValue = (o, idx) => {
     const d = drafts[o.id]?.[idx] || {};
     const mapCat = o.itemsCategories?.[String(idx)];

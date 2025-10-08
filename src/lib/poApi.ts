@@ -33,7 +33,7 @@ import {
 } from './order-utils';
 import { COLLECTIONS } from './constants';
 
-// Re-export types for backward compatibility
+
 export type { 
   ItemType, 
   ProcurementStatus, 
@@ -42,7 +42,6 @@ export type {
   OrderStatus
 };
 
-// Re-export utilities for backward compatibility
 export { 
   toNum,
   getItemCategory,
@@ -78,9 +77,21 @@ export async function createNotification(data: {
 }) {
   const currentUser = auth.currentUser;
   if (!currentUser) {
-    console.warn('createNotification: No current user');
     return;
   }
+
+  const recipients: Array<{ type: 'user' | 'role'; id: string }> = [];
+  
+  if (data.toUserUid) {
+    recipients.push({ type: 'user', id: data.toUserUid });
+  }
+  
+  if (data.forRole) {
+    recipients.push({ type: 'role', id: data.forRole });
+  }
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
 
   const notificationData = {
     title: data.title,
@@ -88,26 +99,17 @@ export async function createNotification(data: {
     orderId: data.orderId,
     orderNo: data.orderNo,
     kind: data.kind,
-    toUserUid: data.toUserUid || null,
-    forRole: data.forRole || null,
+    recipients,
+    readBy: [],
     fromUserUid: currentUser.uid,
     fromUserName: data.fromUserName || currentUser.displayName || 'ระบบ',
-    read: false,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    expiresAt: expiresAt,
   };
-
-  console.log('createNotification: Creating notification', {
-    title: data.title,
-    kind: data.kind,
-    toUserUid: data.toUserUid,
-    forRole: data.forRole,
-    orderId: data.orderId,
-    orderNo: data.orderNo
-  });
 
   try {
     const docRef = await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), notificationData);
-    console.log('createNotification: Successfully created notification', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('createNotification: Error creating notification', error);
@@ -120,11 +122,8 @@ export async function createOrder(payload: CreateOrderPayload) {
   const u = auth.currentUser;
   if (!u) throw new Error('ยังไม่ได้ล็อกอิน');
 
-  console.log('createOrder: Starting', { userEmail: u.email, requesterName: payload.requesterName });
-
   try {
     const orderNo = await getNextNumber(COLLECTIONS.ORDERS);
-    console.log('createOrder: Got order number', orderNo);
 
     const cleanItems = payload.items.map((it) => ({
       description: (it.description || '').trim(),
@@ -150,37 +149,33 @@ export async function createOrder(payload: CreateOrderPayload) {
       }
     };
 
-    console.log('createOrder: Saving to Firestore...', { orderNo, total: docData.total });
     const ref = await addDoc(collection(db, COLLECTIONS.ORDERS), docData);
-    console.log('createOrder: Saved with ID', ref.id);
 
-    console.log('createOrder: Creating notification...');
     try {
-      const notificationData = {
-        title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
-        message: `ใบสั่งซื้อ #${orderNo} โดย ${payload.requesterName} รอการอนุมัติ`,
-        orderId: ref.id,
-        orderNo,
-        kind: 'approval_request',
-        toUserUid: null,
-        forRole: 'supervisor',
-        fromUserUid: u.uid,
-        fromUserName: payload.requesterName,
-        read: false,
-        createdAt: serverTimestamp(),
-      };
-
-      console.log('createOrder: Notification data', notificationData);
+      const userDocRef = doc(db, COLLECTIONS.USERS, u.uid);
+      const userDoc = await getDoc(userDocRef);
       
-      const notifRef = await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), notificationData);
-      console.log('createOrder: Notification created', notifRef.id);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const supervisorUid = userData.supervisorUid;
+        
+        if (supervisorUid) {
+          await createNotification({
+            title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
+            message: `ใบสั่งซื้อ #${orderNo} โดย ${payload.requesterName} รอการอนุมัติ`,
+            orderId: ref.id,
+            orderNo,
+            kind: 'approval_request',
+            toUserUid: supervisorUid,
+            fromUserName: payload.requesterName,
+          });
+        }
+      }
       
     } catch (notifError) {
       console.error('createOrder: Notification failed', notifError);
     }
 
-    // ส่งอีเมลแจ้งเตือน (กรณี 1)
-    console.log('createOrder: Sending email notification...');
     try {
       await sendOrderCreatedNotification(u.uid, ref.id, {
         orderNo,
@@ -189,13 +184,10 @@ export async function createOrder(payload: CreateOrderPayload) {
         items: cleanItems,
         total: docData.total
       });
-      console.log('createOrder: Email notification sent successfully');
     } catch (emailError) {
       console.error('createOrder: Email notification failed', emailError);
-      // ไม่ throw error เพื่อไม่ให้การสร้าง order ล้มเหลว
     }
 
-    console.log('createOrder: Complete!', { orderId: ref.id, orderNo });
     return ref.id;
 
   } catch (error) {
@@ -276,12 +268,6 @@ export async function getOrder(orderId: string): Promise<Order | null> {
 export async function approveOrder(orderId: string, approved: boolean) {
   const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   const newStatus = approved ? 'approved' : 'rejected';
-  
-  console.log('approveOrder: Processing approval', {
-    orderId,
-    approved,
-    newStatus
-  });
 
   const timestampUpdate = approved ? 
     { 'timestamps.approved': serverTimestamp() } : 
@@ -309,13 +295,6 @@ export async function approveOrder(orderId: string, approved: boolean) {
     return;
   }
 
-  console.log('approveOrder: Sending notifications', {
-    orderId,
-    orderNo: orderData.orderNo,
-    requesterUid: orderData.requesterUid,
-    approved
-  });
-
   try {
     await createNotification({
       title: approved ? 'ใบสั่งซื้อได้รับการอนุมัติ' : 'ใบสั่งซื้อไม่ได้รับการอนุมัติ',
@@ -330,8 +309,6 @@ export async function approveOrder(orderId: string, approved: boolean) {
     console.error('approveOrder: Notification failed', notifError);
   }
 
-  // ส่งอีเมลแจ้งเตือน (กรณี 2)
-  console.log('approveOrder: Sending email notification...');
   try {
     if (approved) {
       await sendOrderApprovedNotification(
@@ -339,18 +316,15 @@ export async function approveOrder(orderId: string, approved: boolean) {
         currentUser.uid,
         orderId
       );
-      console.log('approveOrder: Approval email notification sent successfully');
     } else {
       await sendOrderRejectedNotification(
         orderData.requesterUid,
         currentUser.uid,
         orderId
       );
-      console.log('approveOrder: Rejection email notification sent successfully');
     }
   } catch (emailError) {
     console.error('approveOrder: Email notification failed', emailError);
-    // ไม่ throw error เพื่อไม่ให้การอนุมัติล้มเหลว
   }
 
   if (approved) {
@@ -372,27 +346,10 @@ export async function approveOrder(orderId: string, approved: boolean) {
     } catch (procurementError) {
       console.error('approveOrder: Procurement notification failed', procurementError);
     }
-
-    console.log('approveOrder: Sent notifications for approved order', {
-      toBuyer: orderData.requesterUid,
-      toProcurement: 'role-based',
-      orderNo: orderData.orderNo
-    });
   }
-
-  console.log('approveOrder: Approval process completed', {
-    orderId,
-    approved,
-    orderNo: orderData.orderNo
-  });
 }
 
 export async function setProcurementStatus(orderId: string, newStatus: ProcurementStatus) {
-  console.log('setProcurementStatus: Updating procurement status', {
-    orderId,
-    newStatus
-  });
-
   const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   
   const isComplete = isProcurementComplete(newStatus);
@@ -406,7 +363,6 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
   if (isComplete) {
     updateData.status = 'delivered';
     updateData['timestamps.delivered'] = serverTimestamp();
-    console.log('setProcurementStatus: Marking order as delivered');
   }
 
   await updateDoc(orderRef, updateData);
@@ -433,22 +389,9 @@ export async function setProcurementStatus(orderId: string, newStatus: Procureme
     toUserUid: orderData.requesterUid,
     fromUserName: currentUser.displayName || 'ฝ่ายจัดซื้อ',
   });
-
-  console.log('setProcurementStatus: Procurement status update completed', {
-    orderId,
-    newStatus,
-    isComplete,
-    toUser: orderData.requesterUid,
-    orderNo: orderData.orderNo
-  });
 }
 
 export async function setOrderStatus(orderId: string, status: OrderStatus) {
-  console.log('setOrderStatus: Updating order status', {
-    orderId,
-    status
-  });
-
   const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   await updateDoc(orderRef, {
     status: status,
@@ -477,13 +420,6 @@ export async function setOrderStatus(orderId: string, status: OrderStatus) {
     toUserUid: orderData.requesterUid,
     fromUserName: currentUser.displayName || 'ฝ่ายจัดซื้อ',
   });
-
-  console.log('setOrderStatus: Order status update completed', {
-    orderId,
-    status,
-    toUser: orderData.requesterUid,
-    orderNo: orderData.orderNo
-  });
 }
 
 export async function updateOrderItems(orderId: string, updates: {
@@ -491,11 +427,6 @@ export async function updateOrderItems(orderId: string, updates: {
   itemsStatuses?: Record<string, string>;
   items?: any[];
 }) {
-  console.log('updateOrderItems: Updating order items', {
-    orderId,
-    updates: Object.keys(updates)
-  });
-
   const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
   const updateData: any = {
     updatedAt: serverTimestamp(),
@@ -513,13 +444,10 @@ export async function updateOrderItems(orderId: string, updates: {
   }
 
   await updateDoc(orderRef, updateData);
-  console.log('updateOrderItems: Items updated successfully');
 }
 
-// Helper function for getting status label
 import { getStatusLabel } from './order-utils';
 
-// Re-export utilities that were moved
 export { 
   getItemTypeColor,
   formatCurrency,

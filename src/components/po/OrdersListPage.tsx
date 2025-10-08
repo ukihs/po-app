@@ -91,6 +91,35 @@ export default function OrdersListPage(){
 
   const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
 
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#order-')) {
+      const orderId = hash.replace('#order-', '');
+      
+      if (!loading && orders.length > 0) {
+        setTimeout(() => {
+          const element = document.getElementById(`order-${orderId}`);
+          if (element) {
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            element.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'transition-all', 'duration-300');
+            
+            setExpanded(prev => ({ ...prev, [orderId]: true }));
+            
+            setTimeout(() => {
+              element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+            }, 3000);
+            
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 500);
+      }
+    }
+  }, [loading, orders]);
+
   const getItemValue = (o:Order, idx:number)=>{
     const d = drafts[o.id]?.[idx] || {};
     const mapCat = o.itemsCategories?.[String(idx)];

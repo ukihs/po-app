@@ -1,37 +1,105 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { A as useNotifications, E as useUnreadCount, F as useNotificationsLoading, G as useNotificationsError, H as useNotificationsStore, l as useRole, g as getDisplayOrderNumber, B as Badge, C as Card, t as CardContent, $ as $$MainLayout } from '../../chunks/card_CvSF2g3N.mjs';
+import { C as Card, t as CardContent, B as Badge, g as getDisplayOrderNumber, A as useNotifications, E as useNotificationsLoading, F as useNotificationsError, G as useNotificationsStore, l as useRole, u as useUser, H as useUnreadCount, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
-import { useState, useMemo, useEffect } from 'react';
+import React__default, { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { A as Alert, a as AlertDescription, B as Button, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
 import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
 export { renderers } from '../../renderers.mjs';
 
-const fmt = (ts) => {
-  if (!ts?.toDate) return "";
-  const d = ts.toDate();
-  return d.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
-};
+const formatDate = /* @__PURE__ */ (() => {
+  const cache = /* @__PURE__ */ new Map();
+  return (ts) => {
+    if (!ts?.toDate) return "";
+    const timestamp = ts.toDate().getTime();
+    const cacheKey = timestamp.toString();
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey);
+    }
+    const formatted = ts.toDate().toLocaleString("th-TH", {
+      dateStyle: "short",
+      timeStyle: "medium"
+    });
+    cache.set(cacheKey, formatted);
+    setTimeout(() => cache.delete(cacheKey), 5 * 60 * 1e3);
+    return formatted;
+  };
+})();
+const NotificationCard = React__default.memo(({
+  notification,
+  onMarkReadAndGo,
+  formatDate: formatDate2,
+  currentUserUid
+}) => {
+  const n = notification;
+  const isUnread = currentUserUid ? !n.readBy?.includes(currentUserUid) : false;
+  return /* @__PURE__ */ jsx(
+    Card,
+    {
+      className: `cursor-pointer hover:shadow-lg transition-all duration-200 ${isUnread ? "bg-primary/5" : "bg-background"}`,
+      onClick: () => onMarkReadAndGo(n),
+      children: /* @__PURE__ */ jsx(CardContent, { className: "px-3 sm:px-4 py-3", children: /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 sm:gap-3", children: /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 flex-wrap", children: [
+            isUnread && /* @__PURE__ */ jsx(Badge, { variant: "primary", appearance: "light", className: "text-xs px-1.5 sm:px-2 py-0.5", children: "ใหม่" }),
+            /* @__PURE__ */ jsx(
+              Badge,
+              {
+                variant: n.kind === "approved" ? "success" : n.kind === "rejected" ? "destructive" : n.kind === "status_update" ? "info" : "warning",
+                appearance: "light",
+                className: "text-xs px-1.5 sm:px-2 py-0.5",
+                children: n.kind === "approved" ? "อนุมัติแล้ว" : n.kind === "rejected" ? "ไม่อนุมัติ" : n.kind === "status_update" ? "อัปเดตสถานะ" : "ขออนุมัติ"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "text-xs text-muted-foreground/70 font-normal", children: formatDate2(n.createdAt) })
+        ] }),
+        /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${isUnread ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split("T")[0] || "" })})` : n.title }),
+        /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
+          "จากคุณ ",
+          n.fromUserName || "ระบบ"
+        ] }) })
+      ] }) }) })
+    }
+  );
+});
 function NotificationsPage() {
   const notifications = useNotifications();
-  const unreadCount = useUnreadCount();
   const loading = useNotificationsLoading();
   const error = useNotificationsError();
   const { markAsRead, markAllAsRead } = useNotificationsStore();
   const role = useRole();
+  const user = useUser();
+  const unreadCount = useUnreadCount(user?.uid);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const searchTerms = useMemo(() => {
+    if (!searchTerm) return null;
+    return searchTerm.toLowerCase().trim();
+  }, [searchTerm]);
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = notifications.filter((item) => {
-      const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.message?.toLowerCase().includes(searchTerm.toLowerCase()) || (item.orderNo ? getDisplayOrderNumber({ orderNo: item.orderNo, date: item.createdAt?.toDate?.()?.toISOString().split("T")[0] || "" }) : "").includes(searchTerm) || item.fromUserName?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = filterType === "all" || item.kind === filterType;
-      return matchesSearch && matchesType;
-    });
+    if (!notifications.length) return [];
+    let filtered = notifications;
+    if (filterType !== "all") {
+      filtered = filtered.filter((item) => item.kind === filterType);
+    }
+    if (searchTerms) {
+      filtered = filtered.filter((item) => {
+        const title = item.title.toLowerCase();
+        const message = item.message?.toLowerCase() || "";
+        const fromUser = item.fromUserName?.toLowerCase() || "";
+        const orderNumber = item.orderNo ? getDisplayOrderNumber({
+          orderNo: item.orderNo,
+          date: item.createdAt?.toDate?.()?.toISOString().split("T")[0] || ""
+        }).toLowerCase() : "";
+        return title.includes(searchTerms) || message.includes(searchTerms) || fromUser.includes(searchTerms) || orderNumber.includes(searchTerms);
+      });
+    }
     filtered.sort((a, b) => {
       const timeA = a.createdAt?.toDate?.()?.getTime() || 0;
       const timeB = b.createdAt?.toDate?.()?.getTime() || 0;
@@ -40,13 +108,15 @@ function NotificationsPage() {
       } else if (sortBy === "oldest") {
         return timeA - timeB;
       } else if (sortBy === "unread") {
-        if (a.read === b.read) return timeB - timeA;
-        return a.read ? 1 : -1;
+        const aRead = user?.uid ? a.readBy?.includes(user.uid) : false;
+        const bRead = user?.uid ? b.readBy?.includes(user.uid) : false;
+        if (aRead === bRead) return timeB - timeA;
+        return aRead ? 1 : -1;
       }
       return timeB - timeA;
     });
     return filtered;
-  }, [notifications, searchTerm, filterType, sortBy]);
+  }, [notifications, searchTerms, filterType, sortBy]);
   const totalPages = useMemo(
     () => Math.ceil(filteredAndSortedItems.length / itemsPerPage),
     [filteredAndSortedItems.length, itemsPerPage]
@@ -61,16 +131,18 @@ function NotificationsPage() {
   );
   const markReadAndGo = async (n) => {
     try {
-      if (!n.read) {
-        await markAsRead(n.id);
+      if (user?.uid && !n.readBy?.includes(user.uid)) {
+        await markAsRead(n.id, user.uid);
       }
-      const navigateTo = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      const basePath = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      const navigateTo = n.orderId ? `${basePath}#order-${n.orderId}` : basePath;
       import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(navigateTo)).catch(() => {
         window.location.href = navigateTo;
       });
     } catch (e) {
       console.error(e);
-      const navigateTo = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      const basePath = role === "procurement" ? "/orders/list" : "/orders/tracking";
+      const navigateTo = n.orderId ? `${basePath}#order-${n.orderId}` : basePath;
       import('../../chunks/client_BUDSSnj2.mjs').then(({ navigate }) => navigate(navigateTo)).catch(() => {
         window.location.href = navigateTo;
       });
@@ -129,7 +201,11 @@ function NotificationsPage() {
           Button,
           {
             variant: "outline",
-            onClick: markAllAsRead,
+            onClick: () => {
+              if (user?.uid) {
+                markAllAsRead(user.uid);
+              }
+            },
             className: "w-full sm:w-auto",
             size: "sm",
             children: [
@@ -212,7 +288,11 @@ function NotificationsPage() {
         Button,
         {
           variant: "outline",
-          onClick: markAllAsRead,
+          onClick: () => {
+            if (user?.uid) {
+              markAllAsRead(user.uid);
+            }
+          },
           className: "w-full sm:w-auto",
           size: "sm",
           children: [
@@ -268,32 +348,12 @@ function NotificationsPage() {
       ] })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "space-y-4", children: paginatedItems.map((n) => /* @__PURE__ */ jsx(
-      Card,
+      NotificationCard,
       {
-        className: `cursor-pointer hover:shadow-lg transition-all duration-200 ${!n.read ? "bg-primary/5" : "bg-background"}`,
-        onClick: () => markReadAndGo(n),
-        children: /* @__PURE__ */ jsx(CardContent, { className: "px-3 sm:px-4 py-3", children: /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2 sm:gap-3", children: /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2 sm:mb-3", children: [
-            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 sm:gap-2 flex-wrap", children: [
-              !n.read && /* @__PURE__ */ jsx(Badge, { variant: "primary", appearance: "light", className: "text-xs px-1.5 sm:px-2 py-0.5", children: "ใหม่" }),
-              /* @__PURE__ */ jsx(
-                Badge,
-                {
-                  variant: n.kind === "approved" ? "success" : n.kind === "rejected" ? "destructive" : n.kind === "status_update" ? "info" : "warning",
-                  appearance: "light",
-                  className: "text-xs px-1.5 sm:px-2 py-0.5",
-                  children: n.kind === "approved" ? "อนุมัติแล้ว" : n.kind === "rejected" ? "ไม่อนุมัติ" : n.kind === "status_update" ? "อัปเดตสถานะ" : "ขออนุมัติ"
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsx("div", { className: "text-xs text-muted-foreground/70 font-normal", children: fmt(n.createdAt) })
-          ] }),
-          /* @__PURE__ */ jsx("h3", { className: `text-sm sm:text-base font-semibold mb-2 sm:mb-3 ${!n.read ? "text-foreground" : "text-muted-foreground"}`, children: n.orderNo ? `${n.title} (${getDisplayOrderNumber({ orderNo: n.orderNo, date: n.createdAt?.toDate?.()?.toISOString().split("T")[0] || "" })})` : n.title }),
-          /* @__PURE__ */ jsx("div", { className: "flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground flex-wrap", children: /* @__PURE__ */ jsxs("span", { className: "font-medium", children: [
-            "จากคุณ ",
-            n.fromUserName || "ระบบ"
-          ] }) })
-        ] }) }) })
+        notification: n,
+        onMarkReadAndGo: markReadAndGo,
+        formatDate,
+        currentUserUid: user?.uid
       },
       n.id
     )) }),
