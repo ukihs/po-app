@@ -1,20 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { C as Card, s as CardContent, t as Separator, $ as $$MainLayout } from '../../chunks/card_5zKr5UsH.mjs';
+import { C as Card, s as CardContent, t as Separator, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { c as cn, e as buttonVariants, B as Button, f as auth, I as Input } from '../../chunks/auth_DQlrnaIy.mjs';
-import { grandTotal, createOrder } from '../../chunks/poApi_BwKT2GJs.mjs';
+import React__default, { useState, useEffect } from 'react';
+import { e as cn, h as buttonVariants, B as Button, i as auth, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input } from '../../chunks/alert_CCNrb8k2.mjs';
+import { grandTotal, createOrder } from '../../chunks/poApi_Dar5iW5v.mjs';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_Ba-tWnuX.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BgbskhDG.mjs';
-import { L as Label } from '../../chunks/label_CkHSDWX2.mjs';
+import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_JJhAOVcq.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
+import { L as Label } from '../../chunks/label_bBtVeYLE.mjs';
 import { getDefaultClassNames, DayPicker } from 'react-day-picker';
-import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_DbfNjUN0.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_iML_uMJr.mjs';
+import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_CGh2oCv1.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_CNFPOshg.mjs';
 import { t as toNum } from '../../chunks/order-utils_7Vk_wX4U.mjs';
 export { renderers } from '../../renderers.mjs';
 
@@ -211,6 +210,12 @@ function CreateOrderPage() {
     amount: "",
     itemType: "วัตถุดิบ"
   });
+  const [alertState, setAlertState] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    description: ""
+  });
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
@@ -234,6 +239,47 @@ function CreateOrderPage() {
       }));
     }
   }, [selectedItemDate]);
+  const showAlert = (message, type = "info", description) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+    const duration = type === "error" ? 5e3 : 4e3;
+    setTimeout(() => {
+      setAlertState((prev) => ({ ...prev, show: false }));
+    }, duration);
+  };
+  const getAlertConfig = (type) => {
+    switch (type) {
+      case "success":
+        return {
+          variant: "success",
+          appearance: "light",
+          IconComponent: RiCheckboxCircleFill
+        };
+      case "error":
+        return {
+          variant: "destructive",
+          appearance: "light",
+          IconComponent: RiErrorWarningFill
+        };
+      case "warning":
+        return {
+          variant: "warning",
+          appearance: "light",
+          IconComponent: RiSpam3Fill
+        };
+      case "info":
+      default:
+        return {
+          variant: "info",
+          appearance: "light",
+          IconComponent: RiInformationFill
+        };
+    }
+  };
   const openAddModal = () => {
     setNewItem({
       description: "",
@@ -251,13 +297,13 @@ function CreateOrderPage() {
   const addItemFromModal = () => {
     if (!isModalFormValid()) {
       if (!newItem.description.trim()) {
-        toast.error("กรุณาระบุรายละเอียดสินค้า");
+        showAlert("กรุณาระบุรายละเอียดสินค้า", "error");
       } else if (!newItem.receivedDate.trim()) {
-        toast.error("กรุณาเลือกวันที่ต้องการรับ");
+        showAlert("กรุณาเลือกวันที่ต้องการรับ", "error");
       } else if (toNum(newItem.quantity) <= 0) {
-        toast.error("กรุณาระบุจำนวนที่ถูกต้อง");
+        showAlert("กรุณาระบุจำนวนที่ถูกต้อง", "error");
       } else if (toNum(newItem.amount) <= 0) {
-        toast.error("กรุณาระบุราคาที่ถูกต้อง");
+        showAlert("กรุณาระบุราคาที่ถูกต้อง", "error");
       }
       return;
     }
@@ -320,7 +366,7 @@ function CreateOrderPage() {
   const showConfirmation = () => {
     setSubmitted(true);
     if (!isFormValid()) {
-      toast.error(getValidationMessage());
+      showAlert(getValidationMessage(), "error");
       return;
     }
     setShowConfirmModal(true);
@@ -332,13 +378,13 @@ function CreateOrderPage() {
       const itemsWithType = items.map((item) => ({ ...item, itemType: "วัตถุดิบ" }));
       const dateString = selectedDate?.toISOString().split("T")[0] || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
-      toast.success("สร้างใบขอซื้อสำเร็จแล้ว");
+      showAlert("สร้างใบขอซื้อและส่งขออนุมัติเรียบร้อยแล้ว", "success");
       setRequester("");
       setItems([]);
       setSelectedDate(/* @__PURE__ */ new Date());
       setSubmitted(false);
     } catch (e) {
-      toast.error(e?.message ?? "บันทึกใบสั่งซื้อไม่สำเร็จ");
+      showAlert("ไม่สามารถสร้างใบขอซื้อได้", "error", e?.message ?? "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
     } finally {
       setSaving(false);
     }
@@ -348,7 +394,20 @@ function CreateOrderPage() {
     setSaving(false);
   };
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsx(Toaster, {}),
+    alertState.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(
+      Alert,
+      {
+        variant: getAlertConfig(alertState.type).variant,
+        appearance: getAlertConfig(alertState.type).appearance,
+        close: true,
+        onClose: () => setAlertState((prev) => ({ ...prev, show: false })),
+        children: [
+          /* @__PURE__ */ jsx(AlertIcon, { children: React__default.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx(AlertTitle, { children: alertState.title }),
+          alertState.description && /* @__PURE__ */ jsx(AlertDescription, { children: alertState.description })
+        ]
+      }
+    ) }),
     /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
       /* @__PURE__ */ jsx(Package, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
       "สร้างใบขอซื้อ"

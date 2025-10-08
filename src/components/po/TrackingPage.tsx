@@ -26,14 +26,18 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Toaster } from '../ui/sonner';
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
-import { Alert, AlertDescription } from '../ui/alert';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -104,6 +108,18 @@ export default function TrackingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
+
   const rows = useMemo(() => {
     return orders.map(order => ({
       id: order.id,
@@ -140,6 +156,50 @@ export default function TrackingPage() {
     setCurrentPage(1);
   }, [rows, searchTerm, statusFilter]);
 
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
+
   const showApprovalModal = (orderId: string, approved: boolean, orderNo: number, requesterName: string) => {
     setConfirmData({
       orderId,
@@ -162,7 +222,7 @@ export default function TrackingPage() {
       
       await approveOrder(orderId, approved);
       
-      toast.success(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
+      showAlert(`${action}ใบขอซื้อเรียบร้อยแล้ว`, 'success');
       
     } catch (error) {
       const errorMessage = (error as any)?.message || '';
@@ -176,9 +236,9 @@ export default function TrackingPage() {
           window.location.reload();
         }, 1000);
         
-        toast.success(`${action}สำเร็จแล้ว กำลังอัปเดตข้อมูล...`);
+        showAlert(`${action}สำเร็จแล้ว กำลังอัปเดตข้อมูล`, 'success');
       } else {
-        toast.error(`เกิดข้อผิดพลาดใน${action}: ${errorMessage}`);
+        showAlert(`เกิดข้อผิดพลาดใน${action}`, 'error', errorMessage);
       }
     } finally {
       setProcessingOrders(prev => {
@@ -305,6 +365,25 @@ export default function TrackingPage() {
 
   return (
     <div className="w-full">
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
+
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />

@@ -261,6 +261,17 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     const { serverAuth, serverDb } = await import('../../../firebase/server');
     const { uid } = params;
     
+    // Prevent self-deletion
+    if (user.uid === uid) {
+      return new Response(JSON.stringify({
+        error: 'Self-deletion not allowed',
+        message: 'ไม่สามารถลบบัญชีตัวเองได้ กรุณาติดต่อผู้ดูแลระบบคนอื่น'
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     if (!uid) {
       return new Response(JSON.stringify({
         error: 'Missing user ID'

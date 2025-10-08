@@ -33,7 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { toast } from 'sonner';
+// Remove toast import - using Alert instead
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -87,15 +87,18 @@ const fmtTS = (ts: any) =>
       })
     : '—';
 
-function ActionsCell({ row, onViewOrder, onDeleteOrder }: { 
+function ActionsCell({ row, onViewOrder, onDeleteOrder, onShowAlert }: { 
   row: Row<Order>; 
   onViewOrder: (order: Order) => void;
   onDeleteOrder: (order: Order) => void;
+  onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
 }) {
   const handleCopyOrderNumber = () => {
     const orderNumber = getDisplayOrderNumber(row.original);
     navigator.clipboard.writeText(orderNumber);
-    toast.success(`เลขที่ใบขอซื้อคัดลอกแล้ว: ${orderNumber}`);
+    if (onShowAlert) {
+      onShowAlert('คัดลอกเลขที่ใบขอซื้อ', 'success', `"${orderNumber}" สำเร็จ!`);
+    }
   };
 
   return (
@@ -133,13 +136,15 @@ interface OrdersManagementDataTableProps {
   loading: boolean;
   onViewOrder: (order: Order) => void;
   onDeleteOrder: (order: Order) => void;
+  onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
 }
 
 export default function OrdersManagementDataTable({ 
   data, 
   loading, 
   onViewOrder,
-  onDeleteOrder
+  onDeleteOrder,
+  onShowAlert
 }: OrdersManagementDataTableProps) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -268,7 +273,7 @@ export default function OrdersManagementDataTable({
       {
         id: 'actions',
         header: '',
-        cell: ({ row }) => <ActionsCell row={row} onViewOrder={onViewOrder} onDeleteOrder={onDeleteOrder} />,
+        cell: ({ row }) => <ActionsCell row={row} onViewOrder={onViewOrder} onDeleteOrder={onDeleteOrder} onShowAlert={onShowAlert} />,
         size: 60,
         enableSorting: false,
         enableHiding: false,

@@ -273,7 +273,7 @@ export default function OrdersDataTable({
                             <Select
                               value={order.status}
                               onValueChange={(value) => onSaveOrderStatus(order, value as OrderStatus)}
-                              disabled={processingKeys.has(order.id)}
+                              disabled={processingKeys.has(order.id) || order.status === 'rejected'}
                             >
                               <SelectTrigger className="w-[140px] sm:w-[180px] text-xs sm:text-sm">
                                <SelectValue placeholder="เลือกสถานะ…" />
@@ -330,7 +330,7 @@ export default function OrdersDataTable({
                                             <Select
                                               value={val.category}
                                               onValueChange={(value)=>onSetDraft(order.id, idx, {category: value})}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
+                                              disabled={processingKeys.has(`${order.id}:${idx}`) || order.status === 'rejected'}
                                             >
                                               <SelectTrigger className="text-xs sm:text-sm">
                                                 <SelectValue placeholder="เลือกประเภท…" />
@@ -351,7 +351,7 @@ export default function OrdersDataTable({
                                             <Select
                                               value={val.itemStatus}
                                               onValueChange={(value)=>onSetDraft(order.id, idx, {itemStatus: value})}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
+                                              disabled={processingKeys.has(`${order.id}:${idx}`) || order.status === 'rejected'}
                                             >
                                               <SelectTrigger className="text-xs sm:text-sm">
                                                <SelectValue placeholder="เลือกสถานะ…" />
@@ -373,7 +373,7 @@ export default function OrdersDataTable({
                                               variant="primary"
                                               size="sm"
                                               onClick={()=>onSaveItem(order, idx)}
-                                              disabled={processingKeys.has(`${order.id}:${idx}`)}
+                                              disabled={processingKeys.has(`${order.id}:${idx}`) || order.status === 'rejected'}
                                               className="font-normal text-xs sm:text-sm"
                                             >
                                               {processingKeys.has(`${order.id}:${idx}`) && <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-1" />}

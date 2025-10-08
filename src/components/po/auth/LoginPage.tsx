@@ -1,10 +1,16 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { signIn, subscribeAuthAndRole, setAuthCookie } from "../../../lib/auth";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, X, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from "../../ui/alert";
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { Alert, AlertDescription } from "../../ui/alert";
 
 interface LoginError extends Error {
   code?: string;
@@ -13,7 +19,8 @@ interface LoginError extends Error {
 interface AlertState {
   show: boolean;
   type: 'info' | 'success' | 'warning' | 'error';
-  message: string;
+  title: string;
+  description?: string;
 }
 
 const getRedirectUrl = (role: string): string => {
@@ -33,7 +40,8 @@ export default function LoginPage() {
   const [alert, setAlert] = useState<AlertState>({
     show: false,
     type: 'error',
-    message: ''
+    title: '',
+    description: ''
   });
 
   useEffect(() => {
@@ -50,14 +58,45 @@ export default function LoginPage() {
     return off;
   }, []);
 
-  const showAlertMessage = useCallback((type: AlertState['type'], message: string) => {
-    setAlert({ show: true, type, message });
-    if (type === 'error') {
-      setTimeout(() => {
-        setAlert(prev => ({ ...prev, show: false }));
-      }, 4000);
-    }
+  const showAlertMessage = useCallback((type: AlertState['type'], title: string, description?: string) => {
+    setAlert({ show: true, type, title, description });
+    
+    // Auto-hide after duration
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlert(prev => ({ ...prev, show: false }));
+    }, duration);
   }, []);
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,30 +109,15 @@ export default function LoginPage() {
       }
 
       await signIn(email.trim(), pass);
-      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
+      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ กำลังนำทาง");
     } catch (e: unknown) {
       const error = e as LoginError;
       let message = "เข้าสู่ระบบไม่สำเร็จ";
 
-      if (error.code) {
-        switch (error.code) {
-          case 'auth/user-not-found':
-            message = "ไม่พบผู้ใช้นี้ในระบบ";
-            break;
-          case 'auth/wrong-password':
-            message = "รหัสผ่านไม่ถูกต้อง";
-            break;
-          case 'auth/invalid-email':
-            message = "รูปแบบอีเมลไม่ถูกต้อง";
-            break;
-          case 'auth/too-many-requests':
-            message = "พยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่";
-            break;
-          default:
-            message = error.message || message;
-        }
-      } else if (error.message) {
+      if (error.message && !error.message.includes('Firebase:')) {
         message = error.message;
+      } else {
+        message = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
       }
 
       showAlertMessage("error", message);
@@ -102,46 +126,24 @@ export default function LoginPage() {
     }
   };
 
-  const getAlertIcon = useCallback(() => {
-    switch (alert.type) {
-      case "info":
-        return <Info className="h-4 w-4" />;
-      case "success":
-        return <CheckCircle className="h-4 w-4" />;
-      case "warning":
-        return <AlertTriangle className="h-4 w-4" />;
-      case "error":
-        return <AlertCircle className="h-4 w-4" />;
-      default:
-        return <Info className="h-4 w-4" />;
-    }
-  }, [alert.type]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
       {alert.show && (
-        <div className="fixed top-4 right-4 z-50 max-w-sm">
-          <Alert
-            variant={alert.type === "error" ? "destructive" : "primary"}
-            className="shadow-lg border-0"
-            role="alert"
-            aria-live="polite"
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alert.type).variant}
+            appearance={getAlertConfig(alert.type).appearance}
+            close
+            onClose={() => setAlert(prev => ({ ...prev, show: false }))}
           >
-            {getAlertIcon()}
-            <div className="flex items-center justify-between w-full">
-              <AlertDescription className="text-sm font-medium">
-                {alert.message}
-              </AlertDescription>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setAlert(prev => ({ ...prev, show: false }))}
-                className="h-6 w-6 ml-2 shrink-0"
-                aria-label="ปิดการแจ้งเตือน"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alert.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alert.title}</AlertTitle>
+            {alert.description && (
+              <AlertDescription>{alert.description}</AlertDescription>
+            )}
           </Alert>
         </div>
       )}

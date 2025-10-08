@@ -1,11 +1,11 @@
 import { d as createComponent, j as renderHead, k as renderComponent, r as renderTemplate } from '../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { useState, useEffect, useCallback } from 'react';
-import { s as subscribeAuthAndRole, a as setAuthCookie, B as Button, I as Input, b as signIn } from '../chunks/auth_DQlrnaIy.mjs';
-import { Info, AlertCircle, AlertTriangle, CheckCircle, X, Loader2 } from 'lucide-react';
-import { L as Label } from '../chunks/label_CkHSDWX2.mjs';
-import { A as Alert, a as AlertDescription } from '../chunks/alert_B2AaFevH.mjs';
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import React__default, { useState, useEffect, useCallback } from 'react';
+import { s as subscribeAuthAndRole, f as setAuthCookie, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input, B as Button, g as signIn } from '../chunks/alert_CCNrb8k2.mjs';
+import { Loader2 } from 'lucide-react';
+import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
+import { L as Label } from '../chunks/label_bBtVeYLE.mjs';
 /* empty css                                  */
 export { renderers } from '../renderers.mjs';
 
@@ -25,7 +25,8 @@ function LoginPage() {
   const [alert, setAlert] = useState({
     show: false,
     type: "error",
-    message: ""
+    title: "",
+    description: ""
   });
   useEffect(() => {
     const off = subscribeAuthAndRole(async (user, role) => {
@@ -39,14 +40,42 @@ function LoginPage() {
     });
     return off;
   }, []);
-  const showAlertMessage = useCallback((type, message) => {
-    setAlert({ show: true, type, message });
-    if (type === "error") {
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, show: false }));
-      }, 4e3);
-    }
+  const showAlertMessage = useCallback((type, title, description) => {
+    setAlert({ show: true, type, title, description });
+    const duration = type === "error" ? 5e3 : 4e3;
+    setTimeout(() => {
+      setAlert((prev) => ({ ...prev, show: false }));
+    }, duration);
   }, []);
+  const getAlertConfig = (type) => {
+    switch (type) {
+      case "success":
+        return {
+          variant: "success",
+          appearance: "light",
+          IconComponent: RiCheckboxCircleFill
+        };
+      case "error":
+        return {
+          variant: "destructive",
+          appearance: "light",
+          IconComponent: RiErrorWarningFill
+        };
+      case "warning":
+        return {
+          variant: "warning",
+          appearance: "light",
+          IconComponent: RiSpam3Fill
+        };
+      case "info":
+      default:
+        return {
+          variant: "info",
+          appearance: "light",
+          IconComponent: RiInformationFill
+        };
+    }
+  };
   const submit = async (e) => {
     e.preventDefault();
     setAlert((prev) => ({ ...prev, show: false }));
@@ -56,73 +85,32 @@ function LoginPage() {
         throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
       }
       await signIn(email.trim(), pass);
-      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
+      showAlertMessage("success", "เข้าสู่ระบบสำเร็จ กำลังนำทาง");
     } catch (e2) {
       const error = e2;
       let message = "เข้าสู่ระบบไม่สำเร็จ";
-      if (error.code) {
-        switch (error.code) {
-          case "auth/user-not-found":
-            message = "ไม่พบผู้ใช้นี้ในระบบ";
-            break;
-          case "auth/wrong-password":
-            message = "รหัสผ่านไม่ถูกต้อง";
-            break;
-          case "auth/invalid-email":
-            message = "รูปแบบอีเมลไม่ถูกต้อง";
-            break;
-          case "auth/too-many-requests":
-            message = "พยายามเข้าสู่ระบบมากเกินไป กรุณารอสักครู่";
-            break;
-          default:
-            message = error.message || message;
-        }
-      } else if (error.message) {
+      if (error.message && !error.message.includes("Firebase:")) {
         message = error.message;
+      } else {
+        message = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
       }
       showAlertMessage("error", message);
     } finally {
       setIsLoading(false);
     }
   };
-  const getAlertIcon = useCallback(() => {
-    switch (alert.type) {
-      case "info":
-        return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
-      case "success":
-        return /* @__PURE__ */ jsx(CheckCircle, { className: "h-4 w-4" });
-      case "warning":
-        return /* @__PURE__ */ jsx(AlertTriangle, { className: "h-4 w-4" });
-      case "error":
-        return /* @__PURE__ */ jsx(AlertCircle, { className: "h-4 w-4" });
-      default:
-        return /* @__PURE__ */ jsx(Info, { className: "h-4 w-4" });
-    }
-  }, [alert.type]);
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative", children: [
-    alert.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ jsxs(
+    alert.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(
       Alert,
       {
-        variant: alert.type === "error" ? "destructive" : "primary",
-        className: "shadow-lg border-0",
-        role: "alert",
-        "aria-live": "polite",
+        variant: getAlertConfig(alert.type).variant,
+        appearance: getAlertConfig(alert.type).appearance,
+        close: true,
+        onClose: () => setAlert((prev) => ({ ...prev, show: false })),
         children: [
-          getAlertIcon(),
-          /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between w-full", children: [
-            /* @__PURE__ */ jsx(AlertDescription, { className: "text-sm font-medium", children: alert.message }),
-            /* @__PURE__ */ jsx(
-              Button,
-              {
-                variant: "ghost",
-                size: "icon",
-                onClick: () => setAlert((prev) => ({ ...prev, show: false })),
-                className: "h-6 w-6 ml-2 shrink-0",
-                "aria-label": "ปิดการแจ้งเตือน",
-                children: /* @__PURE__ */ jsx(X, { className: "h-4 w-4" })
-              }
-            )
-          ] })
+          /* @__PURE__ */ jsx(AlertIcon, { children: React__default.createElement(getAlertConfig(alert.type).IconComponent, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx(AlertTitle, { children: alert.title }),
+          alert.description && /* @__PURE__ */ jsx(AlertDescription, { children: alert.description })
         ]
       }
     ) }),

@@ -12,11 +12,15 @@ import {
 } from 'firebase/firestore';
 import { useUser, useRole, useIsLoading } from '../../stores';
 import { FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-import { toast } from 'sonner';
-import { Toaster } from '../ui/sonner';
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import type { Order } from '../../types';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
 import OrdersManagementDataTable from './OrdersManagementDataTable';
@@ -27,6 +31,18 @@ export default function OrdersManagementPage() {
   const [err, setErr] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
   
   const user = useUser();
   const role = useRole();
@@ -70,6 +86,51 @@ export default function OrdersManagementPage() {
     window.open(`/orders/${order.id}`, '_blank');
   };
 
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    // Auto-hide after duration
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
+
   const handleDeleteOrder = (order: Order) => {
     setSelectedOrder(order);
     setShowDeleteModal(true);
@@ -96,12 +157,12 @@ export default function OrdersManagementPage() {
         console.log(`Deleted ${deletePromises.length} notifications for order ${selectedOrder.id}`);
       }
       
-      toast.success('ลบใบขอซื้อและการแจ้งเตือนที่เกี่ยวข้องสำเร็จ');
+      showAlert('ลบใบขอซื้อและการแจ้งเตือนที่เกี่ยวข้องสำเร็จ', 'success');
       setShowDeleteModal(false);
       setSelectedOrder(null);
     } catch (error: any) {
       console.error('Error deleting order:', error);
-      toast.error('ลบใบขอซื้อไม่สำเร็จ: ' + (error?.message || error));
+      showAlert('ไม่สามารถลบใบขอซื้อได้', 'error', error?.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
     }
   };
 
@@ -139,13 +200,31 @@ export default function OrdersManagementPage() {
         </h1>
       </div>
 
-      <Toaster />
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
 
       <OrdersManagementDataTable 
         data={orders}
         loading={loading}
         onViewOrder={handleViewOrder}
         onDeleteOrder={handleDeleteOrder}
+        onShowAlert={showAlert}
       />
 
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>

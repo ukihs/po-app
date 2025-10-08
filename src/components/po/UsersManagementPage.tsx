@@ -7,7 +7,14 @@ import {
   Check,
   ChevronsUpDown,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -15,10 +22,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { toast } from 'sonner';
-import { Toaster } from '../ui/sonner';
+import { Alert, AlertIcon, AlertTitle, AlertDescription } from '../ui/alert';
 import UsersDataTable from './UsersDataTable';
 import { cn } from '../../lib/utils';
+import { useUser } from '../../stores';
 
 interface User {
   uid: string;
@@ -33,6 +40,7 @@ interface User {
 
 
 export default function UsersManagementPage() {
+  const currentUser = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -88,6 +96,24 @@ export default function UsersManagementPage() {
   const [editSupervisorOpen, setEditSupervisorOpen] = useState(false);
   const [editSupervisorValue, setEditSupervisorValue] = useState('');
 
+  // Helper function to check if user is current user
+  const isCurrentUser = (user: User) => {
+    return currentUser?.uid === user.uid;
+  };
+
+  // Alert state management
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -107,10 +133,10 @@ export default function UsersManagementPage() {
         );
         setSupervisors(supervisorList);
       } else {
-        showToast('Failed to fetch users', 'error');
+        showAlert('ไม่สามารถโหลดข้อมูลผู้ใช้', 'error', 'กรุณาลองใหม่อีกครั้ง');
       }
     } catch (error) {
-      showToast('Error fetching users', 'error');
+      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
     } finally {
       setLoading(false);
     }
@@ -158,19 +184,24 @@ export default function UsersManagementPage() {
 
   const createUser = async () => {
     if (!validateForm()) {
-      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
+      showAlert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
       return;
     }
 
     try {
       const userData = {
-        ...newUser,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         displayName: `${newUser.firstName} ${newUser.lastName}`.trim(),
+        password: newUser.password,
         role: newUser.role,
-        supervisorName: newUser.supervisorName,
-        supervisorUid: newUser.supervisorUid,
-        department: newUser.department
+        supervisorName: newUser.supervisorName || '',
+        supervisorUid: newUser.supervisorUid || '',
+        department: newUser.department || ''
       };
+      
+      console.log('Creating user with data:', { ...userData, password: '***' });
       
       const response = await fetch('/api/users/create', {
         method: 'POST',
@@ -179,9 +210,29 @@ export default function UsersManagementPage() {
       });
 
       const data = await response.json();
+      
+      console.log('API Response:', { status: response.status, data });
 
       if (response.ok) {
-        showToast('สร้างผู้ใช้สำเร็จ', 'success');
+        const userName = `${newUser.firstName} ${newUser.lastName}`.trim();
+        
+        const newUserData: User = {
+          uid: data.user.uid,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          displayName: userName,
+          role: newUser.role,
+          supervisorName: newUser.supervisorName || undefined,
+          supervisorUid: newUser.supervisorUid || undefined,
+        };
+        
+        setUsers(prevUsers => [newUserData, ...prevUsers]);
+        
+        if (newUser.role === 'supervisor') {
+          setSupervisors(prevSupervisors => [newUserData, ...prevSupervisors]);
+        }
+        
         setShowCreateModal(false);
         setNewUser({
           email: '',
@@ -204,12 +255,15 @@ export default function UsersManagementPage() {
         });
         setFormValid(false);
         setSupervisorValue('');
-        fetchUsers();
+        
+        showAlert(`เพิ่มผู้ใช้ "${userName}" สำเร็จแล้ว`, 'success');
       } else {
-        showToast(data.message || 'Failed to create user', 'error');
+        console.error('Failed to create user:', data);
+        showAlert('ไม่สามารถเพิ่มผู้ใช้ได้', 'error', data.message || 'กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง');
       }
     } catch (error) {
-      showToast('Error creating user', 'error');
+      console.error('Error creating user:', error);
+      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถเพิ่มผู้ใช้ได้');
     }
   };
 
@@ -233,7 +287,7 @@ export default function UsersManagementPage() {
     if (!selectedUser) return;
 
     if (!validateEditForm()) {
-      showToast('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
+      showAlert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
       return;
     }
 
@@ -257,19 +311,67 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast('อัปเดตผู้ใช้สำเร็จ', 'success');
+        const userName = `${editUser.firstName} ${editUser.lastName}`.trim();
+        
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.uid === selectedUser!.uid
+              ? {
+                  ...user,
+                  email: editUser.email,
+                  firstName: editUser.firstName,
+                  lastName: editUser.lastName,
+                  displayName: userName,
+                  role: editUser.role,
+                  supervisorName: editUser.supervisorName || undefined,
+                  supervisorUid: editUser.supervisorUid || undefined,
+                }
+              : user
+          )
+        );
+        
+        if (editUser.role === 'supervisor') {
+          setSupervisors(prevSupervisors => {
+            const exists = prevSupervisors.some(s => s.uid === selectedUser!.uid);
+            if (exists) {
+              return prevSupervisors.map(s => 
+                s.uid === selectedUser!.uid 
+                  ? { ...s, displayName: userName, email: editUser.email }
+                  : s
+              );
+            } else {
+              return [{
+                uid: selectedUser!.uid,
+                email: editUser.email,
+                displayName: userName,
+                role: 'supervisor'
+              }, ...prevSupervisors];
+            }
+          });
+        } else {
+          setSupervisors(prevSupervisors => 
+            prevSupervisors.filter(s => s.uid !== selectedUser!.uid)
+          );
+        }
+        
         setShowEditModal(false);
-        fetchUsers();
+        
+        showAlert(`อัปเดตข้อมูลผู้ใช้ "${userName}" สำเร็จ`, 'success');
       } else {
-        showToast(data.message || 'Failed to update user', 'error');
+        showAlert('ไม่สามารถอัปเดตข้อมูลของผู้ใช้ได้', 'error', data.message || 'กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง');
       }
     } catch (error) {
-      showToast('Error updating user', 'error');
+      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถอัปเดตข้อมูลของผู้ใช้ได้');
     }
   };
 
   const deleteUser = async () => {
     if (!selectedUser) return;
+
+    if (isCurrentUser(selectedUser)) {
+      showAlert('ไม่สามารถลบบัญชีของตัวเองได้', 'error', 'กรุณาติดต่อผู้ดูแลระบบคนอื่นเพื่อลบบัญชีของคุณ');
+      return;
+    }
 
     try {
       const response = await fetch(`/api/users/${selectedUser.uid}`, {
@@ -279,31 +381,67 @@ export default function UsersManagementPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast('ลบผู้ใช้สำเร็จ', 'success');
+        const userName = selectedUser.displayName || selectedUser.email;
+        
+        setUsers(prevUsers => prevUsers.filter(user => user.uid !== selectedUser.uid));
+        
+        setSupervisors(prevSupervisors => 
+          prevSupervisors.filter(s => s.uid !== selectedUser.uid)
+        );
+        
         setShowDeleteModal(false);
         setSelectedUser(null);
-        fetchUsers();
+        
+        showAlert(`ลบบัญชีผู้ใช้ "${userName}" สำเร็จ`, 'success');
       } else {
-        showToast(data.message || 'Failed to delete user', 'error');
+        showAlert('ไม่สามารถลบบัญชีของผู้ใช้ได้', 'error', data.message || 'กรุณาลองใหม่อีกครั้ง');
       }
     } catch (error) {
-      showToast('Error deleting user', 'error');
+      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถลบบัญชีของผู้ใช้ได้');
     }
   };
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
     switch (type) {
       case 'success':
-        toast.success(message);
-        break;
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
       case 'error':
-        toast.error(message);
-        break;
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
       case 'info':
-        toast.info(message);
-        break;
       default:
-        toast(message);
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
     }
   };
 
@@ -335,6 +473,11 @@ export default function UsersManagementPage() {
   };
 
   const handleDeleteUser = (user: User) => {
+    if (isCurrentUser(user)) {
+      showAlert('ไม่สามารถลบบัญชีของตัวเองได้', 'error', 'กรุณาติดต่อผู้ดูแลระบบคนอื่นเพื่อลบบัญชีของคุณ');
+      return;
+    }
+    
     setSelectedUser(user);
     setShowDeleteModal(true);
   };
@@ -374,7 +517,24 @@ export default function UsersManagementPage() {
         </h1>
       </div>
 
-      <Toaster />
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
 
       <UsersDataTable 
         data={users}
@@ -382,6 +542,7 @@ export default function UsersManagementPage() {
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
         onAddUser={() => setShowCreateModal(true)}
+        isCurrentUser={isCurrentUser}
       />
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
@@ -803,6 +964,16 @@ export default function UsersManagementPage() {
             </DialogDescription>
           </DialogHeader>
           
+          {selectedUser && isCurrentUser(selectedUser) && (
+            <Alert variant="destructive" className="my-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>ไม่สามารถลบตัวเองได้</AlertTitle>
+              <AlertDescription>
+                กรุณาติดต่อผู้ดูแลระบบคนอื่นเพื่อลบบัญชีของคุณ
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="py-3 sm:py-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
               ผู้ใช้: {selectedUser?.displayName || selectedUser?.email}
@@ -821,6 +992,7 @@ export default function UsersManagementPage() {
               variant="destructive" 
               className="w-full sm:w-auto"
               onClick={deleteUser}
+              disabled={selectedUser ? isCurrentUser(selectedUser) : false}
             >
               ลบผู้ใช้
             </Button>

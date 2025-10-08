@@ -1,23 +1,21 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, s as CardContent, B as Badge, t as Separator, $ as $$MainLayout } from '../../chunks/card_5zKr5UsH.mjs';
+import { u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, g as DropdownMenuLabel, h as DropdownMenuSeparator, j as DropdownMenuItem, C as Card, s as CardContent, B as Badge, t as Separator, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { c as cn, B as Button, I as Input } from '../../chunks/auth_DQlrnaIy.mjs';
-import { approveOrder } from '../../chunks/poApi_BwKT2GJs.mjs';
+import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_CCNrb8k2.mjs';
+import { approveOrder } from '../../chunks/poApi_Dar5iW5v.mjs';
 import { g as getDisplayOrderNumber } from '../../chunks/order-utils_7Vk_wX4U.mjs';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
-import { toast } from 'sonner';
-import 'next-themes';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_Ba-tWnuX.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B2AaFevH.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_BGSOcN54.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BgbskhDG.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BZu2QPKc.mjs';
+import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_JJhAOVcq.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_-euMlkTZ.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_DD-KqQrc.mjs';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_iML_uMJr.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_CNFPOshg.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function ItemGroup({ className, ...props }) {
@@ -386,6 +384,12 @@ function TrackingPage() {
   const [viewMode, setViewMode] = useState("card");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [alertState, setAlertState] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    description: ""
+  });
   const rows = useMemo(() => {
     return orders.map((order) => ({
       id: order.id,
@@ -415,6 +419,47 @@ function TrackingPage() {
     setFilteredRows(filtered);
     setCurrentPage(1);
   }, [rows, searchTerm, statusFilter]);
+  const showAlert = (message, type = "info", description) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+    const duration = type === "error" ? 5e3 : 4e3;
+    setTimeout(() => {
+      setAlertState((prev) => ({ ...prev, show: false }));
+    }, duration);
+  };
+  const getAlertConfig = (type) => {
+    switch (type) {
+      case "success":
+        return {
+          variant: "success",
+          appearance: "light",
+          IconComponent: RiCheckboxCircleFill
+        };
+      case "error":
+        return {
+          variant: "destructive",
+          appearance: "light",
+          IconComponent: RiErrorWarningFill
+        };
+      case "warning":
+        return {
+          variant: "warning",
+          appearance: "light",
+          IconComponent: RiSpam3Fill
+        };
+      case "info":
+      default:
+        return {
+          variant: "info",
+          appearance: "light",
+          IconComponent: RiInformationFill
+        };
+    }
+  };
   const showApprovalModal = (orderId, approved, orderNo, requesterName) => {
     setConfirmData({
       orderId,
@@ -432,7 +477,7 @@ function TrackingPage() {
       setProcessingOrders((prev) => new Set(prev).add(orderId));
       setShowConfirmModal(false);
       await approveOrder(orderId, approved);
-      toast.success(`${action}ใบขอซื้อเรียบร้อยแล้ว`);
+      showAlert(`${action}ใบขอซื้อเรียบร้อยแล้ว`, "success");
     } catch (error) {
       const errorMessage = error?.message || "";
       const isPermissionError = errorMessage.includes("permission") || errorMessage.includes("insufficient") || errorMessage.includes("Missing") || errorMessage.includes("FirebaseError");
@@ -440,9 +485,9 @@ function TrackingPage() {
         setTimeout(() => {
           window.location.reload();
         }, 1e3);
-        toast.success(`${action}สำเร็จแล้ว กำลังอัปเดตข้อมูล...`);
+        showAlert(`${action}สำเร็จแล้ว กำลังอัปเดตข้อมูล`, "success");
       } else {
-        toast.error(`เกิดข้อผิดพลาดใน${action}: ${errorMessage}`);
+        showAlert(`เกิดข้อผิดพลาดใน${action}`, "error", errorMessage);
       }
     } finally {
       setProcessingOrders((prev) => {
@@ -526,6 +571,20 @@ function TrackingPage() {
     ] }) });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
+    alertState.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(
+      Alert,
+      {
+        variant: getAlertConfig(alertState.type).variant,
+        appearance: getAlertConfig(alertState.type).appearance,
+        close: true,
+        onClose: () => setAlertState((prev) => ({ ...prev, show: false })),
+        children: [
+          /* @__PURE__ */ jsx(AlertIcon, { children: React__default.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx(AlertTitle, { children: alertState.title }),
+          alertState.description && /* @__PURE__ */ jsx(AlertDescription, { children: alertState.description })
+        ]
+      }
+    ) }),
     /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
       /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
       /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามสถานะใบขอซื้อทั้งหมด" }),

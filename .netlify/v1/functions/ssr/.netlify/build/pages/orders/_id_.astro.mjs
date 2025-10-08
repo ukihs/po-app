@@ -1,17 +1,36 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_5zKr5UsH.mjs';
-import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import { u as useUser, k as useRole, l as useIsLoading, G as useOrderById, C as Card, s as CardContent, B as Badge, a as CardHeader, H as CardTitle, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useState } from 'react';
-import { B as Button, d as db, f as auth } from '../../chunks/auth_DQlrnaIy.mjs';
+import { A as Alert, a as AlertDescription, B as Button, d as db, i as auth } from '../../chunks/alert_CCNrb8k2.mjs';
 import { updateDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BgbskhDG.mjs';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B2AaFevH.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
+import { Toaster as Toaster$1, toast } from 'sonner';
+import { useTheme } from 'next-themes';
 import { C as COLLECTIONS } from '../../chunks/constants_uc-g81Q4.mjs';
 export { renderers } from '../../renderers.mjs';
+
+const Toaster = ({ ...props }) => {
+  const { theme = "system" } = useTheme();
+  return /* @__PURE__ */ jsx(
+    Toaster$1,
+    {
+      theme,
+      className: "group toaster [&_[data-type=success]>[data-icon]]:text-success [&_[data-type=success]_[data-title]]:text-success [&_[data-type=info]_[data-title]]:text-info [&_[data-type=error]>[data-icon]]:text-destructive [&_[data-type=error]_[data-title]]:text-destructive",
+      toastOptions: {
+        classNames: {
+          toast: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground! group-[.toaster]:border-border group-[.toaster]:shadow-lg has-[[role=alert]]:border-0! has-[[role=alert]]:shadow-none! has-[[role=alert]]:bg-transparent!",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton: "group-[.toast]:rounded-md! group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton: "group-[.toast]:rounded-md! group-[.toast]:bg-secondary group-[.toast]:text-secondary-foreground!"
+        }
+      },
+      ...props
+    }
+  );
+};
 
 function OrderDetailPage({ orderId }) {
   const user = useUser();
@@ -43,7 +62,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_BwKT2GJs.mjs');
+        const poApi = await import('../../chunks/poApi_Dar5iW5v.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,

@@ -1,18 +1,16 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { C as Card, a as CardHeader, b as CardHeading, m as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, $ as $$MainLayout } from '../../chunks/card_5zKr5UsH.mjs';
+import { C as Card, a as CardHeader, b as CardHeading, m as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, k as useRole, l as useIsLoading, v as useOrders, w as useOrdersLoading, x as useOrdersError, $ as $$MainLayout } from '../../chunks/card_nQHAHNbu.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import React__default, { useState, useMemo } from 'react';
-import { B as Button, I as Input, d as db } from '../../chunks/auth_DQlrnaIy.mjs';
+import { B as Button, I as Input, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_CCNrb8k2.mjs';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
-import { A as Alert, a as AlertDescription } from '../../chunks/alert_B2AaFevH.mjs';
-import { toast } from 'sonner';
-import { T as Toaster } from '../../chunks/sonner_4c1KhDZa.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_BGSOcN54.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BZu2QPKc.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BgbskhDG.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_iML_uMJr.mjs';
+import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_-euMlkTZ.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_DD-KqQrc.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BMDfMi1-.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_CNFPOshg.mjs';
 import { g as getDisplayOrderNumber } from '../../chunks/order-utils_7Vk_wX4U.mjs';
 import { C as COLLECTIONS } from '../../chunks/constants_uc-g81Q4.mjs';
 export { renderers } from '../../renderers.mjs';
@@ -202,7 +200,7 @@ function OrdersDataTable({
                   {
                     value: order.status,
                     onValueChange: (value) => onSaveOrderStatus(order, value),
-                    disabled: processingKeys.has(order.id),
+                    disabled: processingKeys.has(order.id) || order.status === "rejected",
                     children: [
                       /* @__PURE__ */ jsx(SelectTrigger, { className: "w-[140px] sm:w-[180px] text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
                       /* @__PURE__ */ jsx(SelectContent, { children: ORDER_STATUS_OPTIONS.map((x) => /* @__PURE__ */ jsx(SelectItem, { value: x.value, children: x.label }, x.value)) })
@@ -237,7 +235,7 @@ function OrdersDataTable({
                       {
                         value: val.category,
                         onValueChange: (value) => onSetDraft(order.id, idx, { category: value }),
-                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        disabled: processingKeys.has(`${order.id}:${idx}`) || order.status === "rejected",
                         children: [
                           /* @__PURE__ */ jsx(SelectTrigger, { className: "text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกประเภท…" }) }),
                           /* @__PURE__ */ jsx(SelectContent, { children: ITEM_CATEGORIES.map((c) => /* @__PURE__ */ jsx(SelectItem, { value: c, children: c }, c)) })
@@ -249,7 +247,7 @@ function OrdersDataTable({
                       {
                         value: val.itemStatus,
                         onValueChange: (value) => onSetDraft(order.id, idx, { itemStatus: value }),
-                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        disabled: processingKeys.has(`${order.id}:${idx}`) || order.status === "rejected",
                         children: [
                           /* @__PURE__ */ jsx(SelectTrigger, { className: "text-xs sm:text-sm", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "เลือกสถานะ…" }) }),
                           /* @__PURE__ */ jsx(SelectContent, { children: options.map((s) => /* @__PURE__ */ jsx(SelectItem, { value: s, children: s }, s)) })
@@ -262,7 +260,7 @@ function OrdersDataTable({
                         variant: "primary",
                         size: "sm",
                         onClick: () => onSaveItem(order, idx),
-                        disabled: processingKeys.has(`${order.id}:${idx}`),
+                        disabled: processingKeys.has(`${order.id}:${idx}`) || order.status === "rejected",
                         className: "font-normal text-xs sm:text-sm",
                         children: [
                           processingKeys.has(`${order.id}:${idx}`) && /* @__PURE__ */ jsx(Loader2, { className: "h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-1" }),
@@ -424,6 +422,53 @@ function OrdersListPage() {
   const [expanded, setExpanded] = useState({});
   const [processingKeys, setProcessingKeys] = useState(/* @__PURE__ */ new Set());
   const [drafts, setDrafts] = useState({});
+  const [alertState, setAlertState] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    description: ""
+  });
+  const showAlert = (message, type = "info", description) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+    const duration = type === "error" ? 5e3 : 4e3;
+    setTimeout(() => {
+      setAlertState((prev) => ({ ...prev, show: false }));
+    }, duration);
+  };
+  const getAlertConfig = (type) => {
+    switch (type) {
+      case "success":
+        return {
+          variant: "success",
+          appearance: "light",
+          IconComponent: RiCheckboxCircleFill
+        };
+      case "error":
+        return {
+          variant: "destructive",
+          appearance: "light",
+          IconComponent: RiErrorWarningFill
+        };
+      case "warning":
+        return {
+          variant: "warning",
+          appearance: "light",
+          IconComponent: RiSpam3Fill
+        };
+      case "info":
+      default:
+        return {
+          variant: "info",
+          appearance: "light",
+          IconComponent: RiInformationFill
+        };
+    }
+  };
   const toggle = (id) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   const getItemValue = (o, idx) => {
     const d = drafts[o.id]?.[idx] || {};
@@ -443,9 +488,13 @@ function OrdersListPage() {
     });
   };
   const saveOneItem = async (o, idx) => {
+    if (o.status === "rejected") {
+      showAlert("ไม่สามารถแก้ไขรายการสินค้าได้", "error", "ใบขอซื้อที่ถูกไม่อนุมัติแล้วไม่สามารถแก้ไขรายการสินค้าได้");
+      return;
+    }
     const val = getItemValue(o, idx);
     if (!val.category && !val.itemStatus) {
-      toast.error("ยังไม่ได้เลือกประเภท/สถานะ");
+      showAlert("ยังไม่ได้เลือกประเภท/สถานะ", "error");
       return;
     }
     const key = `${o.id}:${idx}`;
@@ -471,10 +520,10 @@ function OrdersListPage() {
         delete forOrder[idx];
         return { ...prev, [o.id]: forOrder };
       });
-      toast.success("บันทึกสำเร็จ");
+      showAlert("บันทึกรายการสินค้าสำเร็จ", "success");
     } catch (e) {
       console.error(e);
-      toast.error(`บันทึกไม่สำเร็จ: ${e?.message || e}`);
+      showAlert("ไม่สามารถบันทึกรายการสินค้าได้", "error", e?.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
     } finally {
       setProcessingKeys((s) => {
         const n = new Set(s);
@@ -484,6 +533,10 @@ function OrdersListPage() {
     }
   };
   const saveOrderStatus = async (o, next) => {
+    if (o.status === "rejected") {
+      showAlert("ไม่สามารถแก้ไขสถานะได้", "error", "ใบขอซื้อที่ถูกไม่อนุมัติแล้วไม่สามารถแก้ไขสถานะได้");
+      return;
+    }
     const key = o.id;
     try {
       setProcessingKeys((s) => new Set(s).add(key));
@@ -491,10 +544,10 @@ function OrdersListPage() {
         status: next,
         updatedAt: serverTimestamp()
       });
-      toast.success("อัปเดตสถานะสำเร็จ");
+      showAlert("อัปเดตสถานะใบขอซื้อสำเร็จ", "success");
     } catch (e) {
       console.error(e);
-      toast.error(`อัปเดตสถานะไม่สำเร็จ: ${e?.message || e}`);
+      showAlert("ไม่สามารถอัปเดตสถานะได้", "error", e?.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
     } finally {
       setProcessingKeys((s) => {
         const n = new Set(s);
@@ -513,7 +566,20 @@ function OrdersListPage() {
     return /* @__PURE__ */ jsx("div", { className: "w-full py-10 text-center", children: /* @__PURE__ */ jsx(Alert, { variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: "กรุณาเข้าสู่ระบบ" }) }) });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
-    /* @__PURE__ */ jsx(Toaster, {}),
+    alertState.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(
+      Alert,
+      {
+        variant: getAlertConfig(alertState.type).variant,
+        appearance: getAlertConfig(alertState.type).appearance,
+        close: true,
+        onClose: () => setAlertState((prev) => ({ ...prev, show: false })),
+        children: [
+          /* @__PURE__ */ jsx(AlertIcon, { children: React__default.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" }) }),
+          /* @__PURE__ */ jsx(AlertTitle, { children: alertState.title }),
+          alertState.description && /* @__PURE__ */ jsx(AlertDescription, { children: alertState.description })
+        ]
+      }
+    ) }),
     err && /* @__PURE__ */ jsx(Alert, { className: "mb-4", variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: err }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
       /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [

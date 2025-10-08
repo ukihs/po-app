@@ -5,8 +5,13 @@ import { auth } from '../../firebase/client';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
 import { Plus, Trash2, Package, Calendar as CalendarIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { Toaster } from '../ui/sonner';
+import { Alert, AlertIcon, AlertTitle, AlertDescription } from '../ui/alert';
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -37,6 +42,18 @@ export default function CreateOrderPage() {
     itemType: 'วัตถุดิบ'
   });
 
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
+
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
@@ -65,6 +82,51 @@ export default function CreateOrderPage() {
     }
   }, [selectedItemDate]);
 
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    // Auto-hide after duration
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
+
   const openAddModal = () => {
     setNewItem({
       description: '',
@@ -87,13 +149,13 @@ export default function CreateOrderPage() {
   const addItemFromModal = () => {
     if (!isModalFormValid()) {
       if (!newItem.description.trim()) {
-        toast.error('กรุณาระบุรายละเอียดสินค้า');
+        showAlert('กรุณาระบุรายละเอียดสินค้า', 'error');
       } else if (!newItem.receivedDate.trim()) {
-        toast.error('กรุณาเลือกวันที่ต้องการรับ');
+        showAlert('กรุณาเลือกวันที่ต้องการรับ', 'error');
       } else if (toNum(newItem.quantity) <= 0) {
-        toast.error('กรุณาระบุจำนวนที่ถูกต้อง');
+        showAlert('กรุณาระบุจำนวนที่ถูกต้อง', 'error');
       } else if (toNum(newItem.amount) <= 0) {
-        toast.error('กรุณาระบุราคาที่ถูกต้อง');
+        showAlert('กรุณาระบุราคาที่ถูกต้อง', 'error');
       }
       return;
     }
@@ -173,7 +235,7 @@ export default function CreateOrderPage() {
   const showConfirmation = () => {
     setSubmitted(true);
     if (!isFormValid()) {
-      toast.error(getValidationMessage());
+      showAlert(getValidationMessage(), 'error');
       return;
     }
     setShowConfirmModal(true);
@@ -187,14 +249,14 @@ export default function CreateOrderPage() {
       const dateString = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
       await createOrder({ date: dateString, requesterName: requester, items: itemsWithType });
       
-      toast.success('สร้างใบขอซื้อสำเร็จแล้ว');
+      showAlert('สร้างใบขอซื้อและส่งขออนุมัติเรียบร้อยแล้ว', 'success');
       
       setRequester('');
       setItems([]);
       setSelectedDate(new Date());
       setSubmitted(false);
     } catch (e: any) {
-      toast.error(e?.message ?? 'บันทึกใบสั่งซื้อไม่สำเร็จ');
+      showAlert('ไม่สามารถสร้างใบขอซื้อได้', 'error', e?.message ?? 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
     } finally {
       setSaving(false);
     }
@@ -207,13 +269,31 @@ export default function CreateOrderPage() {
 
   return (
     <div className="w-full">
-      <Toaster />
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
       
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <Package className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
           สร้างใบขอซื้อ
         </h1>
+        
       </div>
       
       <Dialog open={showModal} onOpenChange={setShowModal}>

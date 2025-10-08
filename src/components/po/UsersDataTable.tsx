@@ -58,6 +58,7 @@ interface UsersDataTableProps {
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
   onAddUser: () => void;
+  isCurrentUser: (user: User) => boolean;
 }
 
 const getRoleBadge = (role?: string) => {
@@ -102,10 +103,11 @@ const getRoleBadge = (role?: string) => {
   );
 };
 
-function ActionsCell({ row, onEditUser, onDeleteUser }: { 
+function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser }: { 
   row: Row<User>; 
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  isCurrentUser: (user: User) => boolean;
 }) {
   const handleCopyId = () => {
     navigator.clipboard.writeText(row.original.uid);
@@ -133,17 +135,24 @@ function ActionsCell({ row, onEditUser, onDeleteUser }: {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => onDeleteUser(row.original)}>
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span>ลบผู้ใช้</span>
-        </DropdownMenuItem>
+        {!isCurrentUser(row.original) ? (
+          <DropdownMenuItem variant="destructive" onClick={() => onDeleteUser(row.original)}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>ลบผู้ใช้</span>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem disabled className="opacity-50">
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>ไม่สามารถลบตัวเองได้</span>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 
-const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void): ColumnDef<User>[] => [
+const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void, isCurrentUser: (user: User) => boolean): ColumnDef<User>[] => [
   {
     accessorKey: "displayName",
     id: "displayName",
@@ -158,9 +167,18 @@ const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: Us
         ? `${firstName} ${lastName}`.trim()
         : displayName || 'ยังไม่กำหนดชื่อ';
       
+      const isCurrent = isCurrentUser(row.original);
+      
       return (
         <div className="space-y-px">
-          <div className="font-medium text-foreground">{fullName}</div>
+          <div className="flex items-center gap-2">
+            <div className="font-medium text-foreground">{fullName}</div>
+            {isCurrent && (
+              <Badge variant="secondary" appearance="outline" size="sm" className="text-xs">
+                คุณ
+              </Badge>
+            )}
+          </div>
           {email && <div className="text-muted-foreground">{email}</div>}
         </div>
       );
@@ -203,7 +221,7 @@ const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: Us
   {
     id: "actions",
     header: '',
-    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} />,
+    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} isCurrentUser={isCurrentUser} />,
     size: 60,
     enableSorting: false,
     enableHiding: false,
@@ -216,7 +234,8 @@ export default function UsersDataTable({
   loading, 
   onEditUser, 
   onDeleteUser,
-  onAddUser
+  onAddUser,
+  isCurrentUser
 }: UsersDataTableProps) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -226,7 +245,7 @@ export default function UsersDataTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser), [onEditUser, onDeleteUser]);
+  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, isCurrentUser), [onEditUser, onDeleteUser, isCurrentUser]);
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {

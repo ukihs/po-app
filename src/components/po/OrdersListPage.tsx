@@ -10,9 +10,13 @@ import {
 } from 'firebase/firestore';
 import { useUser, useRole, useIsLoading, useOrders, useOrdersLoading, useOrdersError } from '../../stores';
 import { Loader2, FileText } from 'lucide-react';
-import { Alert, AlertDescription } from '../ui/alert';
-import { toast } from 'sonner';
-import { Toaster } from '../ui/sonner';
+import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
+import { 
+  RiCheckboxCircleFill, 
+  RiErrorWarningFill, 
+  RiSpam3Fill, 
+  RiInformationFill 
+} from '@remixicon/react';
 import OrdersDataTable from './OrdersDataTable';
 import type { Order, OrderStatus, OrderItem, UserRole } from '../../types';
 import { COLLECTIONS } from '../../lib/constants';
@@ -29,7 +33,61 @@ export default function OrdersListPage(){
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set());
   const [drafts, setDrafts] = useState<Drafts>({});
+  const [alertState, setAlertState] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    description?: string;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    description: ''
+  });
 
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
+    setAlertState({
+      show: true,
+      type,
+      title: message,
+      description
+    });
+
+    const duration = type === 'error' ? 5000 : 4000;
+    setTimeout(() => {
+      setAlertState(prev => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case 'success':
+        return {
+          variant: 'success' as const,
+          appearance: 'light' as const,
+          IconComponent: RiCheckboxCircleFill
+        };
+      case 'error':
+        return {
+          variant: 'destructive' as const,
+          appearance: 'light' as const,
+          IconComponent: RiErrorWarningFill
+        };
+      case 'warning':
+        return {
+          variant: 'warning' as const,
+          appearance: 'light' as const,
+          IconComponent: RiSpam3Fill
+        };
+      case 'info':
+      default:
+        return {
+          variant: 'info' as const,
+          appearance: 'light' as const,
+          IconComponent: RiInformationFill
+        };
+    }
+  };
 
   const toggle = (id:string)=> setExpanded(prev=>({...prev,[id]:!prev[id]}));
 
@@ -53,9 +111,15 @@ export default function OrdersListPage(){
   };
 
   const saveOneItem = async (o: Order, idx: number) => {
+    // ป้องกันไม่ให้แก้ไขรายการสินค้าของใบขอซื้อที่ถูก "ไม่อนุมัติ" ไปแล้ว
+    if (o.status === 'rejected') {
+      showAlert('ไม่สามารถแก้ไขรายการสินค้าได้', 'error', 'ใบขอซื้อที่ถูกไม่อนุมัติแล้วไม่สามารถแก้ไขรายการสินค้าได้');
+      return;
+    }
+
     const val = getItemValue(o, idx);
     if (!val.category && !val.itemStatus) { 
-      toast.error('ยังไม่ได้เลือกประเภท/สถานะ'); 
+      showAlert('ยังไม่ได้เลือกประเภท/สถานะ', 'error'); 
       return; 
     }
 
@@ -86,16 +150,21 @@ export default function OrdersListPage(){
         delete forOrder[idx];
         return { ...prev, [o.id]: forOrder };
       });
-      toast.success('บันทึกสำเร็จ');
+      showAlert('บันทึกรายการสินค้าสำเร็จ', 'success');
     } catch (e: any) {
       console.error(e);
-      toast.error(`บันทึกไม่สำเร็จ: ${e?.message || e}`);
+      showAlert('ไม่สามารถบันทึกรายการสินค้าได้', 'error', e?.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
     } finally {
       setProcessingKeys(s => { const n = new Set(s); n.delete(key); return n; });
     }
   };
 
   const saveOrderStatus = async (o: Order, next: OrderStatus) => {
+    if (o.status === 'rejected') {
+      showAlert('ไม่สามารถแก้ไขสถานะได้', 'error', 'ใบขอซื้อที่ถูกไม่อนุมัติแล้วไม่สามารถแก้ไขสถานะได้');
+      return;
+    }
+
     const key = o.id;
     try {
       setProcessingKeys(s => new Set(s).add(key));
@@ -103,10 +172,10 @@ export default function OrdersListPage(){
         status: next,
         updatedAt: serverTimestamp(),
       });
-      toast.success('อัปเดตสถานะสำเร็จ');
+      showAlert('อัปเดตสถานะใบขอซื้อสำเร็จ', 'success');
     } catch (e: any) {
       console.error(e);
-      toast.error(`อัปเดตสถานะไม่สำเร็จ: ${e?.message || e}`);
+      showAlert('ไม่สามารถอัปเดตสถานะได้', 'error', e?.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
     } finally {
       setProcessingKeys(s => { const n = new Set(s); n.delete(key); return n; });
     }
@@ -133,7 +202,24 @@ export default function OrdersListPage(){
 
   return (
     <div className="w-full">
-      <Toaster />
+      {alertState.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <Alert 
+            variant={getAlertConfig(alertState.type).variant}
+            appearance={getAlertConfig(alertState.type).appearance}
+            close
+            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+          >
+            <AlertIcon>
+              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
+            </AlertIcon>
+            <AlertTitle>{alertState.title}</AlertTitle>
+            {alertState.description && (
+              <AlertDescription>{alertState.description}</AlertDescription>
+            )}
+          </Alert>
+        </div>
+      )}
       
       {err && (
         <Alert className="mb-4" variant="destructive">
