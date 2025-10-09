@@ -537,3 +537,42 @@ export const getDateFilterLabel = (filterValue: DateFilterValue): string => {
   
   return options.find(opt => opt.value === filterValue)?.label || 'ทั้งหมด';
 };
+
+/**
+ * Check if a user can approve/reject an order based on hierarchical permissions
+ * Supervisor can approve orders from their subordinates
+ */
+export const canUserApproveOrder = (
+  userRole: import('../types').UserRole,
+  userUid: string,
+  order: Order,
+  supervisorUidMap?: Map<string, string>
+): boolean => {
+  // Only supervisor and procurement can approve
+  if (userRole !== 'supervisor' && userRole !== 'procurement') {
+    return false;
+  }
+  
+  // Order must be in pending state
+  if (order.status !== 'pending') {
+    return false;
+  }
+  
+  // Procurement can approve any pending order
+  if (userRole === 'procurement') {
+    return true;
+  }
+  
+  // Supervisor can only approve orders from subordinates
+  if (userRole === 'supervisor') {
+    // Check if this supervisor is the direct supervisor of the order requester
+    if (supervisorUidMap) {
+      const requesterSupervisorUid = supervisorUidMap.get(order.requesterUid);
+      return requesterSupervisorUid === userUid;
+    }
+    // If we don't have the map, we can't determine - default to false for safety
+    return false;
+  }
+  
+  return false;
+};

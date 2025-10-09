@@ -9,8 +9,10 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { useUser, useRole, useIsLoading, useOrders, useOrdersLoading, useOrdersError } from '../../stores';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
+import { Button } from '../ui/button';
 import { 
   RiCheckboxCircleFill, 
   RiErrorWarningFill, 
@@ -140,7 +142,6 @@ export default function OrdersListPage(){
   };
 
   const saveOneItem = async (o: Order, idx: number) => {
-    // ป้องกันไม่ให้แก้ไขรายการสินค้าของใบขอซื้อที่ถูก "ไม่อนุมัติ" ไปแล้ว
     if (o.status === 'rejected') {
       showAlert('ไม่สามารถแก้ไขรายการสินค้าได้', 'error', 'ใบขอซื้อที่ถูกไม่อนุมัติแล้วไม่สามารถแก้ไขรายการสินค้าได้');
       return;
@@ -212,9 +213,13 @@ export default function OrdersListPage(){
 
   if (authLoading || loading) {
     return (
-      <div className="w-full py-10 text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-        <div className="mt-3 text-muted-foreground">กำลังโหลดข้อมูล…</div>
+      <div className="w-full">
+        <div className="text-center py-16">
+          <div className="flex justify-center">
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
+          </div>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูล...</p>
+        </div>
       </div>
     );
   }
@@ -225,6 +230,39 @@ export default function OrdersListPage(){
         <Alert variant="destructive">
           <AlertDescription>กรุณาเข้าสู่ระบบ</AlertDescription>
         </Alert>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="w-full">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileText className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>
+              {role === 'employee' ? 'ขณะนี้คุณยังไม่มีใบขอซื้อ' : 'ขณะนี้ยังไม่มีใบขอซื้อในระบบ'}
+            </EmptyTitle>
+            <EmptyDescription>
+              {role === 'employee' ? 'เริ่มสร้างใบขอซื้อแรกได้เลย!' : 'โปรดรอรายการใบขอซื้อจากผู้ใช้งาน หรือสร้างใบขอซื้อด้วยตนเอง'}
+            </EmptyDescription>
+          </EmptyHeader>
+          {role === 'employee' && (
+            <EmptyContent>
+              <Button 
+                asChild
+                variant="primary"
+                className="w-full sm:w-auto"
+              >
+                <a href="/orders/create">
+                  สร้างใบขอซื้อ
+                </a>
+              </Button>
+            </EmptyContent>
+          )}
+        </Empty>
       </div>
     );
   }

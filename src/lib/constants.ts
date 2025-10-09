@@ -9,20 +9,39 @@ export const PROTECTED_ROUTES = [
   '/admin/orders'
 ] as const;
 
+// Hierarchical permission system
+export const ROLE_HIERARCHY: Record<UserRole, number> = {
+  employee: 1,
+  supervisor: 2,
+  procurement: 3,
+  admin: 99  // Separated - service account only
+} as const;
+
+// Check if user has minimum required role (hierarchical)
+export const hasPermission = (userRole: UserRole, requiredRole: UserRole): boolean => {
+  if (userRole === 'admin') return false; // Admin can't access order workflow
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+};
+
+// Check if user has specific role (exact match)
+export const hasRole = (userRole: UserRole, allowedRoles: UserRole[]): boolean => {
+  return allowedRoles.includes(userRole);
+};
+
 export const ROLE_PERMISSIONS: Record<string, UserRole[]> = {
-  '/orders/create': ['buyer'],
-  '/orders/tracking': ['buyer', 'supervisor', 'procurement'],
-  '/orders/notifications': ['buyer', 'supervisor', 'procurement'],
-  '/orders/list': ['procurement', 'superadmin'],
-  '/admin/users': ['superadmin'],
-  '/admin/orders': ['superadmin']
+  '/orders/create': ['employee', 'supervisor', 'procurement'],
+  '/orders/tracking': ['employee', 'supervisor', 'procurement'],
+  '/orders/notifications': ['employee', 'supervisor', 'procurement'],
+  '/orders/list': ['procurement'],
+  '/admin/users': ['admin'],
+  '/admin/orders': ['admin']
 } as const;
 
 export const DEFAULT_ROUTE_BY_ROLE: Record<UserRole, string> = {
-  buyer: '/orders/create',
+  employee: '/orders/create',
   supervisor: '/orders/tracking',
   procurement: '/orders/list',
-  superadmin: '/admin/users'
+  admin: '/admin/users'
 } as const;
 
 export const ITEM_TYPES: ItemType[] = [
@@ -77,23 +96,23 @@ export const COMPLETED_PROCUREMENT_STATUSES: ProcurementStatus[] = [
 ] as const;
 
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
-  buyer: 'ผู้ขอซื้อ',
+  employee: 'พนักงาน',
   supervisor: 'หัวหน้างาน',
   procurement: 'ฝ่ายจัดซื้อ',
-  superadmin: 'ผู้ดูแลระบบ'
+  admin: 'ผู้จัดการระบบ'
 } as const;
 
 export const USER_ROLES: UserRole[] = [
-  'buyer',
+  'employee',
   'supervisor',
   'procurement',
-  'superadmin'
+  'admin'
 ] as const;
 
 export const STAFF_ROLES: UserRole[] = [
   'supervisor',
   'procurement',
-  'superadmin'
+  'admin'
 ] as const;
 
 export const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000;

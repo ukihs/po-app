@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
     
     const userRecord = await serverAuth.createUser(createUserData);
     
-    const userRole = userData.role || 'buyer';
+    const userRole = userData.role || 'employee';
     await serverDb.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email: userRecord.email || '',

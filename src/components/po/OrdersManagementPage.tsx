@@ -61,7 +61,7 @@ export default function OrdersManagementPage() {
       return;
     }
 
-    if (role !== 'superadmin') {
+    if (role !== 'admin') {
       setErr('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
       setLoading(false);
       return;

@@ -1,6 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifyFirebaseToken, extractIdTokenFromHeader, extractIdTokenFromCookie } from './lib/firebase-auth';
-import { PROTECTED_ROUTES, ROLE_PERMISSIONS } from './lib/constants';
+import { PROTECTED_ROUTES, ROLE_PERMISSIONS, hasRole } from './lib/constants';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, request, redirect } = context;
@@ -29,7 +29,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     
     const allowedRoles = ROLE_PERMISSIONS[pathname as keyof typeof ROLE_PERMISSIONS];
     
-    if (!allowedRoles || !allowedRoles.includes(user.role)) {
+    if (!allowedRoles || !hasRole(user.role, allowedRoles)) {
       return redirect('/unauthorized');
     }
 

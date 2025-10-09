@@ -1,22 +1,22 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, g as getDisplayOrderNumber, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, g as getDisplayOrderNumber, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_B9Usrq8o.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_BfmlrKPS.mjs';
-import { approveOrder } from '../../chunks/poApi__Cce2Xya.mjs';
-import { D as DatePickerPresets } from '../../chunks/date-picker-presets_D3q084t0.mjs';
+import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_S3l8KyRq.mjs';
+import { approveOrder } from '../../chunks/poApi_CYdIXaGR.mjs';
+import { D as DatePickerPresets } from '../../chunks/date-picker-presets_0AkA5kgq.mjs';
 import { parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BLLtegg-.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DYkLdZFp.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dk9O8xWT.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_Xjrr4NBF.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_zj_6SRtX.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_oaBd1Xz8.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_DM9Azm8M.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_SceaaxwY.mjs';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DPfxekZ9.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_Cm8j4DxB.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function ItemGroup({ className, ...props }) {
@@ -372,7 +372,7 @@ function StepperNav({ children, className }) {
 function TrackingPage() {
   useUser();
   const role = useRole();
-  useIsLoading();
+  const authLoading = useIsLoading();
   const orders = useOrders();
   const loading = useOrdersLoading();
   const err = useOrdersError();
@@ -582,7 +582,7 @@ function TrackingPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, customDateRange]);
-  if (loading) {
+  if (authLoading || loading) {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
       /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" }) }),
       /* @__PURE__ */ jsx("p", { className: "mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
@@ -601,10 +601,10 @@ function TrackingPage() {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Empty, { children: [
       /* @__PURE__ */ jsxs(EmptyHeader, { children: [
         /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6" }) }),
-        /* @__PURE__ */ jsx(EmptyTitle, { children: role === "buyer" ? "คุณยังไม่มีใบขอซื้อ" : "ยังไม่มีใบขอซื้อในระบบ" }),
-        /* @__PURE__ */ jsx(EmptyDescription, { children: role === "buyer" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "รอใบขอซื้อจากผู้ใช้งาน" })
+        /* @__PURE__ */ jsx(EmptyTitle, { children: role === "employee" ? "ขณะนี้คุณยังไม่มีรายการใบขอซื้อ" : "ขณะนี้ยังไม่มีใบขอซื้อในระบบ" }),
+        /* @__PURE__ */ jsx(EmptyDescription, { children: role === "employee" ? "สามารถเริ่มสร้างใบขอซื้อแรกของคุณได้เลย!" : "โปรดรอรายการใบขอซื้อจากผู้ใช้งาน หรือสร้างใบขอซื้อด้วยตนเอง" })
       ] }),
-      role === "buyer" && /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsx(
+      role === "employee" && /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsx(
         Button,
         {
           asChild: true,
@@ -632,8 +632,8 @@ function TrackingPage() {
     ) }),
     /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("h1", { className: "text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3", children: [
       /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
-      /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "buyer" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามสถานะใบขอซื้อทั้งหมด" }),
-      /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: role === "buyer" ? "ติดตามสถานะ" : role === "supervisor" ? "ติดตาม/อนุมัติ" : "ติดตาม" })
+      /* @__PURE__ */ jsx("span", { className: "hidden sm:inline", children: role === "employee" ? "ติดตามสถานะใบขอซื้อ" : role === "supervisor" ? "ติดตามและอนุมัติใบขอซื้อ" : "ติดตามสถานะใบขอซื้อทั้งหมด" }),
+      /* @__PURE__ */ jsx("span", { className: "sm:hidden", children: role === "employee" ? "ติดตามสถานะ" : role === "supervisor" ? "ติดตาม/อนุมัติ" : "ติดตาม" })
     ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6 space-y-3 sm:space-y-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between", children: [

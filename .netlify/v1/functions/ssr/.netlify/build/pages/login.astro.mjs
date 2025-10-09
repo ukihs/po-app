@@ -2,19 +2,19 @@ import { d as createComponent, j as renderHead, k as renderComponent, r as rende
 import 'kleur/colors';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import React__default, { useState, useEffect, useCallback } from 'react';
-import { s as subscribeAuthAndRole, f as setAuthCookie, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input, B as Button, g as signIn } from '../chunks/alert_BfmlrKPS.mjs';
+import { s as subscribeAuthAndRole, f as setAuthCookie, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input, B as Button, g as signIn } from '../chunks/alert_S3l8KyRq.mjs';
 import { Loader2 } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { L as Label } from '../chunks/label_Cd5GyM17.mjs';
+import { L as Label } from '../chunks/label_DYU8CPMu.mjs';
 /* empty css                                  */
 export { renderers } from '../renderers.mjs';
 
 const getRedirectUrl = (role) => {
   const redirects = {
-    buyer: "/orders/create",
+    employee: "/orders/create",
     supervisor: "/orders/tracking",
     procurement: "/orders/list",
-    superadmin: "/admin/users"
+    admin: "/admin/users"
   };
   return redirects[role] || "/login";
 };

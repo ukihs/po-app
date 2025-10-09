@@ -6,7 +6,7 @@ export async function validateSuperadminAccess(request: Request) {
     return { error: createUnauthorizedResponse('Authentication required') };
   }
 
-  if (!hasApiRole(user, 'superadmin')) {
+  if (!hasApiRole(user, 'admin')) {
     return { error: createForbiddenResponse('Access denied. Superadmin role required') };
   }
 

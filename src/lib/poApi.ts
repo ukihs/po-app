@@ -72,7 +72,7 @@ export async function createNotification(data: {
   orderNo: number;
   kind: 'approval_request' | 'approved' | 'rejected' | 'status_update';
   toUserUid?: string;
-  forRole?: 'buyer' | 'supervisor' | 'procurement';
+  forRole?: 'employee' | 'supervisor' | 'procurement';
   fromUserName?: string;
 }) {
   const currentUser = auth.currentUser;
@@ -134,14 +134,23 @@ export async function createOrder(payload: CreateOrderPayload) {
       itemType: it.itemType || 'วัตถุดิบ',
     }));
 
-    const docData = {
+    // Get user role to determine auto-approve behavior
+    const userDocRef = doc(db, COLLECTIONS.USERS, u.uid);
+    const userDoc = await getDoc(userDocRef);
+    const userRole = userDoc.exists() ? userDoc.data()?.role : 'employee';
+
+    // Procurement orders are auto-approved
+    const shouldAutoApprove = userRole === 'procurement';
+    const orderStatus = shouldAutoApprove ? 'approved' : 'pending';
+
+    const docData: any = {
       requesterUid: u.uid,
       requesterName: payload.requesterName,
       date: payload.date,
       items: cleanItems,
       total: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
       totalAmount: cleanItems.reduce((s, x) => s + x.lineTotal, 0),
-      status: 'pending' as const,
+      status: orderStatus,
       createdAt: serverTimestamp(),
       orderNo,
       timestamps: {
@@ -149,17 +158,28 @@ export async function createOrder(payload: CreateOrderPayload) {
       }
     };
 
+    // Add approval info for auto-approved orders
+    if (shouldAutoApprove) {
+      docData.approvedBy = payload.requesterName;
+      docData.approvedByUid = u.uid;
+      docData.approvedAt = serverTimestamp();
+      docData.timestamps.approved = serverTimestamp();
+      docData.timestamps.procurementStarted = serverTimestamp();
+    }
+
     const ref = await addDoc(collection(db, COLLECTIONS.ORDERS), docData);
 
+    // Send notification only for employee orders (not supervisor/procurement)
     try {
-      const userDocRef = doc(db, COLLECTIONS.USERS, u.uid);
-      const userDoc = await getDoc(userDocRef);
-      
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const supervisorUid = userData.supervisorUid;
+        const shouldNotify = 
+          userRole === 'employee' && 
+          supervisorUid && 
+          supervisorUid !== u.uid;
         
-        if (supervisorUid) {
+        if (shouldNotify) {
           await createNotification({
             title: 'มีใบสั่งซื้อใหม่รออนุมัติ',
             message: `ใบสั่งซื้อ #${orderNo} โดย ${payload.requesterName} รอการอนุมัติ`,
@@ -169,23 +189,22 @@ export async function createOrder(payload: CreateOrderPayload) {
             toUserUid: supervisorUid,
             fromUserName: payload.requesterName,
           });
+          try {
+            await sendOrderCreatedNotification(u.uid, ref.id, {
+              orderNo,
+              requesterName: payload.requesterName,
+              date: payload.date,
+              items: cleanItems,
+              total: docData.total
+            });
+          } catch (emailError) {
+            console.error('createOrder: Email notification failed', emailError);
+          }
         }
       }
       
     } catch (notifError) {
       console.error('createOrder: Notification failed', notifError);
-    }
-
-    try {
-      await sendOrderCreatedNotification(u.uid, ref.id, {
-        orderNo,
-        requesterName: payload.requesterName,
-        date: payload.date,
-        items: cleanItems,
-        total: docData.total
-      });
-    } catch (emailError) {
-      console.error('createOrder: Email notification failed', emailError);
     }
 
     return ref.id;

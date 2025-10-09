@@ -8,8 +8,8 @@ export const GET: APIRoute = async ({ request, url }) => {
       return createUnauthorizedResponse('Authentication required');
     }
 
-    if (!hasApiRole(user, 'superadmin')) {
-      return createForbiddenResponse('Access denied. Superadmin role required');
+    if (!hasApiRole(user, 'admin')) {
+      return createForbiddenResponse('Access denied. Admin role required');
     }
 
     const { serverAuth, serverDb } = await import('../../../firebase/server');
@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     userDocs.forEach((result) => {
       if (result.status === 'fulfilled' && result.value.data) {
         const data = result.value.data;
-        userRoles[result.value.uid] = data.role || 'buyer';
+        userRoles[result.value.uid] = data.role || 'employee';
         userSupervisors[result.value.uid] = {
           firstName: data.firstName || null,
           lastName: data.lastName || null,
@@ -58,7 +58,7 @@ export const GET: APIRoute = async ({ request, url }) => {
       firstName: userSupervisors[user.uid]?.firstName || null,
       lastName: userSupervisors[user.uid]?.lastName || null,
       displayName: user.displayName,
-      role: userRoles[user.uid] || 'buyer',
+      role: userRoles[user.uid] || 'employee',
       supervisorName: userSupervisors[user.uid]?.supervisorName || null,
       supervisorUid: userSupervisors[user.uid]?.supervisorUid || null
     }));

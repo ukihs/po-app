@@ -69,6 +69,16 @@ export const useNotificationsStore = create<NotificationsStore>()(
         unsubscribe();
       }
 
+      // Admin doesn't get order-related notifications
+      if (role === 'admin') {
+        set({ 
+          loading: false, 
+          notifications: [],
+          unreadCount: 0
+        });
+        return;
+      }
+
       set({ loading: true, error: null });
 
       const userRecipient: NotificationRecipient = { type: 'user', id: userUid };

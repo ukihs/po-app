@@ -157,9 +157,18 @@ export const useHasRole = (requiredRoles: UserRole | UserRole[]): boolean => {
   return roles.includes(role);
 };
 
-export const useIsBuyer = () => useHasRole('buyer');
+export const useIsEmployee = () => useHasRole('employee');
 export const useIsSupervisor = () => useHasRole('supervisor');
 export const useIsProcurement = () => useHasRole('procurement');
-export const useIsSuperadmin = () => useHasRole('superadmin');
-export const useIsStaff = () => useHasRole(['supervisor', 'procurement', 'superadmin']);
-export const useCanManageOrders = () => useHasRole(['supervisor', 'procurement', 'superadmin']);
+export const useIsAdmin = () => useHasRole('admin');
+export const useIsStaff = () => useHasRole(['supervisor', 'procurement', 'admin']);
+export const useCanManageOrders = () => useHasRole(['supervisor', 'procurement', 'admin']);
+
+// Hierarchical permission check - user has at least the minimum role level
+export const useHasMinRole = (minRole: UserRole): boolean => {
+  const role = useRole();
+  if (!role) return false;
+  
+  const { hasPermission } = require('../lib/constants');
+  return hasPermission(role, minRole);
+};

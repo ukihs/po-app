@@ -5,10 +5,11 @@ export {
   useIsLoading,
   useIsAuthenticated,
   useHasRole,
-  useIsBuyer,
+  useIsEmployee,
   useIsSupervisor,
   useIsProcurement,
-  useIsSuperadmin,
+  useIsAdmin,
+  useHasMinRole,
   useIsStaff,
   useCanManageOrders
 } from './authStore';

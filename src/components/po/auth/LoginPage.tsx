@@ -25,10 +25,10 @@ interface AlertState {
 
 const getRedirectUrl = (role: string): string => {
   const redirects: Record<string, string> = {
-    buyer: '/orders/create',
+    employee: '/orders/create',
     supervisor: '/orders/tracking',
     procurement: '/orders/list',
-    superadmin: '/admin/users'
+    admin: '/admin/users'
   };
   return redirects[role] || '/login';
 };

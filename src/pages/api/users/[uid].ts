@@ -8,8 +8,8 @@ export const GET: APIRoute = async ({ request, params }) => {
       return createUnauthorizedResponse('Authentication required');
     }
 
-    if (!hasApiRole(user, 'superadmin')) {
-      return createForbiddenResponse('Access denied. Superadmin role required');
+    if (!hasApiRole(user, 'admin')) {
+      return createForbiddenResponse('Access denied. Admin role required');
     }
 
     const { serverAuth, serverDb } = await import('../../../firebase/server');
@@ -27,12 +27,12 @@ export const GET: APIRoute = async ({ request, params }) => {
     
     const userRecord = await serverAuth.getUser(uid);
     
-    let userRole = 'buyer';
+    let userRole = 'employee';
     try {
       const userDocRef = serverDb.collection('users').doc(uid);
       const userDoc = await userDocRef.get();
       if (userDoc.exists) {
-        userRole = userDoc.data()?.role || 'buyer';
+        userRole = userDoc.data()?.role || 'employee';
       }
     } catch (error) {
     }
@@ -67,7 +67,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
       return createUnauthorizedResponse('Authentication required');
     }
 
-    if (!hasApiRole(user, 'superadmin')) {
+    if (!hasApiRole(user, 'admin')) {
       return createForbiddenResponse('Access denied. Superadmin role required');
     }
 
@@ -165,7 +165,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
         uid: updatedUser.uid,
         email: updatedUser.email,
         displayName: updatedUser.displayName,
-        role: updateData.role || 'buyer'
+        role: updateData.role || 'employee'
       }
     }, null, 2), {
       status: 200,
@@ -254,7 +254,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       return createUnauthorizedResponse('Authentication required');
     }
 
-    if (!hasApiRole(user, 'superadmin')) {
+    if (!hasApiRole(user, 'admin')) {
       return createForbiddenResponse('Access denied. Superadmin role required');
     }
 

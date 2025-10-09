@@ -30,7 +30,7 @@ export async function ensureUserDoc(user: User, displayName?: string) {
       uid: user.uid,
       email: user.email ?? '',
       displayName: displayName ?? user.displayName ?? (user.email?.split('@')[0] ?? ''),
-      role: 'buyer',
+      role: 'employee',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -114,7 +114,7 @@ export function subscribeAuthAndRole(
     const ref = doc(db, 'users', user.uid);
     offUserDoc = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
-        const role = (snap.data()?.role ?? 'buyer') as UserRole;
+        const role = (snap.data()?.role ?? 'employee') as UserRole;
         cb(user, role);
       } else {
         ensureUserDoc(user).then(() => {

@@ -7,8 +7,6 @@ import {
   Loader2,
   Search,
   ChevronLeft,
-  FileText,
-  Calendar
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -18,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardHeader, CardTable, CardFooter } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 
 import type { Order, OrderStatus, UserRole } from '../../types';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
@@ -183,45 +180,6 @@ export default function OrdersDataTable({
     setCurrentPage(1);
   }, [searchTerm, statusFilter, customDateRange]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary"></Loader2>
-        <span className="ml-4 text-lg">โหลดข้อมูลใบสั่งซื้อ...</span>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="w-full">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <FileText className="h-12 w-12 text-muted-foreground" />
-            </EmptyMedia>
-            <EmptyTitle>ไม่พบข้อมูลใบสั่งซื้อ</EmptyTitle>
-            <EmptyDescription>
-              ยังไม่มีใบสั่งซื้อในระบบ หรือไม่มีข้อมูลที่ตรงตามเงื่อนไขการค้นหา
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('all');
-              }}
-              className="mt-4"
-            >
-              <Search className="h-4 w-4 mr-2" />
-              ล้างการค้นหา
-            </Button>
-          </EmptyContent>
-        </Empty>
-      </div>
-    );
-  }
 
   return (
     <Card>
@@ -461,12 +419,10 @@ export default function OrdersDataTable({
             <span className="text-xs sm:text-sm text-muted-foreground">รายการ</span>
           </div>
 
-          {/* Center - Item count */}
           <div className="text-xs sm:text-sm text-muted-foreground">
             {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredData.length)} จาก {filteredData.length}
           </div>
 
-          {/* Right - Page navigation */}
           {totalPages > 1 && (
             <div className="flex items-center gap-0.5 sm:gap-1">
               <Button
@@ -480,13 +436,11 @@ export default function OrdersDataTable({
                 <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               
-              {/* Page numbers with ellipsis */}
               {(() => {
                 const pages = [];
                 const maxVisible = 5;
                 
                 if (totalPages <= maxVisible) {
-                  // Show all pages if total is small
                   for (let i = 1; i <= totalPages; i++) {
                     pages.push(
                       <Button
@@ -501,7 +455,6 @@ export default function OrdersDataTable({
                     );
                   }
                 } else {
-                  // Always show first page
                   pages.push(
                     <Button
                       key={1}
@@ -514,7 +467,6 @@ export default function OrdersDataTable({
                     </Button>
                   );
                   
-                  // Add ellipsis after first page if needed
                   if (currentPage > 3) {
                     pages.push(
                       <span key="ellipsis1" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
@@ -523,7 +475,6 @@ export default function OrdersDataTable({
                     );
                   }
                   
-                  // Show pages around current page
                   const start = Math.max(2, currentPage - 1);
                   const end = Math.min(totalPages - 1, currentPage + 1);
                   
@@ -543,7 +494,6 @@ export default function OrdersDataTable({
                     }
                   }
                   
-                  // Add ellipsis before last page if needed
                   if (currentPage < totalPages - 2) {
                     pages.push(
                       <span key="ellipsis2" className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
@@ -552,7 +502,6 @@ export default function OrdersDataTable({
                     );
                   }
                   
-                  // Always show last page (if more than 1 page)
                   if (totalPages > 1) {
                     pages.push(
                       <Button

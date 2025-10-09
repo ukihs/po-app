@@ -62,16 +62,16 @@ interface UsersDataTableProps {
 }
 
 const getRoleBadge = (role?: string) => {
-  const userRole = role || 'buyer';
+  const userRole = role || 'employee';
   const roleConfig: Record<string, { 
     variant: "primary" | "secondary" | "destructive" | "success" | "warning" | "info";
     appearance: "default" | "light" | "outline" | "ghost";
     name: string 
   }> = {
-    superadmin: { 
+    admin: { 
       variant: "destructive",
       appearance: "light",
-      name: 'ผู้ดูแลระบบ' 
+      name: 'ผู้จัดการระบบ' 
     },
     supervisor: { 
       variant: "warning",
@@ -83,10 +83,10 @@ const getRoleBadge = (role?: string) => {
       appearance: "light",
       name: 'ฝ่ายจัดซื้อ' 
     },
-    buyer: { 
+    employee: { 
       variant: "success",
       appearance: "light",
-      name: 'ผู้ขอซื้อ' 
+      name: 'พนักงาน' 
     }
   };
   
@@ -253,7 +253,7 @@ export default function UsersDataTable({
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const matchesRole = !selectedRoles?.length || selectedRoles.includes(item.role || 'buyer');
+      const matchesRole = !selectedRoles?.length || selectedRoles.includes(item.role || 'employee');
 
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
@@ -270,7 +270,7 @@ export default function UsersDataTable({
   const roleCounts = useMemo(() => {
     return data.reduce(
       (acc, item) => {
-        const role = item.role || 'buyer';
+        const role = item.role || 'employee';
         acc[role] = (acc[role] || 0) + 1;
         return acc;
       },
@@ -285,6 +285,7 @@ export default function UsersDataTable({
   };
 
   const [columnOrder, setColumnOrder] = useState<string[]>(columns.map((column) => column.id as string));
+
 
   const table = useReactTable({
     columns,
@@ -305,30 +306,6 @@ export default function UsersDataTable({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center p-8 sm:p-12">
-        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#6EC1E4]"></div>
-        <span className="ml-3 sm:ml-4 text-sm sm:text-lg">โหลดข้อมูลผู้ใช้งาน...</span>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="text-center p-8 sm:p-12">
-        <h3 className="text-lg sm:text-xl font-semibold mb-2">ไม่พบข้อมูลผู้ใช้งาน</h3>
-        <p className="text-sm sm:text-base text-muted-foreground mb-4">
-          สร้างผู้ใช้คนแรกเพื่อเริ่มต้น
-        </p>
-        <Button onClick={onAddUser} className="w-full sm:w-auto bg-[#6EC1E4] hover:bg-[#2b9ccc]">
-          <UserRoundPlus className="h-4 w-4 mr-2" />
-          เพิ่มผู้ใช้
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <DataGrid
@@ -392,10 +369,10 @@ export default function UsersDataTable({
                             htmlFor={role}
                             className="grow flex items-center justify-between font-normal gap-1.5"
                           >
-                            {role === 'superadmin' ? 'ผู้ดูแลระบบ' :
+                            {role === 'admin' ? 'ผู้จัดการระบบ' :
                              role === 'supervisor' ? 'หัวหน้างาน' :
                              role === 'procurement' ? 'ฝ่ายจัดซื้อ' :
-                             role === 'buyer' ? 'ผู้ขอซื้อ' : role}
+                             role === 'employee' ? 'พนักงาน' : role}
                             <span className="text-muted-foreground">{roleCounts[role]}</span>
                           </Label>
                         </div>
@@ -426,7 +403,6 @@ export default function UsersDataTable({
           <DataGridPagination 
             sizes={[5, 10, 20, 50]}
             rowsPerPageLabel="Rows per page"
-            info="{from} - {to} of {count}"
           />
         </CardFooter>
       </Card>

@@ -21,6 +21,7 @@ import {
   ChevronsUpDown,
   RefreshCw,
   AlertTriangle,
+  Search,
 } from 'lucide-react';
 import { 
   RiCheckboxCircleFill, 
@@ -36,6 +37,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Alert, AlertIcon, AlertTitle, AlertDescription } from '../ui/alert';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 import UsersDataTable from './UsersDataTable';
 import { cn } from '../../lib/utils';
 import { useUser, useRole, useIsLoading } from '../../stores';
@@ -70,7 +72,7 @@ export default function UsersManagementPage() {
     firstName: '',
     lastName: '',
     password: '',
-    role: 'buyer',
+    role: 'employee',
     supervisorName: '',
     supervisorUid: '',
     department: ''
@@ -92,7 +94,7 @@ export default function UsersManagementPage() {
     email: '',
     firstName: '',
     lastName: '',
-    role: 'buyer',
+    role: 'employee',
     supervisorName: '',
     supervisorUid: ''
   });
@@ -141,7 +143,7 @@ export default function UsersManagementPage() {
       return;
     }
 
-    if (role !== 'superadmin') {
+    if (role !== 'admin') {
       setErr('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
       setLoading(false);
       return;
@@ -201,7 +203,7 @@ export default function UsersManagementPage() {
   };
 
   const validateRole = (role: string): boolean => {
-    return ['buyer', 'supervisor', 'procurement', 'superadmin'].includes(role);
+    return ['employee', 'supervisor', 'procurement', 'admin'].includes(role);
   };
 
   const validateForm = () => {
@@ -261,7 +263,7 @@ export default function UsersManagementPage() {
           firstName: '',
           lastName: '',
           password: '',
-          role: 'buyer',
+          role: 'employee',
           supervisorName: '',
           supervisorUid: '',
           department: ''
@@ -424,7 +426,7 @@ export default function UsersManagementPage() {
       email: user.email || '',
       firstName: firstName,
       lastName: lastName,
-      role: user.role || 'buyer',
+      role: user.role || 'employee',
       supervisorName: user.supervisorName || '',
       supervisorUid: user.supervisorUid || ''
     });
@@ -460,11 +462,11 @@ export default function UsersManagementPage() {
   if (loading) {
     return (
       <div className="w-full">
-        <div className="text-center py-8 sm:py-12">
+        <div className="text-center py-16">
           <div className="flex justify-center">
             <RefreshCw className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
           </div>
-          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูลผู้ใช้งาน...</p>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
     );
@@ -480,6 +482,36 @@ export default function UsersManagementPage() {
       </div>
     );
   }
+
+  // Empty state เมื่อไม่มีข้อมูลเลย
+  if (users.length === 0) {
+    return (
+      <div className="w-full">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users className="w-6 h-6" />
+            </EmptyMedia>
+            <EmptyTitle>ขณะนี้ยังไม่มีผู้ใช้งานในระบบ</EmptyTitle>
+            <EmptyDescription>
+              สร้างผู้ใช้คนแรกเพื่อเริ่มต้นการใช้งาน
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              variant="primary"
+              className="w-full sm:w-auto"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              เพิ่มผู้ใช้
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </div>
+    );
+  }
+
 
   return (
     <div className="w-full">
@@ -686,10 +718,10 @@ export default function UsersManagementPage() {
                   <SelectValue placeholder="เลือกบทบาท" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="buyer" className="text-sm">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="employee" className="text-sm">พนักงาน</SelectItem>
                   <SelectItem value="supervisor" className="text-sm">หัวหน้างาน</SelectItem>
                   <SelectItem value="procurement" className="text-sm">ฝ่ายจัดซื้อ</SelectItem>
-                  <SelectItem value="superadmin" className="text-sm">ผู้ดูแลระบบ</SelectItem>
+                  <SelectItem value="admin" className="text-sm">ผู้จัดการระบบ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -706,7 +738,7 @@ export default function UsersManagementPage() {
                     firstName: '',
                     lastName: '',
                     password: '',
-                    role: 'buyer',
+                    role: 'employee',
                     supervisorName: '',
                     supervisorUid: '',
                     department: ''
@@ -893,10 +925,10 @@ export default function UsersManagementPage() {
                   <SelectValue placeholder="เลือกบทบาท" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="buyer" className="text-sm">ผู้ขอซื้อ</SelectItem>
+                  <SelectItem value="employee" className="text-sm">พนักงาน</SelectItem>
                   <SelectItem value="supervisor" className="text-sm">หัวหน้างาน</SelectItem>
                   <SelectItem value="procurement" className="text-sm">ฝ่ายจัดซื้อ</SelectItem>
-                  <SelectItem value="superadmin" className="text-sm">ผู้ดูแลระบบ</SelectItem>
+                  <SelectItem value="admin" className="text-sm">ผู้จัดการระบบ</SelectItem>
                 </SelectContent>
               </Select>
               {editValidationErrors.role && (

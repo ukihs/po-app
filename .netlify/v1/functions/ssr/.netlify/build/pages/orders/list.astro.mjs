@@ -1,19 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { g as getDisplayOrderNumber, C as Card, a as CardHeader, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
+import { g as getDisplayOrderNumber, C as Card, a as CardHeader, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_B9Usrq8o.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import React__default, { useState, useMemo, useEffect } from 'react';
-import { B as Button, I as Input, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_BfmlrKPS.mjs';
+import { I as Input, B as Button, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_S3l8KyRq.mjs';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Loader2, ChevronLeft, FileText } from 'lucide-react';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_Cm8j4DxB.mjs';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DYkLdZFp.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_Xjrr4NBF.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dk9O8xWT.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DPfxekZ9.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_oaBd1Xz8.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_SceaaxwY.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_DM9Azm8M.mjs';
 import { parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
-import { D as DatePickerPresets } from '../../chunks/date-picker-presets_D3q084t0.mjs';
-import { C as COLLECTIONS } from '../../chunks/constants_Dm7dVz1D.mjs';
+import { D as DatePickerPresets } from '../../chunks/date-picker-presets_0AkA5kgq.mjs';
+import { C as COLLECTIONS } from '../../chunks/constants_Db4py-1P.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const ITEM_CATEGORIES = ["วัตถุดิบ", "Software/Hardware", "เครื่องมือ", "วัสดุสิ้นเปลือง"];
@@ -124,36 +124,6 @@ function OrdersDataTable({
   React__default.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, customDateRange]);
-  if (loading) {
-    return /* @__PURE__ */ jsxs("div", { className: "flex justify-center items-center p-12", children: [
-      /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin text-primary" }),
-      /* @__PURE__ */ jsx("span", { className: "ml-4 text-lg", children: "โหลดข้อมูลใบสั่งซื้อ..." })
-    ] });
-  }
-  if (data.length === 0) {
-    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Empty, { children: [
-      /* @__PURE__ */ jsxs(EmptyHeader, { children: [
-        /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "h-12 w-12 text-muted-foreground" }) }),
-        /* @__PURE__ */ jsx(EmptyTitle, { children: "ไม่พบข้อมูลใบสั่งซื้อ" }),
-        /* @__PURE__ */ jsx(EmptyDescription, { children: "ยังไม่มีใบสั่งซื้อในระบบ หรือไม่มีข้อมูลที่ตรงตามเงื่อนไขการค้นหา" })
-      ] }),
-      /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsxs(
-        Button,
-        {
-          variant: "outline",
-          onClick: () => {
-            setSearchTerm("");
-            setStatusFilter("all");
-          },
-          className: "mt-4",
-          children: [
-            /* @__PURE__ */ jsx(Search, { className: "h-4 w-4 mr-2" }),
-            "ล้างการค้นหา"
-          ]
-        }
-      ) })
-    ] }) });
-  }
   return /* @__PURE__ */ jsxs(Card, { children: [
     /* @__PURE__ */ jsx(CardHeader, { className: "border-b", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full", children: [
       /* @__PURE__ */ jsxs("div", { className: "relative flex-1 sm:flex-none", children: [
@@ -610,13 +580,31 @@ function OrdersListPage() {
     }
   };
   if (authLoading || loading) {
-    return /* @__PURE__ */ jsxs("div", { className: "w-full py-10 text-center", children: [
-      /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin mx-auto text-primary" }),
-      /* @__PURE__ */ jsx("div", { className: "mt-3 text-muted-foreground", children: "กำลังโหลดข้อมูล…" })
-    ] });
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
+      /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(Loader2, { className: "h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" }) }),
+      /* @__PURE__ */ jsx("p", { className: "mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground", children: "กำลังโหลดข้อมูล..." })
+    ] }) });
   }
   if (!user || !role) {
     return /* @__PURE__ */ jsx("div", { className: "w-full py-10 text-center", children: /* @__PURE__ */ jsx(Alert, { variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: "กรุณาเข้าสู่ระบบ" }) }) });
+  }
+  if (orders.length === 0) {
+    return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs(Empty, { children: [
+      /* @__PURE__ */ jsxs(EmptyHeader, { children: [
+        /* @__PURE__ */ jsx(EmptyMedia, { variant: "icon", children: /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6" }) }),
+        /* @__PURE__ */ jsx(EmptyTitle, { children: role === "employee" ? "ขณะนี้คุณยังไม่มีใบขอซื้อ" : "ขณะนี้ยังไม่มีใบขอซื้อในระบบ" }),
+        /* @__PURE__ */ jsx(EmptyDescription, { children: role === "employee" ? "เริ่มสร้างใบขอซื้อแรกได้เลย!" : "โปรดรอรายการใบขอซื้อจากผู้ใช้งาน หรือสร้างใบขอซื้อด้วยตนเอง" })
+      ] }),
+      role === "employee" && /* @__PURE__ */ jsx(EmptyContent, { children: /* @__PURE__ */ jsx(
+        Button,
+        {
+          asChild: true,
+          variant: "primary",
+          className: "w-full sm:w-auto",
+          children: /* @__PURE__ */ jsx("a", { href: "/orders/create", children: "สร้างใบขอซื้อ" })
+        }
+      ) })
+    ] }) });
   }
   return /* @__PURE__ */ jsxs("div", { className: "w-full", children: [
     alertState.show && /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-50 max-w-md", children: /* @__PURE__ */ jsxs(

@@ -370,7 +370,7 @@ export default function TrackingPage() {
   }, [searchTerm, statusFilter, customDateRange]);
 
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="w-full">
         <div className="text-center py-16">
@@ -406,13 +406,13 @@ export default function TrackingPage() {
               <FileText className="w-6 h-6" />
             </EmptyMedia>
             <EmptyTitle>
-              {role === 'buyer' ? 'คุณยังไม่มีใบขอซื้อ' : 'ยังไม่มีใบขอซื้อในระบบ'}
+              {role === 'employee' ? 'ขณะนี้คุณยังไม่มีรายการใบขอซื้อ' : 'ขณะนี้ยังไม่มีใบขอซื้อในระบบ'}
             </EmptyTitle>
             <EmptyDescription>
-              {role === 'buyer' ? 'เริ่มสร้างใบขอซื้อแรกได้เลย!' : 'รอใบขอซื้อจากผู้ใช้งาน'}
+              {role === 'employee' ? 'สามารถเริ่มสร้างใบขอซื้อแรกของคุณได้เลย!' : 'โปรดรอรายการใบขอซื้อจากผู้ใช้งาน หรือสร้างใบขอซื้อด้วยตนเอง'}
             </EmptyDescription>
           </EmptyHeader>
-          {role === 'buyer' && (
+          {role === 'employee' && (
             <EmptyContent>
               <Button 
                 asChild
@@ -455,12 +455,12 @@ export default function TrackingPage() {
         <h1 className="text-xl sm:text-2xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
           <span className="hidden sm:inline">
-            {role === 'buyer' ? 'ติดตามสถานะใบขอซื้อ' : 
+            {role === 'employee' ? 'ติดตามสถานะใบขอซื้อ' : 
              role === 'supervisor' ? 'ติดตามและอนุมัติใบขอซื้อ' :
              'ติดตามสถานะใบขอซื้อทั้งหมด'}
           </span>
           <span className="sm:hidden">
-            {role === 'buyer' ? 'ติดตามสถานะ' : 
+            {role === 'employee' ? 'ติดตามสถานะ' : 
              role === 'supervisor' ? 'ติดตาม/อนุมัติ' :
              'ติดตาม'}
           </span>

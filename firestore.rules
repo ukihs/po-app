@@ -12,8 +12,24 @@ service cloud.firestore {
         : null;
     }
 
-    function isSuperAdmin() { 
-      return getUserRole() == 'superadmin'; 
+    function isAdmin() { 
+      return getUserRole() == 'admin'; 
+    }
+
+    function hasMinRole(minRole) {
+      let role = getUserRole();
+      let hierarchy = {
+        'employee': 1,
+        'supervisor': 2,
+        'procurement': 3,
+        'admin': 99
+      };
+      return hierarchy[role] >= hierarchy[minRole];
+    }
+
+    function isSupervisorOf(employeeUid) {
+      return isAuth() && 
+        get(/databases/$(database)/documents/users/$(employeeUid)).data.supervisorUid == request.auth.uid;
     }
 
     function onlyChanges(allowedFields) {
@@ -23,14 +39,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuth();
 
-      allow create: if isSuperAdmin();
+      allow create: if isAdmin();
 
-      allow update: if isSuperAdmin() || 
+      allow update: if isAdmin() || 
                        (isAuth() && 
                         request.auth.uid == userId && 
                         onlyChanges(['displayName', 'email', 'firstName', 'lastName', 'photoURL']));
 
-      allow delete: if isSuperAdmin();
+      allow delete: if isAdmin();
     }
 
     match /orders/{orderId} {
@@ -63,7 +79,7 @@ service cloud.firestore {
           'timestamps', 'updatedAt'
         ]);
 
-      allow delete: if isSuperAdmin();
+      allow delete: if isAdmin();
     }
 
     match /notifications/{notificationId} {
@@ -78,7 +94,7 @@ service cloud.firestore {
                resource.data.expiresAt > request.time;
       }
 
-      allow read: if isSuperAdmin() ||
+      allow read: if isAdmin() ||
                      (isAuth() && isRecipient() && isNotExpired());
 
       allow create: if isAuth() && 
@@ -98,7 +114,7 @@ service cloud.firestore {
                        request.resource.data.readBy.hasAll(resource.data.readBy) &&
                        request.resource.data.readBy.hasAny([request.auth.uid]);
 
-      allow delete: if isSuperAdmin() || 
+      allow delete: if isAdmin() || 
                        ('expiresAt' in resource.data && resource.data.expiresAt < request.time);
     }
 
@@ -109,52 +125,52 @@ service cloud.firestore {
 
     match /categories/{categoryId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /suppliers/{supplierId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /departments/{departmentId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /itemCategories/{itemCategoryId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /itemStatuses/{itemStatusId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /procurementData/{procurementId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /logs/{logId} {
-      allow read: if isSuperAdmin();
+      allow read: if isAdmin();
       allow write: if isAuth();
     }
 
     match /settings/{settingId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /reports/{reportId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /templates/{templateId} {
       allow read: if isAuth();
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /attachments/{attachmentId} {
@@ -163,22 +179,22 @@ service cloud.firestore {
     }
 
     match /debug/{debugId} {
-      allow read: if isSuperAdmin();
-      allow write: if isSuperAdmin();
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /system/{systemId} {
-      allow read: if isSuperAdmin();
-      allow write: if isSuperAdmin();
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /backup/{backupId} {
-      allow read: if isSuperAdmin();
-      allow write: if isSuperAdmin();
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /audit/{auditId} {
-      allow read: if isSuperAdmin();
+      allow read: if isAdmin();
       allow write: if isAuth();
     }
 

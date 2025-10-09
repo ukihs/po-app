@@ -97,7 +97,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const getNavMainItems = useMemo((): NavItem[] => {
     const roleMenus: Record<UserRole, NavItem[]> = {
-      buyer: [
+      employee: [
         { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
         { title: "ติดตามสถานะ", url: "/orders/tracking", icon: FileText, isActive: activeTab === 'tracking' },
         { 
@@ -109,6 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         }
       ],
       supervisor: [
+        { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
         { 
           title: "ติดตามและอนุมัติ", 
           url: "/orders/tracking", 
@@ -124,6 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         }
       ],
       procurement: [
+        { title: "สร้างใบสั่งซื้อ", url: "/orders/create", icon: Plus, isActive: activeTab === 'create' },
         { 
           title: "รายการใบขอซื้อ", 
           url: "/orders/list", 
@@ -139,7 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           badge: <NotificationBadge />
         }
       ],
-      superadmin: [
+      admin: [
         { title: "จัดการผู้ใช้งาน", url: "/admin/users", icon: Users, isActive: activeTab === 'admin-users' },
         { title: "จัดการใบขอซื้อ", url: "/admin/orders", icon: FileText, isActive: activeTab === 'admin-orders' }
       ]

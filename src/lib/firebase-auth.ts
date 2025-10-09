@@ -19,7 +19,7 @@ export async function verifyFirebaseToken(idToken: string): Promise<AuthUser | n
       uid: decodedToken.uid,
       email: decodedToken.email || '',
       displayName: userData?.displayName || '',
-      role: userData?.role || 'buyer',
+      role: userData?.role || 'employee',
       emailVerified: decodedToken.email_verified || false
     };
   } catch (error) {

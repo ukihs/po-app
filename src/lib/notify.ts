@@ -1,7 +1,7 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/client';
 
-export type AppRole = 'buyer' | 'supervisor' | 'procurement';
+export type AppRole = 'employee' | 'supervisor' | 'procurement';
 
 const recipientsForUid = (uid: string) => `uid_${uid}`;
 const recipientsForRole = (role: AppRole) => `role_${role}`;
