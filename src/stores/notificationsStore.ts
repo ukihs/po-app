@@ -10,8 +10,7 @@ import {
   updateDoc,
   arrayUnion,
   writeBatch,
-  limit,
-  Timestamp
+  limit
 } from 'firebase/firestore';
 type Unsubscribe = () => void;
 import { db } from '../firebase/client';

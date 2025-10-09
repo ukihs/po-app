@@ -22,6 +22,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Search,
+  KeyRound,
 } from 'lucide-react';
 import { 
   RiCheckboxCircleFill, 
@@ -66,6 +67,7 @@ export default function UsersManagementPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   const [newUser, setNewUser] = useState({
     email: '',
@@ -114,6 +116,18 @@ export default function UsersManagementPage() {
   
   const [editSupervisorOpen, setEditSupervisorOpen] = useState(false);
   const [editSupervisorValue, setEditSupervisorValue] = useState('');
+
+  const [resetPassword, setResetPassword] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  const [resetPasswordErrors, setResetPasswordErrors] = useState({
+    newPassword: false,
+    confirmPassword: false
+  });
+
+  const [resetPasswordFormValid, setResetPasswordFormValid] = useState(false);
 
   const isCurrentUser = (user: User) => {
     return currentUser?.uid === user.uid;
@@ -451,6 +465,71 @@ export default function UsersManagementPage() {
     setShowDeleteModal(true);
   };
 
+  const handleResetPassword = (user: User) => {
+    setSelectedUser(user);
+    setResetPassword({
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setResetPasswordErrors({
+      newPassword: false,
+      confirmPassword: false
+    });
+    setResetPasswordFormValid(false);
+    setShowResetPasswordModal(true);
+  };
+
+  const validateResetPasswordForm = () => {
+    const errors = {
+      newPassword: resetPassword.newPassword.length < 6,
+      confirmPassword: resetPassword.confirmPassword !== resetPassword.newPassword || resetPassword.confirmPassword.length < 6
+    };
+
+    setResetPasswordErrors(errors);
+    
+    const isValid = !Object.values(errors).some(error => error);
+    setResetPasswordFormValid(isValid);
+    
+    return isValid;
+  };
+
+  const resetUserPassword = async () => {
+    if (!selectedUser) return;
+
+    if (!validateResetPasswordForm()) {
+      showAlert('กรุณากรอกรหัสผ่านให้ถูกต้อง', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${selectedUser.uid}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: resetPassword.newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowResetPasswordModal(false);
+        setResetPassword({
+          newPassword: '',
+          confirmPassword: ''
+        });
+        
+        const userName = selectedUser.displayName || selectedUser.email;
+        showAlert(`เปลี่ยนรหัสผ่านของ "${userName}" สำเร็จ`, 'success');
+      } else {
+        showAlert('ไม่สามารถเปลี่ยนรหัสผ่านได้', 'error', data.message || 'กรุณาลองใหม่อีกครั้ง');
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      showAlert('เกิดข้อผิดพลาด', 'error', 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+    }
+  };
+
   useEffect(() => {
     validateForm();
   }, [newUser]);
@@ -458,6 +537,10 @@ export default function UsersManagementPage() {
   useEffect(() => {
     validateEditForm();
   }, [editUser]);
+
+  useEffect(() => {
+    validateResetPasswordForm();
+  }, [resetPassword]);
 
   if (loading) {
     return (
@@ -512,7 +595,6 @@ export default function UsersManagementPage() {
     );
   }
 
-
   return (
     <div className="w-full">
       <div className="mb-4 sm:mb-6">
@@ -546,6 +628,7 @@ export default function UsersManagementPage() {
         loading={loading}
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
+        onResetPassword={handleResetPassword}
         onAddUser={() => setShowCreateModal(true)}
         isCurrentUser={isCurrentUser}
         onShowAlert={showAlert}
@@ -1001,6 +1084,93 @@ export default function UsersManagementPage() {
               disabled={selectedUser ? isCurrentUser(selectedUser) : false}
             >
               ลบผู้ใช้
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showResetPasswordModal} onOpenChange={setShowResetPasswordModal}>
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <KeyRound className="h-4 w-4 sm:h-5 sm:w-5" />
+              เปลี่ยนรหัสผ่าน
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              กรอกรหัสผ่านใหม่สำหรับผู้ใช้
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-2 sm:py-3">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+              ผู้ใช้: <span className="font-medium text-foreground">{selectedUser?.displayName || selectedUser?.email}</span>
+            </p>
+
+            <form className="space-y-3 sm:space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="newPassword" className="text-xs sm:text-sm font-medium">
+                  รหัสผ่านใหม่ <span className="text-destructive">*</span>
+                </label>
+                <Input 
+                  id="newPassword"
+                  type="password" 
+                  className={`text-sm ${resetPasswordErrors.newPassword ? 'border-destructive' : ''}`}
+                  placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)"
+                  value={resetPassword.newPassword}
+                  onChange={(e) => setResetPassword({...resetPassword, newPassword: e.target.value})}
+                  minLength={6}
+                  required
+                />
+                {resetPasswordErrors.newPassword && (
+                  <p className="text-xs text-destructive">รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</p>
+                )}
+              </div>
+
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="confirmPassword" className="text-xs sm:text-sm font-medium">
+                  ยืนยันรหัสผ่านใหม่ <span className="text-destructive">*</span>
+                </label>
+                <Input 
+                  id="confirmPassword"
+                  type="password" 
+                  className={`text-sm ${resetPasswordErrors.confirmPassword ? 'border-destructive' : ''}`}
+                  placeholder="กรอกรหัสผ่านอีกครั้ง"
+                  value={resetPassword.confirmPassword}
+                  onChange={(e) => setResetPassword({...resetPassword, confirmPassword: e.target.value})}
+                  minLength={6}
+                  required
+                />
+                {resetPasswordErrors.confirmPassword && (
+                  <p className="text-xs text-destructive">รหัสผ่านไม่ตรงกัน</p>
+                )}
+              </div>
+            </form>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto"
+              onClick={() => {
+                setShowResetPasswordModal(false);
+                setResetPassword({
+                  newPassword: '',
+                  confirmPassword: ''
+                });
+                setResetPasswordErrors({
+                  newPassword: false,
+                  confirmPassword: false
+                });
+              }}
+            >
+              ยกเลิก
+            </Button>
+            <Button 
+              className="w-full sm:w-auto bg-[#6EC1E4] hover:bg-[#2b9ccc]"
+              onClick={resetUserPassword}
+              disabled={!resetPasswordFormValid}
+            >
+              {resetPasswordFormValid ? 'เปลี่ยนรหัสผ่าน' : 'กรุณากรอกข้อมูลให้ครบถ้วน'}
             </Button>
           </DialogFooter>
         </DialogContent>

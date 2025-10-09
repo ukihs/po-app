@@ -14,7 +14,7 @@ import {
 import type {
   ColumnDef,
 } from "@tanstack/react-table";
-import { Edit, Trash2, Shield, ShoppingCart, UserCheck, Package, Crown, Ellipsis, Search, X, Filter, UserRoundPlus, Copy } from 'lucide-react';
+import { Edit, Trash2, Ellipsis, Search, X, Filter, UserRoundPlus, Copy, KeyRound } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -56,6 +56,7 @@ interface UsersDataTableProps {
   loading: boolean;
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onResetPassword: (user: User) => void;
   onAddUser: () => void;
   isCurrentUser: (user: User) => boolean;
   onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
@@ -103,10 +104,11 @@ const getRoleBadge = (role?: string) => {
   );
 };
 
-function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser, onShowAlert }: { 
+function ActionsCell({ row, onEditUser, onDeleteUser, onResetPassword, isCurrentUser, onShowAlert }: { 
   row: Row<User>; 
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onResetPassword: (user: User) => void;
   isCurrentUser: (user: User) => boolean;
   onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void;
 }) {
@@ -132,6 +134,10 @@ function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser, onShowAlert
             <Edit className="mr-2 h-4 w-4" />
             <span>แก้ไขข้อมูล</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onResetPassword(row.original)}>
+            <KeyRound className="mr-2 h-4 w-4" />
+            <span>เปลี่ยนรหัสผ่าน</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleCopyId}>
             <Copy className="mr-2 h-4 w-4" />
             <span>คัดลอกไอดีผู้ใช้</span>
@@ -155,7 +161,7 @@ function ActionsCell({ row, onEditUser, onDeleteUser, isCurrentUser, onShowAlert
 }
 
 
-const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void, isCurrentUser: (user: User) => boolean, onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void): ColumnDef<User>[] => [
+const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: User) => void, onResetPassword: (user: User) => void, isCurrentUser: (user: User) => boolean, onShowAlert?: (message: string, type: 'success' | 'error' | 'info' | 'warning', description?: string) => void): ColumnDef<User>[] => [
   {
     accessorKey: "displayName",
     id: "displayName",
@@ -224,7 +230,7 @@ const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: Us
   {
     id: "actions",
     header: '',
-    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} isCurrentUser={isCurrentUser} onShowAlert={onShowAlert} />,
+    cell: ({ row }) => <ActionsCell row={row} onEditUser={onEditUser} onDeleteUser={onDeleteUser} onResetPassword={onResetPassword} isCurrentUser={isCurrentUser} onShowAlert={onShowAlert} />,
     size: 60,
     enableSorting: false,
     enableHiding: false,
@@ -237,6 +243,7 @@ export default function UsersDataTable({
   loading, 
   onEditUser, 
   onDeleteUser,
+  onResetPassword,
   onAddUser,
   isCurrentUser,
   onShowAlert
@@ -249,7 +256,7 @@ export default function UsersDataTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
-  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, isCurrentUser, onShowAlert), [onEditUser, onDeleteUser, isCurrentUser, onShowAlert]);
+  const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, onResetPassword, isCurrentUser, onShowAlert), [onEditUser, onDeleteUser, onResetPassword, isCurrentUser, onShowAlert]);
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
