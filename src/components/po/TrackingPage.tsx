@@ -3,10 +3,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { auth } from '../../firebase/client';
 import { useUser, useRole, useIsLoading, useOrders, useOrdersLoading, useOrdersError } from '../../stores';
-import type { OrderStatus, OrderItem } from '../../types';
+import type { OrderStatus, OrderItem, Order } from '../../types';
 import { COLLECTIONS } from '../../lib/constants';
 import { approveOrder } from '../../lib/poApi';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
+import { DatePickerPresets } from '../ui/date-picker-presets';
+import type { DateRange } from 'react-day-picker';
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { 
   FileText, 
   CheckCircle, 
@@ -24,7 +27,8 @@ import {
   LayoutGrid,
   Table2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
 import { 
@@ -104,6 +108,7 @@ export default function TrackingPage() {
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -166,22 +171,57 @@ export default function TrackingPage() {
   useEffect(() => {
     let filtered = rows;
 
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.requesterName.toLowerCase().includes(searchLower) ||
-        order.orderNo.toString().includes(searchTerm) ||
-        order.id.toLowerCase().includes(searchLower)
-      );
+    // Apply custom date range filter
+    if (customDateRange) {
+      const range = customDateRange as DateRange;
+      if (range.from) {
+        filtered = filtered.filter(order => {
+          try {
+            const orderDate = order.createdAt?.toDate ? 
+              order.createdAt.toDate() : 
+              (order.date ? parseISO(order.date) : null);
+            
+            if (!orderDate) return false;
+            
+            const from = startOfDay(range.from!);
+            const to = range.to ? endOfDay(range.to) : endOfDay(range.from!);
+            
+            return isWithinInterval(orderDate, { start: from, end: to });
+          } catch (error) {
+            console.error('Date filter error:', error);
+            return false;
+          }
+        });
+      }
     }
 
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(order => {
+        const orderNumber = order.orderNo ? 
+          getDisplayOrderNumber({ 
+            orderNo: order.orderNo, 
+            date: order.date || order.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' 
+          }).toLowerCase() : '';
+        
+        return (
+          order.requesterName.toLowerCase().includes(searchLower) ||
+          order.orderNo.toString().includes(searchTerm) ||
+          order.id.toLowerCase().includes(searchLower) ||
+          orderNumber.includes(searchLower)
+        );
+      });
+    }
+
+    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
 
     setFilteredRows(filtered);
     setCurrentPage(1);
-  }, [rows, searchTerm, statusFilter]);
+  }, [rows, searchTerm, statusFilter, customDateRange]);
 
   const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
     setAlertState({
@@ -327,7 +367,7 @@ export default function TrackingPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, customDateRange]);
 
 
   if (loading) {
@@ -430,11 +470,11 @@ export default function TrackingPage() {
       <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-full sm:w-[240px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ"
+                placeholder="ค้นหาเลขใบขอซื้อหรือชื่อผู้ขอซื้อ"
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -453,6 +493,14 @@ export default function TrackingPage() {
                 <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
               </SelectContent>
             </Select>
+            
+            <DatePickerPresets
+              date={customDateRange}
+              onDateChange={(date) => setCustomDateRange(date)}
+              placeholder="ช่วงวันที่"
+              className="w-full sm:w-auto"
+              numberOfMonths={2}
+            />
           </div>
 
           <DropdownMenu>

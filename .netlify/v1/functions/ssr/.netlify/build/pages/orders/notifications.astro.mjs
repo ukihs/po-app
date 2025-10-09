@@ -1,12 +1,12 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { C as Card, t as CardContent, B as Badge, g as getDisplayOrderNumber, A as useNotifications, E as useNotificationsLoading, F as useNotificationsError, G as useNotificationsStore, l as useRole, u as useUser, H as useUnreadCount, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
+import { C as Card, t as CardContent, B as Badge, g as getDisplayOrderNumber, A as useNotifications, E as useNotificationsLoading, F as useNotificationsError, G as useNotificationsStore, l as useRole, u as useUser, H as useUnreadCount, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
 import { jsx, jsxs } from 'react/jsx-runtime';
 import React__default, { useState, useMemo, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Bell, CheckCheck, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { A as Alert, a as AlertDescription, B as Button, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
+import { A as Alert, a as AlertDescription, B as Button, I as Input } from '../../chunks/alert_BfmlrKPS.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DYkLdZFp.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DPfxekZ9.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const formatDate = /* @__PURE__ */ (() => {
@@ -217,12 +217,12 @@ function NotificationsPage() {
         )
       ] }) }),
       /* @__PURE__ */ jsx("div", { className: "mb-6 space-y-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
-        /* @__PURE__ */ jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ jsxs("div", { className: "relative w-full sm:w-[240px]", children: [
           /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
           /* @__PURE__ */ jsx(
             Input,
             {
-              placeholder: "ค้นหาการแจ้งเตือน...",
+              placeholder: "ค้นหาการแจ้งเตือน",
               value: searchTerm,
               onChange: (e) => setSearchTerm(e.target.value),
               className: "pl-10"
@@ -305,7 +305,7 @@ function NotificationsPage() {
     ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "mb-6 space-y-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
-        /* @__PURE__ */ jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ jsxs("div", { className: "relative w-full sm:w-[280px]", children: [
           /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
           /* @__PURE__ */ jsx(
             Input,

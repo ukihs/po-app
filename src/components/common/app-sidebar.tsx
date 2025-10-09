@@ -9,7 +9,6 @@ import {
   FileText,
   Bell,
   Users,
-  List,
   CheckCircle2,
   Building2,
   ShoppingCart,
@@ -116,7 +115,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           icon: CheckCircle2, 
           isActive: activeTab === 'tracking'
         },
-        { title: "รายการใบขอซื้อ", url: "/orders/list", icon: List, isActive: activeTab === 'list' },
         { 
           title: "การแจ้งเตือน", 
           url: "/orders/notifications", 

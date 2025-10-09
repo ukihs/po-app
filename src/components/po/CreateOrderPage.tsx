@@ -19,9 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
-import { Calendar } from '../ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
+import { DatePickerDefault } from '../ui/date-picker-default';
 import { cn } from '../../lib/utils';
 
 export default function CreateOrderPage() {
@@ -328,32 +327,13 @@ export default function CreateOrderPage() {
               <Label className="text-sm font-medium">
                 วันที่ต้องการรับ <span className="text-destructive">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-between text-left font-normal",
-                      !selectedItemDate && "text-muted-foreground"
-                    )}
-                  >
-                    {selectedItemDate ? (
-                      selectedItemDate.toLocaleDateString('th-TH')
-                    ) : (
-                      "เลือกวันที่ต้องการรับ"
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedItemDate}
-                    onSelect={setSelectedItemDate}
-                    captionLayout="dropdown"
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePickerDefault
+                date={selectedItemDate}
+                onDateChange={setSelectedItemDate}
+                placeholder="เลือกวันที่ต้องการรับ"
+                className="w-full"
+                showReset={true}
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -418,32 +398,13 @@ export default function CreateOrderPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-sm font-medium">วันที่ขอซื้อ</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-between text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    {selectedDate ? (
-                      selectedDate.toLocaleDateString('th-TH')
-                    ) : (
-                      "เลือกวันที่"
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    captionLayout="dropdown"
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePickerDefault
+                date={selectedDate}
+                onDateChange={setSelectedDate}
+                placeholder="เลือกวันที่"
+                className="w-full"
+                showReset={true}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="requester" className="text-sm font-medium">

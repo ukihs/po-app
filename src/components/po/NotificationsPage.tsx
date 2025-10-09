@@ -330,10 +330,10 @@ export default function NotificationsPage() {
 
         <div className="mb-6 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+            <div className="relative w-full sm:w-[240px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="ค้นหาการแจ้งเตือน..."
+                placeholder="ค้นหาการแจ้งเตือน"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -429,7 +429,7 @@ export default function NotificationsPage() {
 
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
+          <div className="relative w-full sm:w-[280px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="ค้นหาการแจ้งเตือน..."

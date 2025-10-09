@@ -13,7 +13,7 @@ export const ROLE_PERMISSIONS: Record<string, UserRole[]> = {
   '/orders/create': ['buyer'],
   '/orders/tracking': ['buyer', 'supervisor', 'procurement'],
   '/orders/notifications': ['buyer', 'supervisor', 'procurement'],
-  '/orders/list': ['supervisor', 'procurement'],
+  '/orders/list': ['procurement', 'superadmin'],
   '/admin/users': ['superadmin'],
   '/admin/orders': ['superadmin']
 } as const;
@@ -126,6 +126,15 @@ export const DEFAULT_PAGE_SIZE = 10;
 export const PAGE_SIZE_OPTIONS = [5, 10, 20, 30, 50] as const;
 
 export const MAX_DROPDOWN_ITEMS = 100;
+
+export const DATE_FILTER_OPTIONS = [
+  { label: 'วันนี้', value: 'today' },
+  { label: 'เดือนนี้', value: 'thisMonth' },
+  { label: 'ปีนี้', value: 'thisYear' },
+  { label: 'ทั้งหมด', value: 'all' },
+] as const;
+
+export type DateFilterValue = typeof DATE_FILTER_OPTIONS[number]['value'];
 
 export const DATE_FORMAT = 'DD/MM/YYYY';
 

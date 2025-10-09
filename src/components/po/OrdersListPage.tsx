@@ -256,16 +256,18 @@ export default function OrdersListPage(){
         </Alert>
       )}
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <FileText className="w-8 h-8 text-primary" />
-          รายการใบขอซื้อ
-        </h1>
-        <p className="text-muted-foreground">
-          {role === 'procurement' ? 'เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ' : 
-           role === 'supervisor' ? 'ดูรายการใบขอซื้อทั้งหมด' :
-           'รายการใบขอซื้อทั้งหมด'}
-        </p>
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">รายการใบขอซื้อ</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              {role === 'procurement' 
+                ? 'เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ' 
+                : 'รายการใบขอซื้อทั้งหมด'}
+            </p>
+          </div>
+        </div>
       </div>  
 
       <OrdersDataTable

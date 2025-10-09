@@ -1,20 +1,22 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, g as getDisplayOrderNumber, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, g as getDisplayOrderNumber, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, t as CardContent, B as Badge, w as Separator, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
-import { approveOrder } from '../../chunks/poApi_KBCH0lOO.mjs';
+import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_BfmlrKPS.mjs';
+import { approveOrder } from '../../chunks/poApi__Cce2Xya.mjs';
+import { D as DatePickerPresets } from '../../chunks/date-picker-presets_D3q084t0.mjs';
+import { parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_pBYIHlJJ.mjs';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BEOk_MK8.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BWpHMM2C.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BLLtegg-.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DYkLdZFp.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dk9O8xWT.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_Xjrr4NBF.mjs';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DPfxekZ9.mjs';
 export { renderers } from '../../renderers.mjs';
 
 function ItemGroup({ className, ...props }) {
@@ -380,6 +382,7 @@ function TrackingPage() {
   const [confirmData, setConfirmData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [customDateRange, setCustomDateRange] = useState(void 0);
   const [viewMode, setViewMode] = useState("card");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -428,18 +431,39 @@ function TrackingPage() {
   }, [loading, filteredRows]);
   useEffect(() => {
     let filtered = rows;
+    if (customDateRange) {
+      const range = customDateRange;
+      if (range.from) {
+        filtered = filtered.filter((order) => {
+          try {
+            const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : order.date ? parseISO(order.date) : null;
+            if (!orderDate) return false;
+            const from = startOfDay(range.from);
+            const to = range.to ? endOfDay(range.to) : endOfDay(range.from);
+            return isWithinInterval(orderDate, { start: from, end: to });
+          } catch (error) {
+            console.error("Date filter error:", error);
+            return false;
+          }
+        });
+      }
+    }
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (order) => order.requesterName.toLowerCase().includes(searchLower) || order.orderNo.toString().includes(searchTerm) || order.id.toLowerCase().includes(searchLower)
-      );
+      filtered = filtered.filter((order) => {
+        const orderNumber = order.orderNo ? getDisplayOrderNumber({
+          orderNo: order.orderNo,
+          date: order.date || order.createdAt?.toDate?.()?.toISOString().split("T")[0] || ""
+        }).toLowerCase() : "";
+        return order.requesterName.toLowerCase().includes(searchLower) || order.orderNo.toString().includes(searchTerm) || order.id.toLowerCase().includes(searchLower) || orderNumber.includes(searchLower);
+      });
     }
     if (statusFilter !== "all") {
       filtered = filtered.filter((order) => order.status === statusFilter);
     }
     setFilteredRows(filtered);
     setCurrentPage(1);
-  }, [rows, searchTerm, statusFilter]);
+  }, [rows, searchTerm, statusFilter, customDateRange]);
   const showAlert = (message, type = "info", description) => {
     setAlertState({
       show: true,
@@ -557,7 +581,7 @@ function TrackingPage() {
   };
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, customDateRange]);
   if (loading) {
     return /* @__PURE__ */ jsx("div", { className: "w-full", children: /* @__PURE__ */ jsxs("div", { className: "text-center py-16", children: [
       /* @__PURE__ */ jsx("div", { className: "flex justify-center", children: /* @__PURE__ */ jsx(RefreshCw, { className: "h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" }) }),
@@ -614,13 +638,13 @@ function TrackingPage() {
     /* @__PURE__ */ jsxs("div", { className: "mb-4 sm:mb-6 space-y-3 sm:space-y-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full", children: [
-          /* @__PURE__ */ jsxs("div", { className: "relative flex-1 max-w-md", children: [
+          /* @__PURE__ */ jsxs("div", { className: "relative w-full sm:w-[240px]", children: [
             /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
             /* @__PURE__ */ jsx(
               Input,
               {
                 type: "text",
-                placeholder: "ค้นหาผู้ขอซื้อหรือหมายเลขใบขอซื้อ",
+                placeholder: "ค้นหาเลขใบขอซื้อหรือชื่อผู้ขอซื้อ",
                 className: "pl-10",
                 value: searchTerm,
                 onChange: (e) => setSearchTerm(e.target.value)
@@ -637,7 +661,17 @@ function TrackingPage() {
               /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", children: "กำลังดำเนินการ" }),
               /* @__PURE__ */ jsx(SelectItem, { value: "delivered", children: "ได้รับแล้ว" })
             ] })
-          ] })
+          ] }),
+          /* @__PURE__ */ jsx(
+            DatePickerPresets,
+            {
+              date: customDateRange,
+              onDateChange: (date) => setCustomDateRange(date),
+              placeholder: "ช่วงวันที่",
+              className: "w-full sm:w-auto",
+              numberOfMonths: 2
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxs(DropdownMenu, { children: [
           /* @__PURE__ */ jsx(DropdownMenuTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: "w-full sm:w-auto", children: [

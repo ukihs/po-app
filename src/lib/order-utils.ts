@@ -11,8 +11,20 @@ import {
   ORDER_STATUS_LABELS,
   RAW_MATERIAL_WORKFLOW,
   OTHER_ITEMS_WORKFLOW,
-  COMPLETED_PROCUREMENT_STATUSES
+  COMPLETED_PROCUREMENT_STATUSES,
+  type DateFilterValue
 } from './constants';
+
+import {
+  startOfDay,
+  endOfDay,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  isWithinInterval,
+  parseISO
+} from 'date-fns';
 
 export const toNum = (value: string | number): number => {
   const n = parseFloat(String(value ?? '').replace(/[^\d.]/g, ''));
@@ -380,4 +392,148 @@ export const sortOrders = (
   });
   
   return sorted;
+};
+
+/**
+ * Get date range based on filter value
+ */
+export const getDateRange = (filterValue: DateFilterValue): { from: Date; to: Date } | null => {
+  if (filterValue === 'all') return null;
+  
+  const today = new Date();
+  
+  switch (filterValue) {
+    case 'today':
+      return { from: startOfDay(today), to: endOfDay(today) };
+    
+    case 'thisMonth':
+      return { from: startOfMonth(today), to: endOfMonth(today) };
+    
+    case 'thisYear':
+      return { from: startOfYear(today), to: endOfYear(today) };
+    
+    default:
+      return null;
+  }
+};
+
+/**
+ * Filter orders by date range
+ */
+export const filterOrdersByDate = (orders: Order[], dateFilter: DateFilterValue): Order[] => {
+  const dateRange = getDateRange(dateFilter);
+  
+  if (!dateRange) return orders;
+  
+  return orders.filter(order => {
+    // Try to get date from multiple sources
+    let orderDate: Date | null = null;
+    
+    // First try: order.date (string format)
+    if (order.date) {
+      try {
+        // Assuming date is in format like "2024-01-15" or "15/01/2024"
+        if (order.date.includes('/')) {
+          const [day, month, year] = order.date.split('/');
+          orderDate = new Date(`${year}-${month}-${day}`);
+        } else {
+          orderDate = parseISO(order.date);
+        }
+      } catch (e) {
+        console.warn('Failed to parse order.date:', order.date, e);
+      }
+    }
+    
+    // Second try: order.createdAt (Firestore Timestamp)
+    if (!orderDate && order.createdAt?.toDate) {
+      try {
+        orderDate = order.createdAt.toDate();
+      } catch (e) {
+        console.warn('Failed to convert createdAt to date:', e);
+      }
+    }
+    
+    // Third try: order.createdAt.seconds (Firestore Timestamp format)
+    if (!orderDate && order.createdAt?.seconds) {
+      try {
+        orderDate = new Date(order.createdAt.seconds * 1000);
+      } catch (e) {
+        console.warn('Failed to convert timestamp seconds:', e);
+      }
+    }
+    
+    if (!orderDate || isNaN(orderDate.getTime())) {
+      return false; // Skip invalid dates
+    }
+    
+    return isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to });
+  });
+};
+
+/**
+ * Filter orders by date range (using DateRange from react-day-picker)
+ */
+export const filterOrdersByDateRange = (orders: Order[], dateRange: { from?: Date; to?: Date }): Order[] => {
+  if (!dateRange?.from) return orders;
+  
+  const from = startOfDay(dateRange.from);
+  const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+  
+  return orders.filter(order => {
+    // Try to get date from multiple sources
+    let orderDate: Date | null = null;
+    
+    // First try: order.date (string format)
+    if (order.date) {
+      try {
+        // Assuming date is in format like "2024-01-15" or "15/01/2024"
+        if (order.date.includes('/')) {
+          const [day, month, year] = order.date.split('/');
+          orderDate = new Date(`${year}-${month}-${day}`);
+        } else {
+          orderDate = parseISO(order.date);
+        }
+      } catch (e) {
+        console.warn('Failed to parse order.date:', order.date, e);
+      }
+    }
+    
+    // Second try: order.createdAt (Firestore Timestamp)
+    if (!orderDate && order.createdAt?.toDate) {
+      try {
+        orderDate = order.createdAt.toDate();
+      } catch (e) {
+        console.warn('Failed to convert createdAt to date:', e);
+      }
+    }
+    
+    // Third try: order.createdAt.seconds (Firestore Timestamp format)
+    if (!orderDate && order.createdAt?.seconds) {
+      try {
+        orderDate = new Date(order.createdAt.seconds * 1000);
+      } catch (e) {
+        console.warn('Failed to convert timestamp seconds:', e);
+      }
+    }
+    
+    if (!orderDate || isNaN(orderDate.getTime())) {
+      return false; // Skip invalid dates
+    }
+    
+    return isWithinInterval(orderDate, { start: from, end: to });
+  });
+};
+
+/**
+ * Get date filter label for display
+ */
+export const getDateFilterLabel = (filterValue: DateFilterValue): string => {
+  const options = [
+    { label: 'วันนี้', value: 'today' },
+    { label: 'เดือนนี้', value: 'thisMonth' },
+    { label: 'ปีนี้', value: 'thisYear' },
+    { label: 'ทั้งหมด', value: 'all' },
+  ];
+  
+  return options.find(opt => opt.value === filterValue)?.label || 'ทั้งหมด';
 };

@@ -7,20 +7,24 @@ import {
   Loader2,
   Search,
   ChevronLeft,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Card, CardHeader, CardHeading, CardToolbar, CardTable, CardFooter } from '../ui/card';
+import { Card, CardHeader, CardTable, CardFooter } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '../ui/empty';
 
 import type { Order, OrderStatus, UserRole } from '../../types';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
+import type { DateRange } from 'react-day-picker';
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { DatePickerPresets } from '../ui/date-picker-presets';
 
 const ITEM_CATEGORIES = ['วัตถุดิบ', 'Software/Hardware', 'เครื่องมือ', 'วัสดุสิ้นเปลือง'] as const;
 
@@ -90,6 +94,7 @@ export default function OrdersDataTable({
 }: OrdersDataTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -97,22 +102,57 @@ export default function OrdersDataTable({
   const filteredData = useMemo(() => {
     let filtered = data;
     
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.requesterName?.toLowerCase().includes(search) ||
-        order.requester?.toLowerCase().includes(search) ||
-        order.id.toLowerCase().includes(search) ||
-        order.orderNo?.toString().includes(search)
-      );
+    // Apply custom date range filter
+    if (customDateRange) {
+      const range = customDateRange as DateRange;
+      if (range.from) {
+        filtered = filtered.filter(order => {
+          try {
+            const orderDate = order.createdAt?.toDate ? 
+              order.createdAt.toDate() : 
+              (order.date ? parseISO(order.date) : null);
+            
+            if (!orderDate) return false;
+            
+            const from = startOfDay(range.from!);
+            const to = range.to ? endOfDay(range.to) : endOfDay(range.from!);
+            
+            return isWithinInterval(orderDate, { start: from, end: to });
+          } catch (error) {
+            console.error('Date filter error:', error);
+            return false;
+          }
+        });
+      }
     }
     
+    // Apply search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(order => {
+        const orderNumber = order.orderNo ? 
+          getDisplayOrderNumber({ 
+            orderNo: order.orderNo, 
+            date: order.date || order.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' 
+          }).toLowerCase() : '';
+        
+        return (
+          order.requesterName?.toLowerCase().includes(search) ||
+          order.requester?.toLowerCase().includes(search) ||
+          order.id.toLowerCase().includes(search) ||
+          order.orderNo?.toString().includes(search) ||
+          orderNumber.includes(search)
+        );
+      });
+    }
+    
+    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     
     return filtered;
-  }, [data, searchTerm, statusFilter]);
+  }, [data, searchTerm, statusFilter, customDateRange]);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -120,7 +160,6 @@ export default function OrdersDataTable({
     return filteredData.slice(startIndex, endIndex);
   }, [filteredData, currentPage, itemsPerPage]);
 
-  // Memoize order numbers for better performance
   const orderNumbers = useMemo(() => {
     const numbers: Record<string, string> = {};
     paginatedData.forEach(order => {
@@ -142,7 +181,7 @@ export default function OrdersDataTable({
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, customDateRange]);
 
   if (loading) {
     return (
@@ -187,34 +226,37 @@ export default function OrdersDataTable({
   return (
     <Card>
       <CardHeader className="border-b">
-        <CardHeading className="text-lg sm:text-xl">รายการใบขอซื้อ</CardHeading>
-        <CardToolbar>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="ค้นหา..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-full sm:w-48 md:w-64 text-sm"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-auto">
-                <SelectValue placeholder="สถานะทั้งหมด" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-                <SelectItem value="pending">รออนุมัติ</SelectItem>
-                <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
-                <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
-                <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
-                <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
+          <div className="relative flex-1 sm:flex-none">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="ค้นหาใบขอซื้อ"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-
-        </CardToolbar>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-auto">
+              <SelectValue placeholder="สถานะทั้งหมด" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">สถานะทั้งหมด</SelectItem>
+              <SelectItem value="pending">รออนุมัติ</SelectItem>
+              <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
+              <SelectItem value="rejected">ไม่อนุมัติ</SelectItem>
+              <SelectItem value="in_progress">กำลังดำเนินการ</SelectItem>
+              <SelectItem value="delivered">ได้รับแล้ว</SelectItem>
+            </SelectContent>
+          </Select>
+          <DatePickerPresets
+            date={customDateRange}
+            onDateChange={(date) => setCustomDateRange(date)}
+            placeholder="ช่วงวันที่"
+            className="w-full sm:w-auto"
+            numberOfMonths={2}
+          />
+        </div>
       </CardHeader>
       <CardTable>
         <ScrollArea className="h-[400px] sm:h-[500px] md:h-[600px]">

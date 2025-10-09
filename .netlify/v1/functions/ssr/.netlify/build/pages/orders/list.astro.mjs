@@ -1,17 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { g as getDisplayOrderNumber, C as Card, a as CardHeader, b as CardHeading, n as CardToolbar, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
+import { g as getDisplayOrderNumber, C as Card, a as CardHeader, c as CardTable, B as Badge, d as CardFooter, u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
 import { jsxs, jsx } from 'react/jsx-runtime';
 import React__default, { useState, useMemo, useEffect } from 'react';
-import { B as Button, I as Input, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_D5APrsLH.mjs';
+import { B as Button, I as Input, A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, d as db } from '../../chunks/alert_BfmlrKPS.mjs';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, FileText, Search, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_CUKQ534Y.mjs';
-import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BWpHMM2C.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BEOk_MK8.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_BP90S16u.mjs';
-import { C as COLLECTIONS } from '../../chunks/constants_uc-g81Q4.mjs';
+import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DYkLdZFp.mjs';
+import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_Xjrr4NBF.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dk9O8xWT.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_DPfxekZ9.mjs';
+import { parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { D as DatePickerPresets } from '../../chunks/date-picker-presets_D3q084t0.mjs';
+import { C as COLLECTIONS } from '../../chunks/constants_Dm7dVz1D.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const ITEM_CATEGORIES = ["วัตถุดิบ", "Software/Hardware", "เครื่องมือ", "วัสดุสิ้นเปลือง"];
@@ -62,21 +64,43 @@ function OrdersDataTable({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [customDateRange, setCustomDateRange] = useState(void 0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const filteredData = useMemo(() => {
     let filtered = data;
+    if (customDateRange) {
+      const range = customDateRange;
+      if (range.from) {
+        filtered = filtered.filter((order) => {
+          try {
+            const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : order.date ? parseISO(order.date) : null;
+            if (!orderDate) return false;
+            const from = startOfDay(range.from);
+            const to = range.to ? endOfDay(range.to) : endOfDay(range.from);
+            return isWithinInterval(orderDate, { start: from, end: to });
+          } catch (error) {
+            console.error("Date filter error:", error);
+            return false;
+          }
+        });
+      }
+    }
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (order) => order.requesterName?.toLowerCase().includes(search) || order.requester?.toLowerCase().includes(search) || order.id.toLowerCase().includes(search) || order.orderNo?.toString().includes(search)
-      );
+      filtered = filtered.filter((order) => {
+        const orderNumber = order.orderNo ? getDisplayOrderNumber({
+          orderNo: order.orderNo,
+          date: order.date || order.createdAt?.toDate?.()?.toISOString().split("T")[0] || ""
+        }).toLowerCase() : "";
+        return order.requesterName?.toLowerCase().includes(search) || order.requester?.toLowerCase().includes(search) || order.id.toLowerCase().includes(search) || order.orderNo?.toString().includes(search) || orderNumber.includes(search);
+      });
     }
     if (statusFilter !== "all") {
       filtered = filtered.filter((order) => order.status === statusFilter);
     }
     return filtered;
-  }, [data, searchTerm, statusFilter]);
+  }, [data, searchTerm, statusFilter, customDateRange]);
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -99,7 +123,7 @@ function OrdersDataTable({
   };
   React__default.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, customDateRange]);
   if (loading) {
     return /* @__PURE__ */ jsxs("div", { className: "flex justify-center items-center p-12", children: [
       /* @__PURE__ */ jsx(Loader2, { className: "h-8 w-8 animate-spin text-primary" }),
@@ -131,34 +155,41 @@ function OrdersDataTable({
     ] }) });
   }
   return /* @__PURE__ */ jsxs(Card, { children: [
-    /* @__PURE__ */ jsxs(CardHeader, { className: "border-b", children: [
-      /* @__PURE__ */ jsx(CardHeading, { className: "text-lg sm:text-xl", children: "รายการใบขอซื้อ" }),
-      /* @__PURE__ */ jsx(CardToolbar, { children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto", children: [
-        /* @__PURE__ */ jsxs("div", { className: "relative flex-1 sm:flex-none", children: [
-          /* @__PURE__ */ jsx(Search, { className: "absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
-          /* @__PURE__ */ jsx(
-            Input,
-            {
-              placeholder: "ค้นหา...",
-              value: searchTerm,
-              onChange: (e) => setSearchTerm(e.target.value),
-              className: "pl-8 w-full sm:w-48 md:w-64 text-sm"
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxs(Select, { value: statusFilter, onValueChange: setStatusFilter, children: [
-          /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-auto", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
-          /* @__PURE__ */ jsxs(SelectContent, { children: [
-            /* @__PURE__ */ jsx(SelectItem, { value: "all", children: "สถานะทั้งหมด" }),
-            /* @__PURE__ */ jsx(SelectItem, { value: "pending", children: "รออนุมัติ" }),
-            /* @__PURE__ */ jsx(SelectItem, { value: "approved", children: "อนุมัติแล้ว" }),
-            /* @__PURE__ */ jsx(SelectItem, { value: "rejected", children: "ไม่อนุมัติ" }),
-            /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", children: "กำลังดำเนินการ" }),
-            /* @__PURE__ */ jsx(SelectItem, { value: "delivered", children: "ได้รับแล้ว" })
-          ] })
+    /* @__PURE__ */ jsx(CardHeader, { className: "border-b", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full", children: [
+      /* @__PURE__ */ jsxs("div", { className: "relative flex-1 sm:flex-none", children: [
+        /* @__PURE__ */ jsx(Search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" }),
+        /* @__PURE__ */ jsx(
+          Input,
+          {
+            placeholder: "ค้นหาใบขอซื้อ",
+            value: searchTerm,
+            onChange: (e) => setSearchTerm(e.target.value),
+            className: "pl-10"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs(Select, { value: statusFilter, onValueChange: setStatusFilter, children: [
+        /* @__PURE__ */ jsx(SelectTrigger, { className: "w-full sm:w-auto", children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "สถานะทั้งหมด" }) }),
+        /* @__PURE__ */ jsxs(SelectContent, { children: [
+          /* @__PURE__ */ jsx(SelectItem, { value: "all", children: "สถานะทั้งหมด" }),
+          /* @__PURE__ */ jsx(SelectItem, { value: "pending", children: "รออนุมัติ" }),
+          /* @__PURE__ */ jsx(SelectItem, { value: "approved", children: "อนุมัติแล้ว" }),
+          /* @__PURE__ */ jsx(SelectItem, { value: "rejected", children: "ไม่อนุมัติ" }),
+          /* @__PURE__ */ jsx(SelectItem, { value: "in_progress", children: "กำลังดำเนินการ" }),
+          /* @__PURE__ */ jsx(SelectItem, { value: "delivered", children: "ได้รับแล้ว" })
         ] })
-      ] }) })
-    ] }),
+      ] }),
+      /* @__PURE__ */ jsx(
+        DatePickerPresets,
+        {
+          date: customDateRange,
+          onDateChange: (date) => setCustomDateRange(date),
+          placeholder: "ช่วงวันที่",
+          className: "w-full sm:w-auto",
+          numberOfMonths: 2
+        }
+      )
+    ] }) }),
     /* @__PURE__ */ jsx(CardTable, { children: /* @__PURE__ */ jsxs(ScrollArea, { className: "h-[400px] sm:h-[500px] md:h-[600px]", children: [
       /* @__PURE__ */ jsxs(Table, { className: "min-w-[800px]", children: [
         /* @__PURE__ */ jsx(TableHeader, { children: /* @__PURE__ */ jsxs(TableRow, { children: [
@@ -603,13 +634,13 @@ function OrdersListPage() {
       }
     ) }),
     err && /* @__PURE__ */ jsx(Alert, { className: "mb-4", variant: "destructive", children: /* @__PURE__ */ jsx(AlertDescription, { children: err }) }),
-    /* @__PURE__ */ jsxs("div", { className: "mb-6", children: [
-      /* @__PURE__ */ jsxs("h1", { className: "text-3xl font-bold mb-2 flex items-center gap-3", children: [
-        /* @__PURE__ */ jsx(FileText, { className: "w-8 h-8 text-primary" }),
-        "รายการใบขอซื้อ"
-      ] }),
-      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground", children: role === "procurement" ? "เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ" : role === "supervisor" ? "ดูรายการใบขอซื้อทั้งหมด" : "รายการใบขอซื้อทั้งหมด" })
-    ] }),
+    /* @__PURE__ */ jsx("div", { className: "mb-4 sm:mb-6", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 sm:gap-3", children: [
+      /* @__PURE__ */ jsx(FileText, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#2b9ccc]" }),
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("h1", { className: "text-xl sm:text-2xl font-bold", children: "รายการใบขอซื้อ" }),
+        /* @__PURE__ */ jsx("p", { className: "text-xs sm:text-sm text-muted-foreground mt-1", children: role === "procurement" ? "เปลี่ยนสถานะใบขอซื้อ กำหนดประเภทและสถานะของแต่ละรายการ" : "รายการใบขอซื้อทั้งหมด" })
+      ] })
+    ] }) }),
     /* @__PURE__ */ jsx(
       OrdersDataTable,
       {

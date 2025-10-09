@@ -1,196 +1,78 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { C as Card, t as CardContent, v as toNum, w as Separator, $ as $$MainLayout } from '../../chunks/card_BNIED8er.mjs';
-import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
+import { C as Card, t as CardContent, v as toNum, w as Separator, $ as $$MainLayout } from '../../chunks/card_OILLgD4o.mjs';
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { useState, useEffect } from 'react';
-import { e as cn, h as buttonVariants, B as Button, i as auth, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input } from '../../chunks/alert_D5APrsLH.mjs';
-import { grandTotal, createOrder } from '../../chunks/poApi_KBCH0lOO.mjs';
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon, Package, Calendar as Calendar$1, Plus, Trash2 } from 'lucide-react';
+import { e as cn, B as Button, h as auth, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input } from '../../chunks/alert_BfmlrKPS.mjs';
+import { grandTotal, createOrder } from '../../chunks/poApi__Cce2Xya.mjs';
+import { Calendar, X, Package, Plus, Trash2 } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_pBYIHlJJ.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_BEOk_MK8.mjs';
-import { L as Label } from '../../chunks/label_CI3iRGQI.mjs';
-import { getDefaultClassNames, DayPicker } from 'react-day-picker';
-import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_CI-C0rgE.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_BP90S16u.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, e as DialogFooter } from '../../chunks/dialog_BLLtegg-.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Dk9O8xWT.mjs';
+import { L as Label } from '../../chunks/label_Cd5GyM17.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_DPfxekZ9.mjs';
+import { C as Calendar$1 } from '../../chunks/calendar_BlZ6PSKp.mjs';
+import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_C7R8zXXB.mjs';
+import { format } from 'date-fns';
+import 'clsx';
 export { renderers } from '../../renderers.mjs';
 
-function Calendar({
+function DatePickerDefault({
+  date,
+  onDateChange,
+  placeholder = "เลือกวันที่",
   className,
-  classNames,
-  showOutsideDays = true,
-  captionLayout = "label",
-  buttonVariant = "ghost",
-  formatters,
-  components,
-  ...props
+  buttonClassName,
+  showReset = true
 }) {
-  const defaultClassNames = getDefaultClassNames();
-  return /* @__PURE__ */ jsx(
-    DayPicker,
-    {
-      showOutsideDays,
-      className: cn(
-        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
-        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
-        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
-        className
+  const [open, setOpen] = React.useState(false);
+  const handleReset = (e) => {
+    onDateChange?.(void 0);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  return /* @__PURE__ */ jsxs(Popover, { open, onOpenChange: setOpen, children: [
+    /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs("div", { className: cn("relative", className), children: [
+      /* @__PURE__ */ jsxs(
+        Button,
+        {
+          type: "button",
+          variant: "outline",
+          mode: "input",
+          placeholder: !date,
+          className: cn("w-full", buttonClassName),
+          children: [
+            /* @__PURE__ */ jsx(Calendar, { className: "mr-2 h-4 w-4" }),
+            date ? format(date, "dd/MM/yyyy") : /* @__PURE__ */ jsx("span", { children: placeholder })
+          ]
+        }
       ),
-      captionLayout,
-      formatters: {
-        formatMonthDropdown: (date) => date.toLocaleString("default", { month: "short" }),
-        ...formatters
-      },
-      classNames: {
-        root: cn("w-fit", defaultClassNames.root),
-        months: cn(
-          "flex gap-4 flex-col md:flex-row relative",
-          defaultClassNames.months
-        ),
-        month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
-        nav: cn(
-          "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
-          defaultClassNames.nav
-        ),
-        button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
-          defaultClassNames.button_previous
-        ),
-        button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
-          defaultClassNames.button_next
-        ),
-        month_caption: cn(
-          "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
-          defaultClassNames.month_caption
-        ),
-        dropdowns: cn(
-          "w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5",
-          defaultClassNames.dropdowns
-        ),
-        dropdown_root: cn(
-          "relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
-          defaultClassNames.dropdown_root
-        ),
-        dropdown: cn(
-          "absolute bg-popover inset-0 opacity-0",
-          defaultClassNames.dropdown
-        ),
-        caption_label: cn(
-          "select-none font-medium",
-          captionLayout === "label" ? "text-sm" : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
-          defaultClassNames.caption_label
-        ),
-        table: "w-full border-collapse",
-        weekdays: cn("flex", defaultClassNames.weekdays),
-        weekday: cn(
-          "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
-          defaultClassNames.weekday
-        ),
-        week: cn("flex w-full mt-2", defaultClassNames.week),
-        week_number_header: cn(
-          "select-none w-(--cell-size)",
-          defaultClassNames.week_number_header
-        ),
-        week_number: cn(
-          "text-[0.8rem] select-none text-muted-foreground",
-          defaultClassNames.week_number
-        ),
-        day: cn(
-          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
-          defaultClassNames.day
-        ),
-        range_start: cn(
-          "rounded-l-md bg-accent",
-          defaultClassNames.range_start
-        ),
-        range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
-        today: cn(
-          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
-          defaultClassNames.today
-        ),
-        outside: cn(
-          "text-muted-foreground aria-selected:text-muted-foreground",
-          defaultClassNames.outside
-        ),
-        disabled: cn(
-          "text-muted-foreground opacity-50",
-          defaultClassNames.disabled
-        ),
-        hidden: cn("invisible", defaultClassNames.hidden),
-        ...classNames
-      },
-      components: {
-        Root: ({ className: className2, rootRef, ...props2 }) => {
-          return /* @__PURE__ */ jsx(
-            "div",
-            {
-              "data-slot": "calendar",
-              ref: rootRef,
-              className: cn(className2),
-              ...props2
-            }
-          );
+      date && showReset && /* @__PURE__ */ jsx(
+        Button,
+        {
+          type: "button",
+          variant: "dim",
+          size: "sm",
+          className: "absolute top-1/2 -end-0 -translate-y-1/2",
+          onClick: handleReset,
+          children: /* @__PURE__ */ jsx(X, { className: "h-3.5 w-3.5" })
+        }
+      )
+    ] }) }),
+    /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
+      Calendar$1,
+      {
+        mode: "single",
+        selected: date,
+        onSelect: (newDate) => {
+          onDateChange?.(newDate);
+          setOpen(false);
         },
-        Chevron: ({ className: className2, orientation, ...props2 }) => {
-          if (orientation === "left") {
-            return /* @__PURE__ */ jsx(ChevronLeftIcon, { className: cn("size-4", className2), ...props2 });
-          }
-          if (orientation === "right") {
-            return /* @__PURE__ */ jsx(
-              ChevronRightIcon,
-              {
-                className: cn("size-4", className2),
-                ...props2
-              }
-            );
-          }
-          return /* @__PURE__ */ jsx(ChevronDownIcon, { className: cn("size-4", className2), ...props2 });
-        },
-        DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props2 }) => {
-          return /* @__PURE__ */ jsx("td", { ...props2, children: /* @__PURE__ */ jsx("div", { className: "flex size-(--cell-size) items-center justify-center text-center", children }) });
-        },
-        ...components
-      },
-      ...props
-    }
-  );
-}
-function CalendarDayButton({
-  className,
-  day,
-  modifiers,
-  ...props
-}) {
-  const defaultClassNames = getDefaultClassNames();
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (modifiers.focused) ref.current?.focus();
-  }, [modifiers.focused]);
-  return /* @__PURE__ */ jsx(
-    Button,
-    {
-      ref,
-      variant: "ghost",
-      size: "icon",
-      "data-day": day.date.toLocaleDateString(),
-      "data-selected-single": modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle,
-      "data-range-start": modifiers.range_start,
-      "data-range-end": modifiers.range_end,
-      "data-range-middle": modifiers.range_middle,
-      className: cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
-        defaultClassNames.day,
-        className
-      ),
-      ...props
-    }
-  );
+        autoFocus: true
+      }
+    ) })
+  ] });
 }
 
 function CreateOrderPage() {
@@ -443,31 +325,16 @@ function CreateOrderPage() {
             "วันที่ต้องการรับ ",
             /* @__PURE__ */ jsx("span", { className: "text-destructive", children: "*" })
           ] }),
-          /* @__PURE__ */ jsxs(Popover, { children: [
-            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(
-              Button,
-              {
-                variant: "outline",
-                className: cn(
-                  "w-full justify-between text-left font-normal",
-                  !selectedItemDate && "text-muted-foreground"
-                ),
-                children: [
-                  selectedItemDate ? selectedItemDate.toLocaleDateString("th-TH") : "เลือกวันที่ต้องการรับ",
-                  /* @__PURE__ */ jsx(Calendar$1, { className: "ml-auto h-4 w-4 opacity-50" })
-                ]
-              }
-            ) }),
-            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
-              Calendar,
-              {
-                mode: "single",
-                selected: selectedItemDate,
-                onSelect: setSelectedItemDate,
-                captionLayout: "dropdown"
-              }
-            ) })
-          ] })
+          /* @__PURE__ */ jsx(
+            DatePickerDefault,
+            {
+              date: selectedItemDate,
+              onDateChange: setSelectedItemDate,
+              placeholder: "เลือกวันที่ต้องการรับ",
+              className: "w-full",
+              showReset: true
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
           /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
@@ -536,31 +403,16 @@ function CreateOrderPage() {
       /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsx(Label, { className: "text-sm font-medium", children: "วันที่ขอซื้อ" }),
-          /* @__PURE__ */ jsxs(Popover, { children: [
-            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(
-              Button,
-              {
-                variant: "outline",
-                className: cn(
-                  "w-full justify-between text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
-                ),
-                children: [
-                  selectedDate ? selectedDate.toLocaleDateString("th-TH") : "เลือกวันที่",
-                  /* @__PURE__ */ jsx(Calendar$1, { className: "ml-auto h-4 w-4 opacity-50" })
-                ]
-              }
-            ) }),
-            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
-              Calendar,
-              {
-                mode: "single",
-                selected: selectedDate,
-                onSelect: setSelectedDate,
-                captionLayout: "dropdown"
-              }
-            ) })
-          ] })
+          /* @__PURE__ */ jsx(
+            DatePickerDefault,
+            {
+              date: selectedDate,
+              onDateChange: setSelectedDate,
+              placeholder: "เลือกวันที่",
+              className: "w-full",
+              showReset: true
+            }
+          )
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
           /* @__PURE__ */ jsxs(Label, { htmlFor: "requester", className: "text-sm font-medium", children: [
