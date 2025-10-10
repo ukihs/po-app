@@ -129,9 +129,20 @@ export const PUT: APIRoute = async ({ params, request }) => {
             updatedAt: new Date()
           });
         }
-        } catch (error) {
+        
+        try {
+          await serverAuth.setCustomUserClaims(uid, {
+            role: newRole,
+            name: updatedUser.displayName || ''
+          });
+          console.log(`[Auth] Custom claims set for ${uid}: role=${newRole}`);
+        } catch (claimsError) {
+          console.error('Failed to set custom claims:', claimsError);
         }
+      } catch (error) {
+        console.error('Error updating user role:', error);
       }
+    }
     
     if (updateData.displayName && updateData.role === 'supervisor') {
       try {

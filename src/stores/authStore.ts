@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { subscribeAuthAndRole, setAuthCookie } from '../lib/auth';
+import { auth } from '../firebase/client';
 import type { User } from 'firebase/auth';
 import type { UserRole } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
@@ -20,6 +21,7 @@ interface AuthActions {
   initialize: () => void;
   logout: () => void;
   cleanup: () => void;
+  refreshRole: () => Promise<void>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -37,23 +39,37 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: !!user 
       });
       
-      if (user) {
-        sessionStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-        sessionStorage.setItem(STORAGE_KEYS.USER_EMAIL, user.email || '');
-      } else {
-        sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
-        sessionStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
-      }
+      // Optimized: Non-blocking sessionStorage operations
+      queueMicrotask(() => {
+        try {
+          if (user) {
+            sessionStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+            sessionStorage.setItem(STORAGE_KEYS.USER_EMAIL, user.email || '');
+          } else {
+            sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+            sessionStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
+          }
+        } catch (error) {
+          console.error('Failed to update sessionStorage:', error);
+        }
+      });
     },
 
     setRole: (role) => {
       set({ role });
       
-      if (role) {
-        sessionStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
-      } else {
-        sessionStorage.removeItem(STORAGE_KEYS.USER_ROLE);
-      }
+      // Optimized: Non-blocking sessionStorage operations
+      queueMicrotask(() => {
+        try {
+          if (role) {
+            sessionStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+          } else {
+            sessionStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+          }
+        } catch (error) {
+          console.error('Failed to update sessionStorage:', error);
+        }
+      });
     },
 
     setLoading: (isLoading) => set({ isLoading }),
@@ -129,9 +145,16 @@ export const useAuthStore = create<AuthStore>()(
         isLoading: false 
       });
       
-      sessionStorage.removeItem(STORAGE_KEYS.USER_ROLE);
-      sessionStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
-      sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      // Optimized: Non-blocking sessionStorage operations
+      queueMicrotask(() => {
+        try {
+          sessionStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+          sessionStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
+          sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        } catch (error) {
+          console.error('Failed to clear sessionStorage:', error);
+        }
+      });
     },
 
     cleanup: () => {
@@ -139,6 +162,33 @@ export const useAuthStore = create<AuthStore>()(
       if (unsubscribe) {
         unsubscribe();
         set({ unsubscribe: null });
+      }
+    },
+    
+    // Force refresh user role from custom claims
+    refreshRole: async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      try {
+        // Force token refresh to get latest custom claims
+        await user.getIdToken(true);
+        const tokenResult = await user.getIdTokenResult();
+        const role = tokenResult.claims.role as UserRole | undefined;
+        
+        if (role) {
+          set({ role });
+          
+          queueMicrotask(() => {
+            try {
+              sessionStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+            } catch (error) {
+              console.error('Failed to update sessionStorage:', error);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Failed to refresh role:', error);
       }
     }
   }))

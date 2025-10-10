@@ -90,9 +90,6 @@ export async function createNotification(data: {
     recipients.push({ type: 'role', id: data.forRole });
   }
 
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 30);
-
   const notificationData = {
     title: data.title,
     message: data.message,
@@ -105,7 +102,6 @@ export async function createNotification(data: {
     fromUserName: data.fromUserName || currentUser.displayName || 'ระบบ',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    expiresAt: expiresAt,
   };
 
   try {

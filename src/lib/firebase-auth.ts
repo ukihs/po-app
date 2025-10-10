@@ -1,25 +1,39 @@
 import { serverAuth, serverDb } from '../firebase/server';
-import type { AuthUser } from '../types';
+import type { AuthUser, UserRole } from '../types';
 
 export type { AuthUser };
 
 export async function verifyFirebaseToken(idToken: string): Promise<AuthUser | null> {
   try {
     const decodedToken = await serverAuth.verifyIdToken(idToken);
-    const userDoc = await serverDb.collection('users').doc(decodedToken.uid).get();
     
-    if (!userDoc.exists) {
-      console.warn(`User document not found for UID: ${decodedToken.uid}`);
-      return null;
-    }
+    let role = decodedToken.role as UserRole | undefined;
+    let displayName = decodedToken.name as string | undefined;
+    
+    if (!role) {
+      console.log('[Auth Server] No custom claim, reading from Firestore...');
+      const userDoc = await serverDb.collection('users').doc(decodedToken.uid).get();
+      
+      if (!userDoc.exists) {
+        console.warn(`User document not found for UID: ${decodedToken.uid}`);
+        return null;
+      }
 
-    const userData = userDoc.data();
+      const userData = userDoc.data();
+      role = (userData?.role as UserRole) || 'employee';
+      displayName = userData?.displayName || '';
+      
+      serverAuth.setCustomUserClaims(decodedToken.uid, { 
+        role,
+        name: displayName
+      }).catch(err => console.error('Failed to set custom claims:', err));
+    }
     
     return {
       uid: decodedToken.uid,
       email: decodedToken.email || '',
-      displayName: userData?.displayName || '',
-      role: userData?.role || 'employee',
+      displayName: displayName || decodedToken.email?.split('@')[0] || '',
+      role: (role || 'employee') as UserRole,
       emailVerified: decodedToken.email_verified || false
     };
   } catch (error) {

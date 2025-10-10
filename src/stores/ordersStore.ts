@@ -73,20 +73,20 @@ export const useOrdersStore = create<OrdersStore>()(
           collection(db, COLLECTIONS.ORDERS),
           where('requesterUid', '==', userUid),
           orderBy('createdAt', 'desc'),
-          limit(50)
+          limit(30) // ลดจาก 50 เพื่อประหยัด quota
         );
       } else if (role === 'supervisor') {
         q = query(
           collection(db, COLLECTIONS.ORDERS),
           orderBy('createdAt', 'desc'),
-          limit(100)
+          limit(50) // ลดจาก 100 เพื่อประหยัด quota
         );
       } else if (role === 'procurement') {
         q = query(
           collection(db, COLLECTIONS.ORDERS),
           where('status', 'in', ['approved', 'in_progress', 'delivered']),
           orderBy('createdAt', 'desc'),
-          limit(100)
+          limit(50) // ลดจาก 100 เพื่อประหยัด quota
         );
       } else if (role === 'admin') {
         set({ 
@@ -235,16 +235,42 @@ export const useOrdersByUser = (userUid: string) =>
 export const useOrderById = (orderId: string) => 
   useOrdersStore((state) => state.getOrderById(orderId));
 
+// Optimized: Calculate stats in one pass instead of multiple filters
 export const useOrdersStats = () => 
   useOrdersStore((state) => {
     const orders = state.orders;
-    return {
-      total: orders.length,
-      pending: orders.filter(o => o.status === 'pending').length,
-      approved: orders.filter(o => o.status === 'approved').length,
-      rejected: orders.filter(o => o.status === 'rejected').length,
-      inProgress: orders.filter(o => o.status === 'in_progress').length,
-      delivered: orders.filter(o => o.status === 'delivered').length,
-      totalAmount: orders.reduce((sum, order) => sum + order.totalAmount, 0)
-    };
-});
+    
+    // Single pass calculation - O(n) instead of O(6n)
+    return orders.reduce((stats, order) => {
+      stats.total++;
+      stats.totalAmount += order.totalAmount;
+      
+      switch (order.status) {
+        case 'pending':
+          stats.pending++;
+          break;
+        case 'approved':
+          stats.approved++;
+          break;
+        case 'rejected':
+          stats.rejected++;
+          break;
+        case 'in_progress':
+          stats.inProgress++;
+          break;
+        case 'delivered':
+          stats.delivered++;
+          break;
+      }
+      
+      return stats;
+    }, {
+      total: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      inProgress: 0,
+      delivered: 0,
+      totalAmount: 0
+    });
+  });

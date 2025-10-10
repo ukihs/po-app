@@ -10,22 +10,13 @@ import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import type { UserRole } from '../types';
 
+// Optimized: Only write if document doesn't exist
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
   const existingDoc = await getDoc(ref);
   
-  if (existingDoc.exists()) {
-    await setDoc(
-      ref,
-      {
-        uid: user.uid,
-        email: user.email ?? '',
-        displayName: displayName ?? user.displayName ?? (user.email?.split('@')[0] ?? ''),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-  } else {
+  // Only create if doesn't exist (no unnecessary writes)
+  if (!existingDoc.exists()) {
     await setDoc(ref, {
       uid: user.uid,
       email: user.email ?? '',
@@ -34,7 +25,10 @@ export async function ensureUserDoc(user: User, displayName?: string) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    
+    console.log('[Auth] Created new user document for:', user.uid);
   }
+  // Don't update on every login - saves Firestore writes!
 }
 
 export async function signUp(email: string, password: string, displayName?: string) {
@@ -44,19 +38,10 @@ export async function signUp(email: string, password: string, displayName?: stri
   return user;
 }
 
+// Optimized: Don't check on every login
 export async function signIn(email: string, password: string) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
-  
-  try {
-    const userRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userRef);
-    if (!userDoc.exists()) {
-      await ensureUserDoc(user);
-    }
-  } catch (error) {
-    console.warn('Failed to check/create user document:', error);
-  }
-  
+  // ensureUserDoc will be called by subscribeAuthAndRole if needed
   return user;
 }
 
@@ -73,12 +58,45 @@ export async function getIdToken(): Promise<string | null> {
   }
 }
 
-export async function setAuthCookie() {
-  const idToken = await getIdToken();
-  if (!idToken) return;
+export async function setAuthCookie(forceRefresh = false) {
+  const user = auth.currentUser;
+  if (!user) return;
   
-  if (typeof document !== 'undefined') {
-    document.cookie = `firebase-id-token=${idToken}; path=/; max-age=3600; secure; samesite=strict`;
+  try {
+    // Force refresh token if needed
+    const idToken = await user.getIdToken(forceRefresh);
+    
+    if (typeof document !== 'undefined') {
+      document.cookie = `firebase-id-token=${idToken}; path=/; max-age=3600; secure; samesite=strict`;
+    }
+  } catch (error) {
+    console.error('Failed to set auth cookie:', error);
+  }
+}
+
+// Auto-refresh token every 50 minutes (before 1 hour expiry)
+let tokenRefreshInterval: NodeJS.Timeout | null = null;
+
+export function startTokenRefresh() {
+  // Clear existing interval
+  if (tokenRefreshInterval) {
+    clearInterval(tokenRefreshInterval);
+  }
+  
+  // Refresh token every 50 minutes
+  tokenRefreshInterval = setInterval(async () => {
+    const user = auth.currentUser;
+    if (user) {
+      console.log('[Auth] Auto-refreshing token...');
+      await setAuthCookie(true); // Force refresh
+    }
+  }, 50 * 60 * 1000); // 50 minutes
+}
+
+export function stopTokenRefresh() {
+  if (tokenRefreshInterval) {
+    clearInterval(tokenRefreshInterval);
+    tokenRefreshInterval = null;
   }
 }
 
@@ -96,38 +114,48 @@ export async function signOutUser() {
 }
 
 
+// Optimized: Use custom claims instead of Firestore listener
 export function subscribeAuthAndRole(
   cb: (user: User | null, role: UserRole | null) => void
 ) {
-  let offUserDoc: (() => void) | null = null;
-
-  const offAuth = onAuthStateChanged(auth, (user) => {
-    if (offUserDoc) {
-      offUserDoc();
-      offUserDoc = null;
-    }
+  const offAuth = onAuthStateChanged(auth, async (user) => {
     if (!user) {
       cb(null, null);
       return;
     }
 
-    const ref = doc(db, 'users', user.uid);
-    offUserDoc = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        const role = (snap.data()?.role ?? 'employee') as UserRole;
-        cb(user, role);
-      } else {
-        ensureUserDoc(user).then(() => {
-        }).catch(console.error);
+    try {
+      // Get role from custom claims (no Firestore read!)
+      const tokenResult = await user.getIdTokenResult();
+      let role = tokenResult.claims.role as UserRole | undefined;
+      
+      // Fallback: If no custom claim, read from Firestore once
+      if (!role) {
+        console.log('[Auth] No custom claim found, reading from Firestore...');
+        const ref = doc(db, 'users', user.uid);
+        const snap = await getDoc(ref);
+        
+        if (snap.exists()) {
+          role = (snap.data()?.role ?? 'employee') as UserRole;
+        } else {
+          // Create user doc if not exists
+          await ensureUserDoc(user);
+          role = 'employee';
+        }
       }
-    }, (error) => {
+      
+      cb(user, role);
+      
+      // Start token refresh
+      startTokenRefresh();
+    } catch (error) {
       console.error('Auth subscription error:', error);
       cb(user, null);
-    });
+    }
   });
 
   return () => {
-    if (offUserDoc) offUserDoc();
+    stopTokenRefresh();
     offAuth();
   };
 }

@@ -2,7 +2,7 @@ import { d as createComponent, e as createAstro } from '../chunks/astro/server_B
 import 'kleur/colors';
 import 'clsx';
 /* empty css                                  */
-import { a as extractIdTokenFromCookie, v as verifyFirebaseToken } from '../chunks/firebase-auth_lYIhD4kb.mjs';
+import { a as extractIdTokenFromCookie, v as verifyFirebaseToken } from '../chunks/firebase-auth_iX5wBEXu.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro();

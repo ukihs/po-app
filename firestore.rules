@@ -8,7 +8,7 @@ service cloud.firestore {
 
     function getUserRole() {
       return isAuth() 
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        ? request.auth.token.role
         : null;
     }
 
@@ -16,21 +16,6 @@ service cloud.firestore {
       return getUserRole() == 'admin'; 
     }
 
-    function hasMinRole(minRole) {
-      let role = getUserRole();
-      let hierarchy = {
-        'employee': 1,
-        'supervisor': 2,
-        'procurement': 3,
-        'admin': 99
-      };
-      return hierarchy[role] >= hierarchy[minRole];
-    }
-
-    function isSupervisorOf(employeeUid) {
-      return isAuth() && 
-        get(/databases/$(database)/documents/users/$(employeeUid)).data.supervisorUid == request.auth.uid;
-    }
 
     function onlyChanges(allowedFields) {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly(allowedFields);
@@ -38,84 +23,30 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuth();
-
       allow create: if isAdmin();
-
       allow update: if isAdmin() || 
                        (isAuth() && 
                         request.auth.uid == userId && 
                         onlyChanges(['displayName', 'email', 'firstName', 'lastName', 'photoURL']));
-
       allow delete: if isAdmin();
     }
 
     match /orders/{orderId} {
       allow read: if isAuth();
-
-      allow create: if isAuth();
-
+      allow create: if isAuth() && getUserRole() in ['employee', 'supervisor', 'procurement'];
       allow update: if isAuth() && 
-        resource.data.status == 'pending' &&
-        isAuth() && request.auth.uid == resource.data.requesterUid &&
-        onlyChanges([
-          'items', 'total', 'totalAmount', 'date', 
-          'requesterName', 'updatedAt'
-        ]);
-
-      allow update: if isAuth() && 
-        resource.data.status == 'pending' &&
-        onlyChanges([
-          'status', 'approvedBy', 'approvedAt', 'approvedByUid',
-          'rejectedReason', 'rejectedAt', 'rejectedByUid',
-          'updatedAt', 'timestamps'
-        ]);
-
-      allow update: if isAuth() && 
-        onlyChanges([
-          'status', 'procurementStatus', 'procurementNote',
-          'itemsCategories', 'itemsStatuses', 'items',
-          'expectedDate', 'deliveredDate', 'trackingNumber',
-          'vendorId', 'vendorName', 'poNumber',
-          'timestamps', 'updatedAt'
-        ]);
-
+                       (isAdmin() ||
+                        (request.auth.uid == resource.data.requesterUid && resource.data.status == 'pending') ||
+                        (getUserRole() == 'supervisor' && resource.data.status != 'rejected') ||
+                        (getUserRole() == 'procurement' && resource.data.status != 'pending' && resource.data.status != 'rejected'));
       allow delete: if isAdmin();
     }
 
     match /notifications/{notificationId} {
-      function isRecipient() {
-        let userRecipient = {'type': 'user', 'id': request.auth.uid};
-        let roleRecipient = {'type': 'role', 'id': getUserRole()};
-        return resource.data.recipients.hasAny([userRecipient, roleRecipient]);
-      }
-
-      function isNotExpired() {
-        return !('expiresAt' in resource.data) || 
-               resource.data.expiresAt > request.time;
-      }
-
-      allow read: if isAdmin() ||
-                     (isAuth() && isRecipient() && isNotExpired());
-
-      allow create: if isAuth() && 
-                       request.resource.data.fromUserUid == request.auth.uid &&
-                       request.resource.data.recipients is list &&
-                       request.resource.data.recipients.size() > 0 &&
-                       request.resource.data.readBy is list &&
-                       request.resource.data.title is string &&
-                       request.resource.data.message is string &&
-                       request.resource.data.orderId is string &&
-                       request.resource.data.orderNo is number &&
-                       request.resource.data.kind is string;
-
-      allow update: if isAuth() && 
-                       isRecipient() &&
-                       onlyChanges(['readBy', 'updatedAt']) &&
-                       request.resource.data.readBy.hasAll(resource.data.readBy) &&
-                       request.resource.data.readBy.hasAny([request.auth.uid]);
-
-      allow delete: if isAdmin() || 
-                       ('expiresAt' in resource.data && resource.data.expiresAt < request.time);
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     match /counters/{counterId} {

@@ -1,11 +1,11 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, I as useOrderById, g as getDisplayOrderNumber, C as Card, t as CardContent, B as Badge, a as CardHeader, J as CardTitle, $ as $$MainLayout } from '../../chunks/card_C1_XJCDQ.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, I as useOrderById, g as getDisplayOrderNumber, C as Card, t as CardContent, B as Badge, a as CardHeader, J as CardTitle, $ as $$MainLayout } from '../../chunks/card_0XYoxqwD.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import React__default, { useState } from 'react';
-import { A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, B as Button, d as db, h as auth } from '../../chunks/alert_S3l8KyRq.mjs';
+import { A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, B as Button, d as db, h as auth } from '../../chunks/alert_JioKFGew.mjs';
 import { updateDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_DM9Azm8M.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Xu5j_Ieu.mjs';
 import { Loader2, FileText, User, Calendar, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
 import { C as COLLECTIONS } from '../../chunks/constants_Db4py-1P.mjs';
@@ -88,7 +88,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_fbbMJkiU.mjs');
+        const poApi = await import('../../chunks/poApi_BqdytYgU.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,

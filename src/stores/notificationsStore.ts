@@ -87,17 +87,28 @@ export const useNotificationsStore = create<NotificationsStore>()(
       const userRecipient: NotificationRecipient = { type: 'user', id: userUid };
       const roleRecipient: NotificationRecipient = { type: 'role', id: role };
 
+      // Optimized: Use Map for O(n) deduplication instead of O(n²)
       const mergeNotifications = (userNotifications: Notification[], roleNotifications: Notification[]) => {
-        const allNotifications = [...userNotifications, ...roleNotifications];
-        const uniqueNotifications = allNotifications.filter((notification, index, arr) => 
-          arr.findIndex(n => n.id === notification.id) === index
-        );
-
+        const notificationMap = new Map<string, Notification>();
+        
+        // Add user notifications to map
+        userNotifications.forEach(n => notificationMap.set(n.id, n));
+        
+        // Add role notifications (won't duplicate due to Map)
+        roleNotifications.forEach(n => {
+          if (!notificationMap.has(n.id)) {
+            notificationMap.set(n.id, n);
+          }
+        });
+        
+        // Convert to array and sort
+        const uniqueNotifications = Array.from(notificationMap.values());
         uniqueNotifications.sort((a, b) => {
           if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
           return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
         });
 
+        // Filter expired notifications
         const now = new Date();
         const activeNotifications = uniqueNotifications.filter(n => {
           if (!n.expiresAt) return true;
@@ -118,7 +129,7 @@ export const useNotificationsStore = create<NotificationsStore>()(
         collection(db, COLLECTIONS.NOTIFICATIONS),
         where('recipients', 'array-contains', userRecipient),
         orderBy('createdAt', 'desc'),
-        limit(50)
+        limit(25)
       );
 
       const newUserUnsubscribe = onSnapshot(
@@ -152,7 +163,7 @@ export const useNotificationsStore = create<NotificationsStore>()(
         collection(db, COLLECTIONS.NOTIFICATIONS),
         where('recipients', 'array-contains', roleRecipient),
         orderBy('createdAt', 'desc'),
-        limit(50)
+        limit(25)
       );
 
       const newRoleUnsubscribe = onSnapshot(
@@ -283,16 +294,46 @@ export const useNotificationsByKind = (kind: NotificationKind) =>
 export const useUnreadNotifications = (userUid: string) => 
   useNotificationsStore((state) => state.getUnreadNotifications(userUid));
 
-export const useNotificationStats = () => 
+// Optimized: Calculate stats in one pass instead of multiple filters
+export const useNotificationStats = (userUid?: string) => 
   useNotificationsStore((state) => {
     const notifications = state.notifications;
-    return {
-      total: notifications.length,
-      unread: notifications.length,
+    
+    // Single pass calculation - O(n) instead of O(5n)
+    return notifications.reduce((stats, n) => {
+      stats.total++;
+      
+      // Count unread
+      if (userUid && !n.readBy?.includes(userUid)) {
+        stats.unread++;
+      } else if (userUid) {
+        stats.read++;
+      }
+      
+      // Count by kind
+      switch (n.kind) {
+        case 'approval_request':
+          stats.approvalRequests++;
+          break;
+        case 'approved':
+          stats.approved++;
+          break;
+        case 'rejected':
+          stats.rejected++;
+          break;
+        case 'status_update':
+          stats.statusUpdates++;
+          break;
+      }
+      
+      return stats;
+    }, {
+      total: 0,
+      unread: 0,
       read: 0,
-      approvalRequests: notifications.filter(n => n.kind === 'approval_request').length,
-      approved: notifications.filter(n => n.kind === 'approved').length,
-      rejected: notifications.filter(n => n.kind === 'rejected').length,
-      statusUpdates: notifications.filter(n => n.kind === 'status_update').length
-    };
+      approvalRequests: 0,
+      approved: 0,
+      rejected: 0,
+      statusUpdates: 0
+    });
   });
