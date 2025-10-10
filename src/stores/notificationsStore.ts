@@ -24,6 +24,8 @@ interface NotificationsState {
   error: string | null;
   lastFetch: number | null;
   unsubscribe: Unsubscribe | null;
+  userUnsubscribe: Unsubscribe | null;
+  roleUnsubscribe: Unsubscribe | null;
 }
 
 interface NotificationsActions {
@@ -48,6 +50,8 @@ export const useNotificationsStore = create<NotificationsStore>()(
     error: null,
     lastFetch: null,
     unsubscribe: null,
+    userUnsubscribe: null,
+    roleUnsubscribe: null,
     setNotifications: (notifications) => {
       set({ 
         notifications, 
@@ -62,18 +66,18 @@ export const useNotificationsStore = create<NotificationsStore>()(
     setError: (error) => set({ error }),
 
     fetchNotifications: (userUid: string, role: UserRole) => {
-      const { unsubscribe } = get();
+      const { userUnsubscribe, roleUnsubscribe } = get();
       
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      if (userUnsubscribe) userUnsubscribe();
+      if (roleUnsubscribe) roleUnsubscribe();
 
-      // Admin doesn't get order-related notifications
       if (role === 'admin') {
         set({ 
           loading: false, 
           notifications: [],
-          unreadCount: 0
+          unreadCount: 0,
+          userUnsubscribe: null,
+          roleUnsubscribe: null
         });
         return;
       }
@@ -83,17 +87,44 @@ export const useNotificationsStore = create<NotificationsStore>()(
       const userRecipient: NotificationRecipient = { type: 'user', id: userUid };
       const roleRecipient: NotificationRecipient = { type: 'role', id: role };
 
-      const q = query(
+      const mergeNotifications = (userNotifications: Notification[], roleNotifications: Notification[]) => {
+        const allNotifications = [...userNotifications, ...roleNotifications];
+        const uniqueNotifications = allNotifications.filter((notification, index, arr) => 
+          arr.findIndex(n => n.id === notification.id) === index
+        );
+
+        uniqueNotifications.sort((a, b) => {
+          if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
+          return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+        });
+
+        const now = new Date();
+        const activeNotifications = uniqueNotifications.filter(n => {
+          if (!n.expiresAt) return true;
+          const expiresAt = n.expiresAt.toDate ? n.expiresAt.toDate() : new Date(n.expiresAt);
+          return expiresAt > now;
+        });
+
+        get().setNotifications(activeNotifications);
+        set({ loading: false });
+      };
+
+      let userNotifications: Notification[] = [];
+      let roleNotifications: Notification[] = [];
+      let userDataReady = false;
+      let roleDataReady = false;
+
+      const userQ = query(
         collection(db, COLLECTIONS.NOTIFICATIONS),
         where('recipients', 'array-contains', userRecipient),
         orderBy('createdAt', 'desc'),
-        limit(100)
+        limit(50)
       );
 
-      const newUnsubscribe = onSnapshot(
-        q,
+      const newUserUnsubscribe = onSnapshot(
+        userQ,
         (snapshot) => {
-          let notifications = snapshot.docs.map((doc) => {
+          userNotifications = snapshot.docs.map((doc) => {
             const data = doc.data();
             return {
               id: doc.id,
@@ -103,57 +134,58 @@ export const useNotificationsStore = create<NotificationsStore>()(
             };
           }) as Notification[];
 
-          const roleQ = query(
-            collection(db, COLLECTIONS.NOTIFICATIONS),
-            where('recipients', 'array-contains', roleRecipient),
-            orderBy('createdAt', 'desc'),
-            limit(100)
-          );
-
-          onSnapshot(roleQ, (roleSnapshot) => {
-            const roleNotifications = roleSnapshot.docs.map((doc) => {
-              const data = doc.data();
-              return {
-                id: doc.id,
-                ...data,
-                readBy: data.readBy || [],
-                recipients: data.recipients || []
-              };
-            }) as Notification[];
-
-            const allNotifications = [...notifications, ...roleNotifications];
-            const uniqueNotifications = allNotifications.filter((notification, index, arr) => 
-              arr.findIndex(n => n.id === notification.id) === index
-            );
-
-            uniqueNotifications.sort((a, b) => {
-              if (!a.createdAt?.toDate || !b.createdAt?.toDate) return 0;
-              return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
-            });
-
-            const now = new Date();
-            const activeNotifications = uniqueNotifications.filter(n => {
-              if (!n.expiresAt) return true;
-              const expiresAt = n.expiresAt.toDate ? n.expiresAt.toDate() : new Date(n.expiresAt);
-              return expiresAt > now;
-            });
-
-            get().setNotifications(activeNotifications);
-            set({ loading: false });
-          });
+          userDataReady = true;
+          if (roleDataReady) {
+            mergeNotifications(userNotifications, roleNotifications);
+          }
         },
         (error) => {
-          console.error('Notifications fetch error:', error);
+          console.error('User notifications fetch error:', error);
           set({ 
             error: String(error?.message || error), 
-            loading: false,
-            notifications: [],
-            unreadCount: 0
+            loading: false
           });
         }
       );
 
-      set({ unsubscribe: newUnsubscribe });
+      const roleQ = query(
+        collection(db, COLLECTIONS.NOTIFICATIONS),
+        where('recipients', 'array-contains', roleRecipient),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+
+      const newRoleUnsubscribe = onSnapshot(
+        roleQ,
+        (snapshot) => {
+          roleNotifications = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              readBy: data.readBy || [],
+              recipients: data.recipients || []
+            };
+          }) as Notification[];
+
+          roleDataReady = true;
+          if (userDataReady) {
+            mergeNotifications(userNotifications, roleNotifications);
+          }
+        },
+        (error) => {
+          console.error('Role notifications fetch error:', error);
+          set({ 
+            error: String(error?.message || error), 
+            loading: false
+          });
+        }
+      );
+
+      set({ 
+        userUnsubscribe: newUserUnsubscribe,
+        roleUnsubscribe: newRoleUnsubscribe
+      });
     },
 
     markAsRead: async (notificationId: string, userUid: string) => {
@@ -213,10 +245,14 @@ export const useNotificationsStore = create<NotificationsStore>()(
     },
 
     cleanup: () => {
-      const { unsubscribe } = get();
-      if (unsubscribe) {
-        unsubscribe();
-        set({ unsubscribe: null });
+      const { userUnsubscribe, roleUnsubscribe } = get();
+      if (userUnsubscribe) {
+        userUnsubscribe();
+        set({ userUnsubscribe: null });
+      }
+      if (roleUnsubscribe) {
+        roleUnsubscribe();
+        set({ roleUnsubscribe: null });
       }
     },
 

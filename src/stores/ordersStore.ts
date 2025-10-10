@@ -8,7 +8,8 @@ import {
   onSnapshot, 
   doc, 
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  limit
 } from 'firebase/firestore';
 type Unsubscribe = () => void;
 import { db } from '../firebase/client';
@@ -68,27 +69,26 @@ export const useOrdersStore = create<OrdersStore>()(
       let q;
       
       if (role === 'employee') {
-        // Employee: Only see own orders
         q = query(
           collection(db, COLLECTIONS.ORDERS),
           where('requesterUid', '==', userUid),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(50)
         );
       } else if (role === 'supervisor') {
-        // Supervisor: See all orders (will filter subordinates client-side)
         q = query(
           collection(db, COLLECTIONS.ORDERS),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(100)
         );
       } else if (role === 'procurement') {
-        // Procurement: See approved, in_progress, and delivered orders
         q = query(
           collection(db, COLLECTIONS.ORDERS),
           where('status', 'in', ['approved', 'in_progress', 'delivered']),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(100)
         );
       } else if (role === 'admin') {
-        // Admin: No access to orders
         set({ 
           loading: false, 
           error: 'Admin ไม่มีสิทธิ์เข้าถึงใบขอซื้อ',

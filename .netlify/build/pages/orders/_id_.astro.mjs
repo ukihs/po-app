@@ -1,6 +1,6 @@
 import { d as createComponent, e as createAstro, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, I as useOrderById, g as getDisplayOrderNumber, C as Card, t as CardContent, B as Badge, a as CardHeader, J as CardTitle, $ as $$MainLayout } from '../../chunks/card_B9Usrq8o.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, I as useOrderById, g as getDisplayOrderNumber, C as Card, t as CardContent, B as Badge, a as CardHeader, J as CardTitle, $ as $$MainLayout } from '../../chunks/card_C1_XJCDQ.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import React__default, { useState } from 'react';
 import { A as Alert, a as AlertDescription, b as AlertIcon, c as AlertTitle, B as Button, d as db, h as auth } from '../../chunks/alert_S3l8KyRq.mjs';
@@ -88,7 +88,7 @@ function OrderDetailPage({ orderId }) {
         createdAt: serverTimestamp()
       });
       try {
-        const poApi = await import('../../chunks/poApi_CYdIXaGR.mjs');
+        const poApi = await import('../../chunks/poApi_fbbMJkiU.mjs');
         await poApi.createNotification({
           title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
           message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
