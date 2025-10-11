@@ -11,19 +11,24 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { useUser, useRole, useIsLoading } from '../../stores';
-import { FileText, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { FileText, Trash2, AlertTriangle, RefreshCw, Eye, Package } from 'lucide-react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogBody } from '../ui/dialog';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '../ui/empty';
+import { Badge } from '../ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Separator } from '../ui/separator';
+import { ScrollArea } from '../ui/scroll-area';
 import { 
   RiCheckboxCircleFill, 
   RiErrorWarningFill, 
   RiSpam3Fill, 
   RiInformationFill 
 } from '@remixicon/react';
-import type { Order } from '../../types';
-import { getDisplayOrderNumber } from '../../lib/order-utils';
+import type { Order, OrderStatus } from '../../types';
+import { getDisplayOrderNumber, formatCurrency, getStatusLabel } from '../../lib/order-utils';
+import { ORDER_STATUS_LABELS } from '../../lib/constants';
 import OrdersManagementDataTable from './OrdersManagementDataTable';
 
 export default function OrdersManagementPage() {
@@ -32,6 +37,7 @@ export default function OrdersManagementPage() {
   const [err, setErr] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   
   const [alertState, setAlertState] = useState<{
     show: boolean;
@@ -88,11 +94,8 @@ export default function OrdersManagementPage() {
   }, [user, role, authLoading]);
 
   const handleViewOrder = (order: Order) => {
-    import('astro:transitions/client')
-      .then(({ navigate }) => navigate(`/orders/${order.id}`))
-      .catch(() => {
-        window.location.href = `/orders/${order.id}`;
-      });
+    setSelectedOrder(order);
+    setShowDetailDialog(true);
   };
 
   const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
@@ -137,6 +140,36 @@ export default function OrdersManagementPage() {
           IconComponent: RiInformationFill
         };
     }
+  };
+
+  const getStatusBadge = (status: OrderStatus) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="warning" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+      case 'approved':
+        return <Badge variant="success" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+      case 'in_progress':
+        return <Badge variant="info" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+      case 'delivered':
+        return <Badge variant="success" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+      default:
+        return <Badge variant="secondary" appearance="light">{ORDER_STATUS_LABELS[status]}</Badge>;
+    }
+  };
+
+  const formatTimestamp = (ts: any) => {
+    if (!ts) return '—';
+    return ts?.toDate
+      ? ts.toDate().toLocaleString('th-TH', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : '—';
   };
 
   const handleDeleteOrder = (order: Order) => {
@@ -254,6 +287,148 @@ export default function OrdersManagementPage() {
         onShowAlert={showAlert}
       />
 
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] mx-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              รายละเอียดใบขอซื้อ
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              ข้อมูลโดยละเอียดของใบขอซื้อ {selectedOrder ? getDisplayOrderNumber(selectedOrder) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <DialogBody>
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      ข้อมูลทั่วไป
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground mb-1">เลขที่ใบขอซื้อ</p>
+                        <p className="font-semibold">{getDisplayOrderNumber(selectedOrder)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-1">วันที่</p>
+                        <p className="font-medium">{selectedOrder.date || formatTimestamp(selectedOrder.createdAt)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-1">ผู้ขอซื้อ</p>
+                        <p className="font-medium">{selectedOrder.requesterName || selectedOrder.requester || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-1">สถานะ</p>
+                        <div>{getStatusBadge(selectedOrder.status)}</div>
+                      </div>
+                      {selectedOrder.procurementStatus && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">สถานะการจัดซื้อ</p>
+                          <Badge variant="info" appearance="outline">{selectedOrder.procurementStatus}</Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      รายการสินค้า ({selectedOrder.items?.length || 0} รายการ)
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">#</TableHead>
+                            <TableHead>รายการ</TableHead>
+                            <TableHead className="text-center">วันที่ต้องการ</TableHead>
+                            <TableHead className="text-center">ประเภท</TableHead>
+                            <TableHead className="text-right">จำนวน</TableHead>
+                            <TableHead className="text-right">ราคา/หน่วย</TableHead>
+                            <TableHead className="text-right">รวม</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedOrder.items?.map((item, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="text-center">{idx + 1}</TableCell>
+                              <TableCell className="max-w-[200px]">
+                                <div className="line-clamp-2">{item.description}</div>
+                              </TableCell>
+                              <TableCell className="text-center text-sm">
+                                {item.receivedDate || '-'}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="secondary" size="sm">{item.itemType}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">{item.quantity}</TableCell>
+                              <TableCell className="text-right tabular-nums">{item.amount.toLocaleString('th-TH')}</TableCell>
+                              <TableCell className="text-right tabular-nums font-medium">
+                                {item.lineTotal.toLocaleString('th-TH')}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-right font-semibold">
+                              ยอดรวมทั้งหมด
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-lg tabular-nums">
+                              {(selectedOrder.totalAmount || selectedOrder.total || 0).toLocaleString('th-TH')} บาท
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                  
+                    {(selectedOrder.approvedByName || selectedOrder.rejectedReason) && (
+                      <>
+                        <Separator />
+                        <div className="space-y-4">
+                          <h3 className="text-base font-semibold">ข้อมูลการอนุมัติ</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            {selectedOrder.approvedByName && (
+                              <>
+                                <div>
+                                  <p className="text-muted-foreground mb-1">ผู้อนุมัติ</p>
+                                  <p className="font-medium">{selectedOrder.approvedByName}</p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground mb-1">วันที่อนุมัติ</p>
+                                  <p className="font-medium">{formatTimestamp(selectedOrder.approvedAt)}</p>
+                                </div>
+                              </>
+                            )}
+                            {selectedOrder.rejectedReason && (
+                              <div className="sm:col-span-2">
+                                <p className="text-muted-foreground mb-1">เหตุผลที่ไม่อนุมัติ</p>
+                                <p className="font-medium text-destructive">{selectedOrder.rejectedReason}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                </div>
+              </ScrollArea>
+            </DialogBody>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+              ปิด
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog ยืนยันการลบ */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] mx-4" showCloseButton={false}>
           <DialogHeader>

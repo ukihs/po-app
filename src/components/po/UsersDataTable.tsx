@@ -216,6 +216,12 @@ const createColumns = (onEditUser: (user: User) => void, onDeleteUser: (user: Us
     header: ({ column }) => <DataGridColumnHeader title="หัวหน้างาน" visibility={true} column={column} />,
     cell: ({ row }) => {
       const supervisorName = row.getValue("supervisorName") as string;
+      const role = row.getValue("role") as string;
+      
+      if (role === 'supervisor' || role === 'procurement' || role === 'admin') {
+        return <div className="font-medium text-foreground">-</div>;
+      }
+      
       return (
         <div className="font-medium text-foreground">
           {supervisorName || 'ยังไม่กำหนด'}
@@ -259,19 +265,25 @@ export default function UsersDataTable({
   const columns = useMemo(() => createColumns(onEditUser, onDeleteUser, onResetPassword, isCurrentUser, onShowAlert), [onEditUser, onDeleteUser, onResetPassword, isCurrentUser, onShowAlert]);
 
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const matchesRole = !selectedRoles?.length || selectedRoles.includes(item.role || 'employee');
-
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        Object.values(item)
-          .join(' ')
-          .toLowerCase()
-          .includes(searchLower);
-
-      return matchesRole && matchesSearch;
-    });
+    let filtered = data;
+    
+    if (searchQuery) {
+      const search = searchQuery.toLowerCase();
+      filtered = filtered.filter(user => {
+        return (
+          user.firstName?.toLowerCase().includes(search) ||
+          user.lastName?.toLowerCase().includes(search) ||
+          user.displayName?.toLowerCase().includes(search) ||
+          user.email?.toLowerCase().includes(search)
+        );
+      });
+    }
+    
+    if (selectedRoles?.length) {
+      filtered = filtered.filter(user => selectedRoles.includes(user.role || 'employee'));
+    }
+    
+    return filtered;
   }, [searchQuery, selectedRoles, data]);
 
   const roleCounts = useMemo(() => {
@@ -293,6 +305,10 @@ export default function UsersDataTable({
 
   const [columnOrder, setColumnOrder] = useState<string[]>(columns.map((column) => column.id as string));
 
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [searchQuery, selectedRoles]);
 
   const table = useReactTable({
     columns,

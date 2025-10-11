@@ -154,9 +154,9 @@ export async function createOrder(payload: CreateOrderPayload) {
       }
     };
 
-    // Add approval info for auto-approved orders
     if (shouldAutoApprove) {
-      docData.approvedBy = payload.requesterName;
+      docData.approvedBy = u.uid;
+      docData.approvedByName = payload.requesterName;
       docData.approvedByUid = u.uid;
       docData.approvedAt = serverTimestamp();
       docData.timestamps.approved = serverTimestamp();
@@ -165,7 +165,6 @@ export async function createOrder(payload: CreateOrderPayload) {
 
     const ref = await addDoc(collection(db, COLLECTIONS.ORDERS), docData);
 
-    // Send notification only for employee orders (not supervisor/procurement)
     try {
       if (userDoc.exists()) {
         const userData = userDoc.data();
@@ -292,6 +291,7 @@ export async function approveOrder(orderId: string, approved: boolean) {
     status: newStatus,
     approvedAt: serverTimestamp(),
     approvedBy: auth.currentUser?.uid || '',
+    approvedByName: auth.currentUser?.displayName || auth.currentUser?.email || '',
     approvedByUid: auth.currentUser?.uid || '',
     updatedAt: serverTimestamp(),
     ...timestampUpdate

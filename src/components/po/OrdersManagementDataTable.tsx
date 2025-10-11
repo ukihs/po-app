@@ -49,6 +49,9 @@ import type {
 
 import type { Order, OrderStatus } from '../../types';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
+import type { DateRange } from 'react-day-picker';
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { DatePickerPresets } from '../ui/date-picker-presets';
 
 const STATUS_TH: Record<OrderStatus, string> = {
   pending: 'รออนุมัติ',
@@ -152,22 +155,59 @@ export default function OrdersManagementDataTable({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
 
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const matchesStatus = !selectedStatuses?.length || selectedStatuses.includes(item.status);
-
-      const searchLower = globalFilter.toLowerCase();
-      const matchesSearch =
-        !globalFilter ||
-        Object.values(item)
-          .join(' ')
-          .toLowerCase()
-          .includes(searchLower);
-
-      return matchesStatus && matchesSearch;
-    });
-  }, [globalFilter, selectedStatuses, data]);
+    let filtered = data;
+    
+    if (customDateRange) {
+      const range = customDateRange as DateRange;
+      if (range.from) {
+        filtered = filtered.filter(order => {
+          try {
+            const orderDate = order.createdAt?.toDate ? 
+              order.createdAt.toDate() : 
+              (order.date ? parseISO(order.date) : null);
+            
+            if (!orderDate) return false;
+            
+            const from = startOfDay(range.from!);
+            const to = range.to ? endOfDay(range.to) : endOfDay(range.from!);
+            
+            return isWithinInterval(orderDate, { start: from, end: to });
+          } catch (error) {
+            console.error('Date filter error:', error);
+            return false;
+          }
+        });
+      }
+    }
+    
+    if (globalFilter) {
+      const search = globalFilter.toLowerCase();
+      filtered = filtered.filter(order => {
+        const orderNumber = order.orderNo ? 
+          getDisplayOrderNumber({ 
+            orderNo: order.orderNo, 
+            date: order.date || order.createdAt?.toDate?.()?.toISOString().split('T')[0] || '' 
+          }).toLowerCase() : '';
+        
+        return (
+          order.requesterName?.toLowerCase().includes(search) ||
+          order.requester?.toLowerCase().includes(search) ||
+          order.id.toLowerCase().includes(search) ||
+          order.orderNo?.toString().includes(search) ||
+          orderNumber.includes(search)
+        );
+      });
+    }
+    
+    if (selectedStatuses?.length) {
+      filtered = filtered.filter(order => selectedStatuses.includes(order.status));
+    }
+    
+    return filtered;
+  }, [data, globalFilter, selectedStatuses, customDateRange]);
 
   const statusCounts = useMemo(() => {
     return data.reduce(
@@ -282,6 +322,11 @@ export default function OrdersManagementDataTable({
     [onViewOrder, onDeleteOrder]
   );
 
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [globalFilter, selectedStatuses, customDateRange]);
+
   const table = useReactTable({
     columns,
     data: filteredData,
@@ -392,6 +437,13 @@ export default function OrdersManagementDataTable({
                   </div>
                 </PopoverContent>
               </Popover>
+              <DatePickerPresets
+                date={customDateRange}
+                onDateChange={(date) => setCustomDateRange(date)}
+                placeholder="ช่วงวันที่"
+                className="w-full sm:w-auto"
+                numberOfMonths={2}
+              />
             </div>
           </CardHeading>
         </CardHeader>

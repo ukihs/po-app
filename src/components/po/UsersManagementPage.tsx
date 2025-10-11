@@ -720,82 +720,18 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="space-y-1.5 sm:space-y-2">
-              <label htmlFor="supervisor" className="text-xs sm:text-sm font-medium">
-                หัวหน้างาน
-              </label>
-              <Popover open={supervisorOpen} onOpenChange={setSupervisorOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={supervisorOpen}
-                    className="w-full justify-between text-xs sm:text-sm"
-                  >
-                    {supervisorValue
-                      ? supervisors.find((supervisor) => supervisor.uid === supervisorValue)?.displayName
-                      : "เลือกหัวหน้างาน..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
-                    <CommandList>
-                      <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          value=""
-                          onSelect={() => {
-                            setSupervisorValue("");
-                            setNewUser({...newUser, supervisorName: '', supervisorUid: ''});
-                            setSupervisorOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              supervisorValue === "" ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          ไม่มีหัวหน้างาน
-                        </CommandItem>
-                        {supervisors.map((supervisor) => (
-                          <CommandItem
-                            key={supervisor.uid}
-                            value={supervisor.uid}
-                            onSelect={(currentValue) => {
-                              setSupervisorValue(currentValue === supervisorValue ? "" : currentValue);
-                              setNewUser({
-                                ...newUser, 
-                                supervisorName: currentValue === supervisorValue ? '' : supervisor.displayName || '',
-                                supervisorUid: currentValue === supervisorValue ? '' : supervisor.uid
-                              });
-                              setSupervisorOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                supervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {supervisor.displayName || supervisor.email}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-1.5 sm:space-y-2">
               <label htmlFor="role" className="text-xs sm:text-sm font-medium">
                 บทบาท <span className="text-destructive">*</span>
               </label>
               <Select
                 value={newUser.role}
-                onValueChange={(value) => setNewUser({...newUser, role: value})}
+                onValueChange={(value) => {
+                  setNewUser({...newUser, role: value});
+                  if (value !== 'employee') {
+                    setSupervisorValue('');
+                    setNewUser(prev => ({...prev, role: value, supervisorName: '', supervisorUid: ''}));
+                  }
+                }}
               >
                 <SelectTrigger className="text-sm">
                   <SelectValue placeholder="เลือกบทบาท" />
@@ -808,6 +744,78 @@ export default function UsersManagementPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {newUser.role === 'employee' && (
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="supervisor" className="text-xs sm:text-sm font-medium">
+                  หัวหน้างาน
+                </label>
+                <Popover open={supervisorOpen} onOpenChange={setSupervisorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={supervisorOpen}
+                      className="w-full justify-between text-xs sm:text-sm"
+                    >
+                      {supervisorValue
+                        ? supervisors.find((supervisor) => supervisor.uid === supervisorValue)?.displayName
+                        : "เลือกหัวหน้างาน..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
+                      <CommandList>
+                        <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value=""
+                            onSelect={() => {
+                              setSupervisorValue("");
+                              setNewUser({...newUser, supervisorName: '', supervisorUid: ''});
+                              setSupervisorOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                supervisorValue === "" ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            ไม่มีหัวหน้างาน
+                          </CommandItem>
+                          {supervisors.map((supervisor) => (
+                            <CommandItem
+                              key={supervisor.uid}
+                              value={supervisor.uid}
+                              onSelect={(currentValue) => {
+                                setSupervisorValue(currentValue === supervisorValue ? "" : currentValue);
+                                setNewUser({
+                                  ...newUser, 
+                                  supervisorName: currentValue === supervisorValue ? '' : supervisor.displayName || '',
+                                  supervisorUid: currentValue === supervisorValue ? '' : supervisor.uid
+                                });
+                                setSupervisorOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  supervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {supervisor.displayName || supervisor.email}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
             <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
               <Button 
@@ -927,82 +935,19 @@ export default function UsersManagementPage() {
             </div>
 
             <div className="space-y-1.5 sm:space-y-2">
-              <label htmlFor="edit-supervisor" className="text-xs sm:text-sm font-medium">
-                หัวหน้างาน
-              </label>
-              <Popover open={editSupervisorOpen} onOpenChange={setEditSupervisorOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={editSupervisorOpen}
-                    className="w-full justify-between text-xs sm:text-sm"
-                  >
-                    {editSupervisorValue
-                      ? supervisors.find((supervisor) => supervisor.uid === editSupervisorValue)?.displayName
-                      : "เลือกหัวหน้างาน..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
-                    <CommandList>
-                      <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          value=""
-                          onSelect={() => {
-                            setEditSupervisorValue("");
-                            setEditUser({...editUser, supervisorName: '', supervisorUid: ''});
-                            setEditSupervisorOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              editSupervisorValue === "" ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          ไม่มีหัวหน้างาน
-                        </CommandItem>
-                        {supervisors.map((supervisor) => (
-                          <CommandItem
-                            key={supervisor.uid}
-                            value={supervisor.uid}
-                            onSelect={(currentValue) => {
-                              setEditSupervisorValue(currentValue === editSupervisorValue ? "" : currentValue);
-                              setEditUser({
-                                ...editUser, 
-                                supervisorName: currentValue === editSupervisorValue ? '' : supervisor.displayName || '',
-                                supervisorUid: currentValue === editSupervisorValue ? '' : supervisor.uid
-                              });
-                              setEditSupervisorOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                editSupervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {supervisor.displayName || supervisor.email}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-1.5 sm:space-y-2">
               <label htmlFor="edit-role" className="text-xs sm:text-sm font-medium">
                 บทบาท <span className="text-destructive">*</span>
               </label>
               <Select
                 value={editUser.role}
-                onValueChange={(value) => setEditUser({...editUser, role: value})}
+                onValueChange={(value) => {
+                  setEditUser({...editUser, role: value});
+                  // Clear supervisor when role is not employee
+                  if (value !== 'employee') {
+                    setEditSupervisorValue('');
+                    setEditUser(prev => ({...prev, role: value, supervisorName: '', supervisorUid: ''}));
+                  }
+                }}
               >
                 <SelectTrigger className={`text-sm ${editValidationErrors.role ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder="เลือกบทบาท" />
@@ -1018,6 +963,78 @@ export default function UsersManagementPage() {
                 <p className="text-xs text-destructive">กรุณาเลือกบทบาท</p>
               )}
             </div>
+
+            {editUser.role === 'employee' && (
+              <div className="space-y-1.5 sm:space-y-2">
+                <label htmlFor="edit-supervisor" className="text-xs sm:text-sm font-medium">
+                  หัวหน้างาน
+                </label>
+                <Popover open={editSupervisorOpen} onOpenChange={setEditSupervisorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={editSupervisorOpen}
+                      className="w-full justify-between text-xs sm:text-sm"
+                    >
+                      {editSupervisorValue
+                        ? supervisors.find((supervisor) => supervisor.uid === editSupervisorValue)?.displayName
+                        : "เลือกหัวหน้างาน..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="ค้นหาหัวหน้างาน..." />
+                      <CommandList>
+                        <CommandEmpty>ไม่พบหัวหน้างาน</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value=""
+                            onSelect={() => {
+                              setEditSupervisorValue("");
+                              setEditUser({...editUser, supervisorName: '', supervisorUid: ''});
+                              setEditSupervisorOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                editSupervisorValue === "" ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            ไม่มีหัวหน้างาน
+                          </CommandItem>
+                          {supervisors.map((supervisor) => (
+                            <CommandItem
+                              key={supervisor.uid}
+                              value={supervisor.uid}
+                              onSelect={(currentValue) => {
+                                setEditSupervisorValue(currentValue === editSupervisorValue ? "" : currentValue);
+                                setEditUser({
+                                  ...editUser, 
+                                  supervisorName: currentValue === editSupervisorValue ? '' : supervisor.displayName || '',
+                                  supervisorUid: currentValue === editSupervisorValue ? '' : supervisor.uid
+                                });
+                                setEditSupervisorOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  editSupervisorValue === supervisor.uid ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {supervisor.displayName || supervisor.email}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
             <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
               <Button 

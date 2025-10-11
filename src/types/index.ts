@@ -68,6 +68,7 @@ export interface Order {
   itemsCategories?: Record<string, string>;
   itemsStatuses?: Record<string, string>;
   approvedBy?: string;
+  approvedByName?: string;
   approvedByUid?: string;
   approvedAt?: any;
   rejectedReason?: string;
