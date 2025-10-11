@@ -13,6 +13,7 @@ import { isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { 
   FileText, 
   CheckCircle, 
+  Check,
   ShoppingCart, 
   Package, 
   Clock, 
@@ -28,7 +29,7 @@ import {
   Table2,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  LoaderCircleIcon
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '../ui/alert';
 import { 
@@ -171,7 +172,6 @@ export default function TrackingPage() {
   useEffect(() => {
     let filtered = rows;
 
-    // Apply custom date range filter
     if (customDateRange) {
       const range = customDateRange as DateRange;
       if (range.from) {
@@ -195,7 +195,6 @@ export default function TrackingPage() {
       }
     }
 
-    // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(order => {
@@ -214,7 +213,6 @@ export default function TrackingPage() {
       });
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
@@ -1055,15 +1053,6 @@ function renderProgressFlow(status: OrderStatus) {
     }
   };
 
-  const getStepStatus = (step: number, currentStep: number, orderStatus: OrderStatus) => {
-    if (step < currentStep) return 'completed';
-    if (step === currentStep) {
-      if (orderStatus === 'rejected' && step === 2) return 'rejected';
-      return 'active';
-    }
-    return 'inactive';
-  };
-
   const steps = [
     { title: 'ผู้ขอซื้อ', icon: FileText },
     { title: 'หัวหน้าอนุมัติ', icon: CheckCircle },
@@ -1074,35 +1063,31 @@ function renderProgressFlow(status: OrderStatus) {
   const currentStep = getCurrentStep(status);
 
   return (
-    <Stepper 
-      value={currentStep} 
-      orientation="horizontal"
-      className="space-y-8 w-full"
+    <Stepper
+      value={currentStep}
       indicators={{
-        completed: <CheckCircle className="size-4" />,
+        completed: <Check className="size-4" />,
+        loading: <LoaderCircleIcon className="size-4 animate-spin" />,
       }}
+      className="space-y-8"
     >
       <StepperNav className="gap-3 mb-15">
         {steps.map((step, index) => {
           const stepNumber = index + 1;
-          const stepStatus = getStepStatus(stepNumber, currentStep, status);
+          const isCompleted = stepNumber < currentStep && status !== 'rejected';
           const isRejected = status === 'rejected' && stepNumber === 2;
+          const isLoading = stepNumber === currentStep && !isRejected;
           
           return (
             <StepperItem 
               key={index} 
-              step={stepNumber} 
-              completed={stepNumber < currentStep}
+              step={stepNumber}
+              completed={isCompleted}
+              loading={isLoading}
               className="relative flex-1 items-start"
             >
               <StepperTrigger className="flex flex-col items-start justify-center gap-2.5 grow" asChild>
-                <StepperIndicator className={cn(
-                  "size-8 border-2 flex items-center justify-center",
-                  stepNumber < currentStep && "data-[state=completed]:text-white data-[state=completed]:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary",
-                  isRejected && "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:border-red-500",
-                  stepNumber > currentStep && "data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground"
-                )}>
+                <StepperIndicator className="size-8 border-2 data-[state=completed]:text-white data-[state=completed]:bg-green-500 data-[state=completed]:border-green-500 data-[state=active]:bg-primary data-[state=active]:border-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground">
                   <step.icon className="size-4" />
                 </StepperIndicator>
                 <div className="flex flex-col items-start gap-1">
@@ -1117,6 +1102,8 @@ function renderProgressFlow(status: OrderStatus) {
                       <>
                         <Badge
                           variant="primary"
+                          size="sm"
+                          appearance="light"
                           className="hidden group-data-[state=active]/step:inline-flex"
                         >
                           รอดำเนินการ
@@ -1124,6 +1111,8 @@ function renderProgressFlow(status: OrderStatus) {
 
                         <Badge
                           variant="success"
+                          size="sm"
+                          appearance="light"
                           className="hidden group-data-[state=completed]/step:inline-flex"
                         >
                           เสร็จสิ้น
@@ -1131,7 +1120,7 @@ function renderProgressFlow(status: OrderStatus) {
 
                         <Badge
                           variant="secondary"
-                          appearance="outline"
+                          size="sm"
                           className="hidden group-data-[state=inactive]/step:inline-flex text-muted-foreground"
                         >
                           รอคิว
@@ -1142,6 +1131,8 @@ function renderProgressFlow(status: OrderStatus) {
                     {isRejected && (
                       <Badge
                         variant="destructive"
+                        size="sm"
+                        appearance="light"
                         className="inline-flex"
                       >
                         ไม่อนุมัติ
@@ -1152,12 +1143,7 @@ function renderProgressFlow(status: OrderStatus) {
               </StepperTrigger>
 
               {steps.length > index + 1 && (
-                <StepperSeparator className={cn(
-                  "absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none",
-                  stepNumber < currentStep && "group-data-[state=completed]/step:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-primary",
-                  stepNumber > currentStep && "group-data-[state=inactive]/step:bg-muted"
-                )} />
+                <StepperSeparator className="absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none group-data-[state=completed]/step:bg-green-500" />
               )}
             </StepperItem>
           );

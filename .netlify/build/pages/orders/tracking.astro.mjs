@@ -1,14 +1,14 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, g as getDisplayOrderNumber, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, v as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_B0-sabYP.mjs';
+import { u as useUser, l as useRole, m as useIsLoading, x as useOrders, y as useOrdersLoading, z as useOrdersError, g as getDisplayOrderNumber, D as DropdownMenu, e as DropdownMenuTrigger, f as DropdownMenuContent, h as DropdownMenuLabel, i as DropdownMenuSeparator, k as DropdownMenuItem, C as Card, v as CardContent, B as Badge, S as Separator, $ as $$MainLayout } from '../../chunks/card_yyT4zhPw.mjs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import React__default, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { e as cn, A as Alert, a as AlertDescription, B as Button, b as AlertIcon, c as AlertTitle, I as Input } from '../../chunks/alert_JioKFGew.mjs';
-import { approveOrder } from '../../chunks/poApi_JHJXNlqv.mjs';
+import { a as approveOrder } from '../../chunks/poApi_t4Mf7Pn9.mjs';
 import { D as DatePickerPresets } from '../../chunks/date-picker-presets_6zJ_WFdU.mjs';
 import { parseISO, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
-import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart } from 'lucide-react';
+import { RefreshCw, AlertCircle, FileText, Search, Filter, LayoutGrid, Table2, Eye, CheckCircle, XCircle, Tag, ChevronLeft, ChevronRight, Package, Truck, Clock, ShoppingCart, LoaderCircleIcon, Check } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
 import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, f as DialogFooter } from '../../chunks/dialog_Dntxk7Ib.mjs';
 import { S as Select, a as SelectTrigger, b as SelectValue, c as SelectContent, d as SelectItem } from '../../chunks/select_DOMUTCC4.mjs';
@@ -17,6 +17,7 @@ import { S as ScrollArea, a as ScrollBar } from '../../chunks/scroll-area_BjEhz3
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription, e as EmptyContent } from '../../chunks/empty_aUNL12Sy.mjs';
+import 'clsx';
 export { renderers } from '../../renderers.mjs';
 
 function ItemGroup({ className, ...props }) {
@@ -1169,29 +1170,26 @@ function renderProgressFlow(status) {
     Stepper,
     {
       value: currentStep,
-      orientation: "horizontal",
-      className: "space-y-8 w-full",
       indicators: {
-        completed: /* @__PURE__ */ jsx(CheckCircle, { className: "size-4" })
+        completed: /* @__PURE__ */ jsx(Check, { className: "size-4" }),
+        loading: /* @__PURE__ */ jsx(LoaderCircleIcon, { className: "size-4 animate-spin" })
       },
+      className: "space-y-8",
       children: /* @__PURE__ */ jsx(StepperNav, { className: "gap-3 mb-15", children: steps.map((step, index) => {
         const stepNumber = index + 1;
+        const isCompleted = stepNumber < currentStep && status !== "rejected";
         const isRejected = status === "rejected" && stepNumber === 2;
+        const isLoading = stepNumber === currentStep && !isRejected;
         return /* @__PURE__ */ jsxs(
           StepperItem,
           {
             step: stepNumber,
-            completed: stepNumber < currentStep,
+            completed: isCompleted,
+            loading: isLoading,
             className: "relative flex-1 items-start",
             children: [
               /* @__PURE__ */ jsxs(StepperTrigger, { className: "flex flex-col items-start justify-center gap-2.5 grow", asChild: true, children: [
-                /* @__PURE__ */ jsx(StepperIndicator, { className: cn(
-                  "size-8 border-2 flex items-center justify-center",
-                  stepNumber < currentStep && "data-[state=completed]:text-white data-[state=completed]:bg-green-500",
-                  stepNumber === currentStep && !isRejected && "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:border-primary",
-                  isRejected && "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:border-red-500",
-                  stepNumber > currentStep && "data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground"
-                ), children: /* @__PURE__ */ jsx(step.icon, { className: "size-4" }) }),
+                /* @__PURE__ */ jsx(StepperIndicator, { className: "size-8 border-2 data-[state=completed]:text-white data-[state=completed]:bg-green-500 data-[state=completed]:border-green-500 data-[state=active]:bg-primary data-[state=active]:border-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-transparent data-[state=inactive]:border-border data-[state=inactive]:text-muted-foreground", children: /* @__PURE__ */ jsx(step.icon, { className: "size-4" }) }),
                 /* @__PURE__ */ jsxs("div", { className: "flex flex-col items-start gap-1", children: [
                   /* @__PURE__ */ jsxs("div", { className: "text-[10px] font-semibold uppercase text-muted-foreground", children: [
                     "ขั้นตอนที่ ",
@@ -1204,6 +1202,8 @@ function renderProgressFlow(status) {
                         Badge,
                         {
                           variant: "primary",
+                          size: "sm",
+                          appearance: "light",
                           className: "hidden group-data-[state=active]/step:inline-flex",
                           children: "รอดำเนินการ"
                         }
@@ -1212,6 +1212,8 @@ function renderProgressFlow(status) {
                         Badge,
                         {
                           variant: "success",
+                          size: "sm",
+                          appearance: "light",
                           className: "hidden group-data-[state=completed]/step:inline-flex",
                           children: "เสร็จสิ้น"
                         }
@@ -1220,7 +1222,7 @@ function renderProgressFlow(status) {
                         Badge,
                         {
                           variant: "secondary",
-                          appearance: "outline",
+                          size: "sm",
                           className: "hidden group-data-[state=inactive]/step:inline-flex text-muted-foreground",
                           children: "รอคิว"
                         }
@@ -1230,6 +1232,8 @@ function renderProgressFlow(status) {
                       Badge,
                       {
                         variant: "destructive",
+                        size: "sm",
+                        appearance: "light",
                         className: "inline-flex",
                         children: "ไม่อนุมัติ"
                       }
@@ -1237,12 +1241,7 @@ function renderProgressFlow(status) {
                   ] })
                 ] })
               ] }),
-              steps.length > index + 1 && /* @__PURE__ */ jsx(StepperSeparator, { className: cn(
-                "absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none",
-                stepNumber < currentStep && "group-data-[state=completed]/step:bg-green-500",
-                stepNumber === currentStep && !isRejected && "group-data-[state=active]/step:bg-primary",
-                stepNumber > currentStep && "group-data-[state=inactive]/step:bg-muted"
-              ) })
+              steps.length > index + 1 && /* @__PURE__ */ jsx(StepperSeparator, { className: "absolute top-4 inset-x-0 start-9 m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none group-data-[state=completed]/step:bg-green-500" })
             ]
           },
           index

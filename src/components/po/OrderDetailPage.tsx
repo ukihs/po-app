@@ -1,25 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { auth, db } from "../../firebase/client";
-import {
-  doc, updateDoc, collection, addDoc, serverTimestamp
-} from "firebase/firestore";
+import React from "react";
 import { useUser, useRole, useIsLoading, useOrderById } from "../../stores";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Alert, AlertDescription, AlertIcon, AlertTitle } from "../ui/alert";
-import { Loader2, CheckCircle, XCircle, FileText, User, Calendar, DollarSign } from "lucide-react";
-import { 
-  RiCheckboxCircleFill, 
-  RiErrorWarningFill, 
-  RiSpam3Fill, 
-  RiInformationFill 
-} from '@remixicon/react';
+import { Alert, AlertDescription } from "../ui/alert";
+import { Loader2, FileText, User, Calendar, DollarSign } from "lucide-react";
 import type { Order } from "../../types";
-import { COLLECTIONS } from "../../lib/constants";
 import { getDisplayOrderNumber } from "../../lib/order-utils";
 
 export default function OrderDetailPage({ orderId }: { orderId: string }) {
@@ -27,153 +15,8 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
   const role = useRole();
   const authLoading = useIsLoading();
   const order = useOrderById(orderId);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string>("");
-  const [alertState, setAlertState] = useState<{
-    show: boolean;
-    type: 'success' | 'error' | 'info' | 'warning';
-    title: string;
-    description?: string;
-  }>({
-    show: false,
-    type: 'info',
-    title: '',
-    description: ''
-  });
   
   const loading = authLoading || !order;
-
-  const showAlert = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', description?: string) => {
-    setAlertState({
-      show: true,
-      type,
-      title: message,
-      description
-    });
-
-    // Auto-hide after duration
-    const duration = type === 'error' ? 5000 : 4000;
-    setTimeout(() => {
-      setAlertState(prev => ({ ...prev, show: false }));
-    }, duration);
-  };
-
-  const getAlertConfig = (type: string) => {
-    switch (type) {
-      case 'success':
-        return {
-          variant: 'success' as const,
-          appearance: 'light' as const,
-          IconComponent: RiCheckboxCircleFill
-        };
-      case 'error':
-        return {
-          variant: 'destructive' as const,
-          appearance: 'light' as const,
-          IconComponent: RiErrorWarningFill
-        };
-      case 'warning':
-        return {
-          variant: 'warning' as const,
-          appearance: 'light' as const,
-          IconComponent: RiSpam3Fill
-        };
-      case 'info':
-      default:
-        return {
-          variant: 'info' as const,
-          appearance: 'light' as const,
-          IconComponent: RiInformationFill
-        };
-    }
-  };
-
-  const approve = async () => {
-    if (!order?.id || saving) return;
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, COLLECTIONS.ORDERS, order.id), {
-        status: "approved",
-        approvedByUid: auth.currentUser?.uid || null,
-        approvedAt: serverTimestamp(),
-      });
-      await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
-        toUserUid: order.requesterUid,
-        orderId: order.id,
-        orderNo: order.orderNo,
-        title: "ใบสั่งซื้อได้รับการอนุมัติ",
-        message: `ใบสั่งซื้อ #${order.orderNo} ได้รับการอนุมัติแล้ว`,
-        kind: "approved",
-        fromUserUid: auth.currentUser?.uid || '',
-        fromUserName: auth.currentUser?.displayName || 'หัวหน้างาน',
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-
-      try {
-        const poApi = await import('../../lib/poApi');
-        await poApi.createNotification({
-          title: "มีใบสั่งซื้อใหม่ที่ได้รับการอนุมัติ",
-          message: `ใบสั่งซื้อ #${order.orderNo} โดย ${order.requesterName} ได้รับการอนุมัติแล้ว กรุณาดำเนินการจัดซื้อ`,
-          orderId: order.id,
-          orderNo: order.orderNo,
-          kind: "status_update",
-          forRole: "procurement",
-          fromUserName: auth.currentUser?.displayName || 'หัวหน้างาน',
-        });
-      } catch (procurementNotifError) {
-        console.error('Failed to send procurement notification:', procurementNotifError);
-      }
-      showAlert("อนุมัติเรียบร้อย", "success");
-      import('astro:transitions/client')
-        .then(({ navigate }) => navigate("/orders/list"))
-        .catch(() => {
-          window.location.href = "/orders/list";
-        });
-    } catch (e: any) {
-      console.error(e);
-      showAlert("อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const reject = async () => {
-    if (!order?.id || saving) return;
-    const reason = prompt("เหตุผลการไม่อนุมัติ (ใส่หรือเว้นว่างก็ได้)") || "";
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, COLLECTIONS.ORDERS, order.id), {
-        status: "rejected",
-        rejectedByUid: auth.currentUser?.uid || null,
-        rejectedAt: serverTimestamp(),
-        rejectReason: reason,
-      });
-      await addDoc(collection(db, COLLECTIONS.NOTIFICATIONS), {
-        toUserUid: order.requesterUid,
-        orderId: order.id,
-        orderNo: order.orderNo,
-        title: "ใบสั่งซื้อไม่ได้รับการอนุมัติ",
-        message: `ใบสั่งซื้อ #${order.orderNo} ไม่ได้รับการอนุมัติ${reason ? ` (เหตุผล: ${reason})` : ""}`,
-        kind: "rejected",
-        fromUserUid: auth.currentUser?.uid || '',
-        fromUserName: auth.currentUser?.displayName || 'หัวหน้างาน',
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-      showAlert("ดำเนินการไม่อนุมัติสำเร็จ", "success");
-      import('astro:transitions/client')
-        .then(({ navigate }) => navigate("/orders/list"))
-        .catch(() => {
-          window.location.href = "/orders/list";
-        });
-    } catch (e: any) {
-      console.error(e);
-      showAlert("ดำเนินการไม่อนุมัติไม่สำเร็จ", "error", e.message || "เนื่องจากเกิดข้อผิดพลาด");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { text: string; className: string }> = {
@@ -185,9 +28,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
     };
     return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
   };
-
-  const isPending = order?.status === 'pending';
-  const canApprove = role === 'supervisor' && isPending;
 
   if (authLoading || loading) {
     return (
@@ -208,14 +48,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
     );
   }
 
-  if (err) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>เกิดข้อผิดพลาด: {err}</AlertDescription>
-      </Alert>
-    );
-  }
-
   if (!order) {
     return (
       <div className="text-center p-12">
@@ -229,25 +61,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
 
   return (
     <div className="w-full">
-      {alertState.show && (
-        <div className="fixed top-4 right-4 z-50 max-w-md">
-          <Alert 
-            variant={getAlertConfig(alertState.type).variant}
-            appearance={getAlertConfig(alertState.type).appearance}
-            close
-            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
-          >
-            <AlertIcon>
-              {React.createElement(getAlertConfig(alertState.type).IconComponent, { className: "h-4 w-4" })}
-            </AlertIcon>
-            <AlertTitle>{alertState.title}</AlertTitle>
-            {alertState.description && (
-              <AlertDescription>{alertState.description}</AlertDescription>
-            )}
-          </Alert>
-        </div>
-      )}
-      
       <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 sm:gap-3">
           <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#2b9ccc]" />
@@ -341,48 +154,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
           </CardContent>
         </Card>
       ) : null}
-
-      {canApprove && (
-        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <Button 
-            onClick={approve} 
-            disabled={saving}
-            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-2" />
-                <span className="hidden sm:inline">กำลังอนุมัติ...</span>
-                <span className="sm:hidden">กำลังอนุมัติ...</span>
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                อนุมัติ
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={reject} 
-            disabled={saving}
-            variant="destructive"
-            className="w-full sm:w-auto"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin mr-2" />
-                <span className="hidden sm:inline">กำลังทำรายการ...</span>
-                <span className="sm:hidden">กำลังทำรายการ...</span>
-              </>
-            ) : (
-              <>
-                <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                ไม่อนุมัติ
-              </>
-            )}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
