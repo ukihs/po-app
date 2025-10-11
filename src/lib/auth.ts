@@ -10,12 +10,10 @@ import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import type { UserRole } from '../types';
 
-// Optimized: Only write if document doesn't exist
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
   const existingDoc = await getDoc(ref);
   
-  // Only create if doesn't exist (no unnecessary writes)
   if (!existingDoc.exists()) {
     await setDoc(ref, {
       uid: user.uid,
@@ -28,7 +26,6 @@ export async function ensureUserDoc(user: User, displayName?: string) {
     
     console.log('[Auth] Created new user document for:', user.uid);
   }
-  // Don't update on every login - saves Firestore writes!
 }
 
 export async function signUp(email: string, password: string, displayName?: string) {
@@ -38,10 +35,8 @@ export async function signUp(email: string, password: string, displayName?: stri
   return user;
 }
 
-// Optimized: Don't check on every login
 export async function signIn(email: string, password: string) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
-  // ensureUserDoc will be called by subscribeAuthAndRole if needed
   return user;
 }
 
@@ -63,7 +58,6 @@ export async function setAuthCookie(forceRefresh = false) {
   if (!user) return;
   
   try {
-    // Force refresh token if needed
     const idToken = await user.getIdToken(forceRefresh);
     
     if (typeof document !== 'undefined') {
@@ -74,23 +68,20 @@ export async function setAuthCookie(forceRefresh = false) {
   }
 }
 
-// Auto-refresh token every 50 minutes (before 1 hour expiry)
 let tokenRefreshInterval: NodeJS.Timeout | null = null;
 
 export function startTokenRefresh() {
-  // Clear existing interval
   if (tokenRefreshInterval) {
     clearInterval(tokenRefreshInterval);
   }
   
-  // Refresh token every 50 minutes
   tokenRefreshInterval = setInterval(async () => {
     const user = auth.currentUser;
     if (user) {
       console.log('[Auth] Auto-refreshing token...');
-      await setAuthCookie(true); // Force refresh
+      await setAuthCookie(true);
     }
-  }, 50 * 60 * 1000); // 50 minutes
+  }, 50 * 60 * 1000);
 }
 
 export function stopTokenRefresh() {
@@ -100,21 +91,70 @@ export function stopTokenRefresh() {
   }
 }
 
-export async function signOutUser() {
-  await signOut(auth);
-  
+function clearAuthStorage() {
   if (typeof document !== 'undefined') {
     document.cookie = `firebase-id-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-    import('astro:transitions/client')
-      .then(({ navigate }) => navigate('/login'))
-      .catch(() => {
-        window.location.href = '/login';
-      });
+    
+    try {
+      sessionStorage.clear();
+    } catch (error) {
+      console.error('[Auth] Failed to clear sessionStorage:', error);
+    }
+  }
+}
+
+async function navigateToLogin() {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const { navigate } = await import('astro:transitions/client');
+    await navigate('/login');
+  } catch (error) {
+    console.warn('[Auth] Astro navigation failed, using window.location:', error);
+    window.location.href = '/login';
+  }
+}
+
+export async function signOutUser() {
+  try {
+    console.log('[Auth] Starting logout process...');
+    
+    stopTokenRefresh();
+    
+    try {
+      const { useAuthStore } = await import('../stores/authStore');
+      const { useOrdersStore } = await import('../stores/ordersStore');
+      const { useNotificationsStore } = await import('../stores/notificationsStore');
+      
+      useAuthStore.getState().cleanup();
+      useOrdersStore.getState().cleanup();
+      useNotificationsStore.getState().cleanup();
+      
+      useAuthStore.getState().logout();
+      useOrdersStore.getState().setOrders([]);
+      useNotificationsStore.getState().setNotifications([]);
+      
+      console.log('[Auth] Stores cleaned up');
+    } catch (storeError) {
+      console.error('[Auth] Store cleanup error:', storeError);
+    }
+    
+    await signOut(auth);
+    console.log('[Auth] Firebase sign out completed');
+    
+  } catch (error) {
+    console.error('[Auth] Logout error:', error);
+    stopTokenRefresh();
+  } finally {
+    clearAuthStorage();
+    console.log('[Auth] Storage cleared');
+    
+    await navigateToLogin();
+    console.log('[Auth] Redirected to login');
   }
 }
 
 
-// Optimized: Use custom claims instead of Firestore listener
 export function subscribeAuthAndRole(
   cb: (user: User | null, role: UserRole | null) => void
 ) {
@@ -125,11 +165,9 @@ export function subscribeAuthAndRole(
     }
 
     try {
-      // Get role from custom claims (no Firestore read!)
       const tokenResult = await user.getIdTokenResult();
       let role = tokenResult.claims.role as UserRole | undefined;
       
-      // Fallback: If no custom claim, read from Firestore once
       if (!role) {
         console.log('[Auth] No custom claim found, reading from Firestore...');
         const ref = doc(db, 'users', user.uid);
@@ -138,7 +176,6 @@ export function subscribeAuthAndRole(
         if (snap.exists()) {
           role = (snap.data()?.role ?? 'employee') as UserRole;
         } else {
-          // Create user doc if not exists
           await ensureUserDoc(user);
           role = 'employee';
         }
@@ -146,7 +183,6 @@ export function subscribeAuthAndRole(
       
       cb(user, role);
       
-      // Start token refresh
       startTokenRefresh();
     } catch (error) {
       console.error('Auth subscription error:', error);
