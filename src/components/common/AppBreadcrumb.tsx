@@ -9,8 +9,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '../ui/breadcrumb';
-import { useOrderById } from '../../stores';
+import { useOrderById, useRole } from '../../stores';
 import { getDisplayOrderNumber } from '../../lib/order-utils';
+import { DEFAULT_ROUTE_BY_ROLE } from '../../lib/constants';
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -19,6 +21,7 @@ interface BreadcrumbItem {
 export default function AppBreadcrumb() {
   const [isClient, setIsClient] = useState(false);
   const [pathname, setPathname] = useState('');
+  const role = useRole();
   
   const orderId = pathname.startsWith('/orders/') && pathname !== '/orders/create' && 
                   pathname !== '/orders/tracking' && pathname !== '/orders/notifications' && 
@@ -47,11 +50,13 @@ export default function AppBreadcrumb() {
   }, []);
   
   const getBreadcrumbItems = (): BreadcrumbItem[] => {
+    const homeRoute = role ? DEFAULT_ROUTE_BY_ROLE[role] : '/login';
+    
     const items: BreadcrumbItem[] = [
-      { label: 'ระบบใบขอซื้อ', href: '/' }
+      { label: 'ระบบใบขอซื้อ', href: homeRoute }
     ];
 
-    if (pathname === '/') {
+    if (pathname === '/' || pathname === homeRoute) {
       items.push({ label: 'หน้าหลัก' });
     } else if (pathname.startsWith('/orders/create')) {
       items.push({ label: 'สร้างใบขอซื้อ' });
