@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { auth } from '../../firebase/client';
 import { createOrder, grandTotal, toNum, type ItemType } from '../../lib/poApi';
 import type { Item } from '../../lib/poApi';
@@ -52,6 +52,7 @@ export default function CreateOrderPage() {
     title: '',
     description: ''
   });
+  const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const u = auth.currentUser;
@@ -91,10 +92,23 @@ export default function CreateOrderPage() {
 
     // Auto-hide after duration
     const duration = type === 'error' ? 5000 : 4000;
-    setTimeout(() => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+    alertTimeoutRef.current = setTimeout(() => {
       setAlertState(prev => ({ ...prev, show: false }));
+      alertTimeoutRef.current = null;
     }, duration);
   };
+
+  useEffect(() => {
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+        alertTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const getAlertConfig = (type: string) => {
     switch (type) {

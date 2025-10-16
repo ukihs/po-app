@@ -43,8 +43,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
       cacheToken(idToken, user);
     }
     
-    const allowedRoles = ROLE_PERMISSIONS[pathname as keyof typeof ROLE_PERMISSIONS];
-    
+    const matchedPermission = Object.entries(ROLE_PERMISSIONS)
+      .filter(([route]) => pathname === route || pathname.startsWith(route.endsWith('/') ? route : `${route}/`))
+      .sort((a, b) => b[0].length - a[0].length)[0];
+
+    const allowedRoles = matchedPermission?.[1];
+
     if (!allowedRoles || !hasRole(user.role, allowedRoles)) {
       return redirect('/unauthorized');
     }
@@ -63,6 +67,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 async function handleAPIAuth(context: any, next: any) {
   const { url, request, locals } = context;
   const pathname = url.pathname;
+
+  if (pathname === '/api/auth/session') {
+    return next();
+  }
 
   const authHeader = request.headers.get('Authorization');
   const cookieHeader = request.headers.get('Cookie');

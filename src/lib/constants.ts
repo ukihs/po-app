@@ -1,10 +1,12 @@
 import type { UserRole, OrderStatus, ItemType, ProcurementStatus } from '../types';
 
 export const PROTECTED_ROUTES = [
+  '/orders',
   '/orders/create',
   '/orders/tracking',
   '/orders/notifications',
   '/orders/list',
+  '/admin',
   '/admin/users',
   '/admin/orders'
 ] as const;
@@ -29,10 +31,12 @@ export const hasRole = (userRole: UserRole, allowedRoles: UserRole[]): boolean =
 };
 
 export const ROLE_PERMISSIONS: Record<string, UserRole[]> = {
+  '/orders': ['employee', 'supervisor', 'procurement'],
   '/orders/create': ['employee', 'supervisor', 'procurement'],
   '/orders/tracking': ['employee', 'supervisor', 'procurement'],
   '/orders/notifications': ['employee', 'supervisor', 'procurement'],
   '/orders/list': ['procurement'],
+  '/admin': ['admin'],
   '/admin/users': ['admin'],
   '/admin/orders': ['admin']
 } as const;
@@ -178,7 +182,8 @@ export const STORAGE_KEYS = {
 
 export const SESSION_STORAGE_KEYS = {
   LAST_VISITED_PAGE: 'po_last_visited_page',
-  TEMP_FORM_DATA: 'po_temp_form_data'
+  TEMP_FORM_DATA: 'po_temp_form_data',
+  LAST_SYNCED_TOKEN: 'po_last_synced_token'
 } as const;
 
 export const COOKIE_NAMES = {

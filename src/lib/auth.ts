@@ -9,6 +9,7 @@ import {
 import { auth, db } from '../firebase/client';
 import { doc, onSnapshot, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import type { UserRole } from '../types';
+import { STORAGE_KEYS, SESSION_STORAGE_KEYS } from './constants';
 
 export async function ensureUserDoc(user: User, displayName?: string) {
   const ref = doc(db, 'users', user.uid);
@@ -53,15 +54,47 @@ export async function getIdToken(): Promise<string | null> {
   }
 }
 
+let lastSyncedToken: string | null = null;
+
 export async function setAuthCookie(forceRefresh = false) {
   const user = auth.currentUser;
-  if (!user) return;
+  if (!user || typeof window === 'undefined') return;
   
   try {
+    if (!forceRefresh && !lastSyncedToken) {
+      try {
+        lastSyncedToken = sessionStorage.getItem(SESSION_STORAGE_KEYS.LAST_SYNCED_TOKEN) || null;
+      } catch (error) {
+        console.error('Failed to read last synced token:', error);
+      }
+    }
+
     const idToken = await user.getIdToken(forceRefresh);
     
-    if (typeof document !== 'undefined') {
-      document.cookie = `firebase-id-token=${idToken}; path=/; max-age=3600; secure; samesite=strict`;
+    if (!forceRefresh && idToken === lastSyncedToken) {
+      return;
+    }
+    
+    const response = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      console.error('Failed to set auth cookie:', message);
+      return;
+    }
+
+    lastSyncedToken = idToken;
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEYS.LAST_SYNCED_TOKEN, idToken);
+    } catch (storageError) {
+      console.error('Failed to persist last synced token:', storageError);
     }
   } catch (error) {
     console.error('Failed to set auth cookie:', error);
@@ -91,15 +124,28 @@ export function stopTokenRefresh() {
   }
 }
 
-function clearAuthStorage() {
-  if (typeof document !== 'undefined') {
-    document.cookie = `firebase-id-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-    
-    try {
-      sessionStorage.clear();
-    } catch (error) {
-      console.error('[Auth] Failed to clear sessionStorage:', error);
-    }
+async function clearAuthStorage() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    await fetch('/api/auth/session', {
+      method: 'DELETE',
+      credentials: 'same-origin',
+    });
+  } catch (error) {
+    console.error('[Auth] Failed to clear auth cookie:', error);
+  }
+  
+  try {
+    sessionStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+    sessionStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
+    sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.LAST_VISITED_PAGE);
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.TEMP_FORM_DATA);
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.LAST_SYNCED_TOKEN);
+    lastSyncedToken = null;
+  } catch (error) {
+    console.error('[Auth] Failed to clear sessionStorage:', error);
   }
 }
 
@@ -146,7 +192,7 @@ export async function signOutUser() {
     console.error('[Auth] Logout error:', error);
     stopTokenRefresh();
   } finally {
-    clearAuthStorage();
+    await clearAuthStorage();
     console.log('[Auth] Storage cleared');
     
     await navigateToLogin();
