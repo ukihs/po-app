@@ -1,19 +1,19 @@
 import { d as createComponent, k as renderComponent, r as renderTemplate } from '../../chunks/astro/server_BP4slHKI.mjs';
 import 'kleur/colors';
-import { C as Card, s as CardContent, t as toNum, S as Separator, $ as $$MainLayout } from '../../chunks/card_DBGmXXaI.mjs';
+import { C as Card, s as CardContent, t as toNum, S as Separator, $ as $$MainLayout } from '../../chunks/card_CreWAGcp.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
-import React__default, { useState, useEffect } from 'react';
-import { e as cn, B as Button, h as auth, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input } from '../../chunks/alert__0ycYtCC.mjs';
-import { g as grandTotal, c as createOrder } from '../../chunks/poApi_DX3eff8X.mjs';
+import React__default, { useState, useRef, useEffect } from 'react';
+import { e as cn, B as Button, h as auth, A as Alert, b as AlertIcon, c as AlertTitle, a as AlertDescription, I as Input } from '../../chunks/alert_CSmt_LxB.mjs';
+import { g as grandTotal, c as createOrder } from '../../chunks/poApi_DO4SYYFG.mjs';
 import { Calendar, X, Package, Plus, Trash2 } from 'lucide-react';
 import { RiInformationFill, RiSpam3Fill, RiErrorWarningFill, RiCheckboxCircleFill } from '@remixicon/react';
-import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, f as DialogFooter } from '../../chunks/dialog_BxnL1U-l.mjs';
-import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Cs_TYZ86.mjs';
-import { L as Label } from '../../chunks/label_DDZrf0Zo.mjs';
-import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_BLjO6yJT.mjs';
-import { C as Calendar$1 } from '../../chunks/calendar_DgH-hKgf.mjs';
-import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_BXvWReTW.mjs';
+import { D as Dialog, a as DialogContent, b as DialogHeader, c as DialogTitle, d as DialogDescription, f as DialogFooter } from '../../chunks/dialog_BpTo3Mw-.mjs';
+import { T as Table, a as TableHeader, b as TableRow, c as TableHead, d as TableBody, e as TableCell } from '../../chunks/table_Bovn8PSn.mjs';
+import { L as Label } from '../../chunks/label_beMVa6GR.mjs';
+import { E as Empty, a as EmptyHeader, b as EmptyMedia, c as EmptyTitle, d as EmptyDescription } from '../../chunks/empty_C9rp3vjw.mjs';
+import { C as Calendar$1 } from '../../chunks/calendar_LtcXmgze.mjs';
+import { P as Popover, a as PopoverTrigger, b as PopoverContent } from '../../chunks/popover_BozPWlZf.mjs';
 import { format } from 'date-fns';
 import 'clsx';
 export { renderers } from '../../renderers.mjs';
@@ -97,6 +97,7 @@ function CreateOrderPage() {
     title: "",
     description: ""
   });
+  const alertTimeoutRef = useRef(null);
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
@@ -128,10 +129,22 @@ function CreateOrderPage() {
       description
     });
     const duration = type === "error" ? 5e3 : 4e3;
-    setTimeout(() => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+    alertTimeoutRef.current = setTimeout(() => {
       setAlertState((prev) => ({ ...prev, show: false }));
+      alertTimeoutRef.current = null;
     }, duration);
   };
+  useEffect(() => {
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+        alertTimeoutRef.current = null;
+      }
+    };
+  }, []);
   const getAlertConfig = (type) => {
     switch (type) {
       case "success":
